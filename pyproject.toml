@@ -7,6 +7,11 @@ authors = [
     { name = "raphasampaio", email = "rsampaio@psr-inc.com" }
 ]
 requires-python = ">=3.13"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "dotenv>=0.9.9",
     "pandas>=2.3.0",
