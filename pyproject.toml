@@ -13,9 +13,6 @@ dependencies = [
     "psycopg[binary]>=3.2.9",
 ]
 
-[project.scripts]
-energy-data = "energy_data:main"
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
