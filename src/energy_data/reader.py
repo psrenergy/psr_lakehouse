@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 import dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, exc
 
 class PSRDataLakeReader:
     def __init__(self):
@@ -18,8 +18,7 @@ class PSRDataLakeReader:
         )
     
     def retrieve_dataframe(self, table_name: str = None, columns: list[str] = None, filters: dict = None, order_by: str = None, ascending: bool = True, rows: int = 100) -> pd.DataFrame:
-        if not table_name:
-            raise ValueError("Table name must be provided.")
+        self._validate_table_name(table_name)
         
         query = f"SELECT {', '.join(columns) if columns else '*'} FROM {table_name}"
         
@@ -36,8 +35,8 @@ class PSRDataLakeReader:
         
         try :
             df = pd.read_sql(query, con=self.engine, params=params)
-        except Exception as e:
-            raise ValueError(f"Error executing query: {e}")
+        except exc.SQLAlchemyError as e:
+            raise ValueError(f"Database error while executing query: {e}")
         
         if "reference_date" in df.columns:
             df["reference_date"] = pd.to_datetime(df["reference_date"])
@@ -59,6 +58,8 @@ class PSRDataLakeReader:
 
     
     def download_table(self, table_name: str, file_path: str, **kwargs) -> None:
+        self._validate_table_name(table_name)
+        
         if not file_path.lower().endswith('.csv'):
             raise ValueError("Only CSV file format is supported for download.")
 
@@ -84,3 +85,10 @@ class PSRDataLakeReader:
         """
         df = pd.read_sql(query, con=self.engine)
         return df
+
+    def _validate_table_name(self, table_name: str) -> None:
+        valid_tables = self.list_tables()
+        if not table_name or not isinstance(table_name, str):
+            raise ValueError("Table name must be a non-empty string.")
+        if table_name not in valid_tables:
+            raise ValueError(f"Invalid table name: {table_name}")
