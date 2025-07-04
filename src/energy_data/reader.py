@@ -1,19 +1,11 @@
 
-import os
 import pandas as pd
-import dotenv
 import psycopg
 import sqlalchemy
 
 
 class PSRDataLakeReader:
-    def __init__(self):
-        dotenv.load_dotenv()
-        server = os.getenv("POSTGRES_SERVER")
-        port = os.getenv("POSTGRES_PORT")
-        db = os.getenv("POSTGRES_DB")
-        user = os.getenv("POSTGRES_USER")
-        password = os.getenv("POSTGRES_PASSWORD")
+    def __init__(self, server: str, port: str, db: str, user: str, password: str):
         self.connection_string = f"dbname='{db}' user='{user}' host='{server}' port='{port}' password='{password}'"
 
     def fetch_dataframe_from_sql(self, sql: str, params = None) -> pd.DataFrame:
