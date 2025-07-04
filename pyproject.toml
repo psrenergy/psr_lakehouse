@@ -1,18 +1,26 @@
 [project]
 name = "energy-data"
 version = "0.1.0"
+description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+authors = [
+    { name = "raphasampaio", email = "rsampaio@psr-inc.com" }
 ]
-dependencies = ["pandas", "psycopg"]
-
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "pandas>=2.3.0",
+    "psycopg[binary]>=3.2.9",
+]
 
 [project.scripts]
-test = "energy_data.test:main"
+energy-data = "energy_data:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
