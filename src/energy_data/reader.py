@@ -3,6 +3,7 @@ import pandas as pd
 import psycopg
 import sqlalchemy
 
+reference_date = "reference_date"
 
 class PSRDataLakeReader:
     def __init__(self, server: str, port: str, db: str, user: str, password: str):
@@ -10,7 +11,10 @@ class PSRDataLakeReader:
 
     def fetch_dataframe_from_sql(self, sql: str, params = None) -> pd.DataFrame:
         with psycopg.connect(self.connection_string) as connection:
-            return pd.read_sql_query(sql, connection, params=params)
+            df = pd.read_sql_query(sql, connection, params=params)
+            if reference_date in df.columns:
+                df[reference_date] = pd.to_datetime(df[reference_date])
+            return df
 
     def fetch_dataframe(self, table_name: str = None, columns: list[str] = None, filters: dict = None, order_by: str = None, ascending: bool = True, rows: int = 100) -> pd.DataFrame:
         self._validate_table_name(table_name)
@@ -35,22 +39,9 @@ class PSRDataLakeReader:
         except psycopg.Error as e:
             raise ValueError(f"Error while connecting to the database: {e}")
         
-        if "reference_date" in df.columns:
-            df["reference_date"] = pd.to_datetime(df["reference_date"])
+        if columns and reference_date not in columns:
+            df = df.drop(columns=[reference_date], errors='ignore')
         
-        if columns and "reference_date" not in columns:
-            df = df.drop(columns=["reference_date"], errors='ignore')
-        
-        return df
-    
-    
-    def sql_query(self, query: str) -> pd.DataFrame:
-        if not query.strip().lower().startswith("select"):
-            raise ValueError("Only SELECT queries are allowed.")
-        
-        df = self.fetch_dataframe_from_sql(query)  
-        if "reference_date" in df.columns:
-            df["reference_date"] = pd.to_datetime(df["reference_date"])
         return df
 
     
