@@ -38,10 +38,10 @@ class PSRDataLakeReader:
         
         try :
             df = self.fetch_dataframe_from_sql(query, params=params)            
-        except (Exception, psycopg.Error) as e:
-            raise ValueError(f"Error while connecting to the database: {e}")        
         except sqlalchemy.exc.SQLAlchemyError as e:
             raise ValueError(f"Database error while executing query: {e}")
+        except psycopg.Error as e:
+            raise ValueError(f"Error while connecting to the database: {e}")
         
         if "reference_date" in df.columns:
             df["reference_date"] = pd.to_datetime(df["reference_date"])
