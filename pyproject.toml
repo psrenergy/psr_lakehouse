@@ -15,7 +15,7 @@ classifiers = [
 dependencies = [
     "dotenv>=0.9.9",
     "pandas>=2.3.0",
-    "psycopg2-binary>=2.9.10",
+    "psycopg[binary]>=3.2.9",
     "sqlalchemy>=2.0.41",
 ]
 
