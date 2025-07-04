@@ -1,7 +1,3 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "energy-data"
 version = "0.1.0"
@@ -12,7 +8,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = [
-    "pandas",
-    "psycopg"
-]
+dependencies = ["pandas", "psycopg"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+test = "energy_data.test:main"
