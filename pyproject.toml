@@ -10,7 +10,8 @@ requires-python = ">=3.13"
 dependencies = [
     "dotenv>=0.9.9",
     "pandas>=2.3.0",
-    "psycopg[binary]>=3.2.9",
+    "psycopg2-binary>=2.9.10",
+    "sqlalchemy>=2.0.41",
 ]
 
 [build-system]
