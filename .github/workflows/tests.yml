@@ -1,31 +1,22 @@
 name: Tests
 
-on:
-    push:
-      branches: [master]
-    pull_request:
-      types: [opened, synchronize, reopened]
-
 jobs:
-  test:
-    runs-on: [self-hosted, Linux]
+  tests:
+    name: python
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          version: "latest"
-          enable-cache: true
+          python-version-file: ".python-version"
 
-      - name: UV sync
-        run: uv sync
-
-      - name: run workflow
-        run: |
-          uv pip install .
-          uv run pytest -s -v
+      - name: Run tests
+        run: uv run pytest -s -v
         env:
           POSTGRES_SERVER: ${{secrets.POSTGRES_SERVER}}
           POSTGRES_PORT: ${{secrets.POSTGRES_PORT}}
