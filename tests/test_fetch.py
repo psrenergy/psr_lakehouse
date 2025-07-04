@@ -6,7 +6,7 @@ import os
 
 def test_ccee_spot_price():
     reader = energy_data.PSRDataLakeReader()
-    df = reader.retrieve_dataframe(
+    df = reader.fetch_dataframe(
         table_name="ccee_spot_price",
         columns=["reference_date", "spot_price"],
         filters={"reference_date": "2023-10-01"},
