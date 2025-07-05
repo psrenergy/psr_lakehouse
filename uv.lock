@@ -131,8 +131,8 @@ wheels = [
 ]
 
 [[package]]
-name = "psr-warehouse"
-version = "0.1.0"
+name = "psr-lakehouse"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "pandas" },

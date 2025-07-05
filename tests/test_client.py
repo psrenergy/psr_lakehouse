@@ -1,6 +1,6 @@
 import pytest
 
-import psr.warehouse
+import psr.lakehouse
 import pandas as pd
 import dotenv
 import tempfile
@@ -12,7 +12,7 @@ port = os.getenv("POSTGRES_PORT")
 db = os.getenv("POSTGRES_DB")
 user = os.getenv("POSTGRES_USER")
 password = os.getenv("POSTGRES_PASSWORD")
-client = psr.warehouse.Client(server, port, db, user, password)
+client = psr.lakehouse.Client(server, port, db, user, password)
 
 
 def test_ccee_spot_price():
@@ -22,7 +22,6 @@ def test_ccee_spot_price():
         filters={"reference_date": "2023-10-01"},
         order_by="reference_date",
         ascending=True,
-        rows=10,
     )
     assert not df.empty
     assert "reference_date" in df.columns
@@ -58,7 +57,6 @@ def test_download_table():
             filters={"reference_date": "2023-10-01"},
             order_by="reference_date",
             ascending=True,
-            rows=10,
         )
         df = pd.read_csv(file_path)
         assert not df.empty
