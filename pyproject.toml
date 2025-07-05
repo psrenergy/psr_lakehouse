@@ -1,18 +1,13 @@
 [project]
-name = "energy-data"
+name = "psr-warehouse"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
 dependencies = [
     "pandas>=2.3.0",
     "psycopg[binary]>=3.2.9",
-    "sqlalchemy>=2.0.41",
+    "sqlalchemy>=2.0.41",    
 ]
 
 [build-system]
@@ -24,3 +19,6 @@ dev = [
     "dotenv>=0.9.9",
     "pytest>=8.4.1",
 ]
+
+[tool.hatch.build.targets.wheel]
+    packages = ["src/psr"]

@@ -1,5 +1,6 @@
 import pytest
-import energy_data
+
+import psr.warehouse
 import pandas as pd
 import dotenv
 import tempfile
@@ -11,7 +12,7 @@ port = os.getenv("POSTGRES_PORT")
 db = os.getenv("POSTGRES_DB")
 user = os.getenv("POSTGRES_USER")
 password = os.getenv("POSTGRES_PASSWORD")
-reader = energy_data.PSRDataLakeReader(server, port, db, user, password)
+reader = psr.warehouse.PSRDataLakeReader(server, port, db, user, password)
 
 
 def test_ccee_spot_price():
