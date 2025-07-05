@@ -1,12 +1,9 @@
-# Basic CI setup: Lint with ruff, run tests with pytest
 name: Test
-
 on:
   pull_request:
   push:
     branches:
-      - main
-
+      - master
 jobs:
   test:
     name: Run tests
