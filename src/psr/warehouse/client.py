@@ -16,7 +16,7 @@ class Client:
                 df[reference_date] = pd.to_datetime(df[reference_date])
             return df
 
-    def fetch_dataframe(self, table_name: str = None, columns: list[str] = None, filters: dict = None, order_by: str = None, ascending: bool = True, rows: int = 100) -> pd.DataFrame:
+    def fetch_dataframe(self, table_name: str = None, columns: list[str] = None, filters: dict = None, order_by: str = None, ascending: bool = True) -> pd.DataFrame:
         self._validate_table_name(table_name)
         
         query = f"SELECT {', '.join(columns) if columns else '*'} FROM {table_name}"
@@ -27,8 +27,6 @@ class Client:
         
         if order_by:
             query += f" ORDER BY {order_by} {'ASC' if ascending else 'DESC'}"
-        
-        query += f" LIMIT {rows}"
         
         params = tuple(filters.values()) if filters else ()
         

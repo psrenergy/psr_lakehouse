@@ -12,11 +12,11 @@ port = os.getenv("POSTGRES_PORT")
 db = os.getenv("POSTGRES_DB")
 user = os.getenv("POSTGRES_USER")
 password = os.getenv("POSTGRES_PASSWORD")
-reader = psr.warehouse.Client(server, port, db, user, password)
+client = psr.warehouse.Client(server, port, db, user, password)
 
 
 def test_ccee_spot_price():
-    df = reader.fetch_dataframe(
+    df = client.fetch_dataframe(
         table_name="ccee_spot_price",
         columns=["reference_date", "spot_price"],
         filters={"reference_date": "2023-10-01"},
@@ -36,7 +36,7 @@ def test_ccee_spot_price():
 
 def test_fetch_dataframe_from_sql():
     query = "SELECT * FROM ccee_spot_price WHERE reference_date = '2023-10-01' LIMIT 5"
-    df = reader.fetch_dataframe_from_sql(query)
+    df = client.fetch_dataframe_from_sql(query)
     assert not df.empty
     assert "reference_date" in df.columns
     assert "spot_price" in df.columns
@@ -51,7 +51,7 @@ def test_download_table():
     with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as tmp:
         file_path = tmp.name
     try:
-        reader.download_table(
+        client.download_table(
             table_name="ccee_spot_price",
             file_path=file_path,
             columns=["reference_date", "spot_price"],
@@ -74,13 +74,13 @@ def test_download_table():
 
 
 def test_list_tables():
-    tables = reader.list_tables()
+    tables = client.list_tables()
     assert isinstance(tables, list)
     assert "ccee_spot_price" in tables
 
 
 def test_get_table_info():
-    table_info = reader.get_table_info("ccee_spot_price")
+    table_info = client.get_table_info("ccee_spot_price")
     assert not table_info.empty
     assert "column_name" in table_info.columns
     assert "data_type" in table_info.columns
