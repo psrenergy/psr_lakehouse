@@ -16,7 +16,7 @@ client = psr.lakehouse.Client(server, port, db, user, password)
 def test_ccee_spot_price():
     df = client.fetch_dataframe(
         table_name="ccee_spot_price",
-        columns=["reference_date", "spot_price"],
+        columns=["reference_date", "subsystem", "spot_price"],
         filters={"reference_date": "2023-10-01"},
         order_by="reference_date",
         ascending=True,
@@ -29,6 +29,26 @@ def test_ccee_spot_price():
         .dt.date.eq(pd.to_datetime("2023-10-01").date())
         .any()
     )
+
+def test_ons_stored_energy():
+    df = client.fetch_dataframe(
+        table_name="ons_stored_energy",
+        columns=[
+            "reference_date",
+            "subsystem",
+            "max_stored_energy",
+            "verified_stored_energy_mwmonth",
+            "verified_stored_energy_percentage",
+        ],
+        order_by="reference_date",
+        ascending=True,
+    )
+    assert not df.empty
+    assert "reference_date" in df.columns
+    assert "subsystem" in df.columns
+    assert "max_stored_energy" in df.columns
+    assert "verified_stored_energy_mwmonth" in df.columns
+    assert "verified_stored_energy_percentage" in df.columns
 
 
 def test_fetch_dataframe_from_sql():
