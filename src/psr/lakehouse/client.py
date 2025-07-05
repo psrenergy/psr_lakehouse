@@ -1,16 +1,18 @@
 import pandas as pd
-import psycopg
-import sqlalchemy
+from sqlalchemy import create_engine, text
 
 reference_date = "reference_date"
 
 
 class Client:
     def __init__(self, server: str, port: str, db: str, user: str, password: str):
-        self.connection_string = f"dbname='{db}' user='{user}' host='{server}' port='{port}' password='{password}'"
+        connection_string = (
+            f"postgresql+psycopg://{user}:{password}@{server}:{port}/{db}"
+        )
+        self.engine = create_engine(connection_string)
 
     def fetch_dataframe_from_sql(self, sql: str, params=None) -> pd.DataFrame:
-        with psycopg.connect(self.connection_string) as connection:
+        with self.engine.connect() as connection:
             df = pd.read_sql_query(sql, connection, params=params)
             if reference_date in df.columns:
                 df[reference_date] = pd.to_datetime(df[reference_date])
@@ -29,20 +31,20 @@ class Client:
         query = f"SELECT {', '.join(columns) if columns else '*'} FROM {table_name}"
 
         if filters:
-            filter_conditions = [f"{col} = %s" for col in filters.keys()]
+            filter_conditions = [
+                f'"{col}" = :{col.replace(" ", "_")}' for col in filters.keys()
+            ]
             query += " WHERE " + " AND ".join(filter_conditions)
 
         if order_by:
             query += f" ORDER BY {order_by} {'ASC' if ascending else 'DESC'}"
 
-        params = tuple(filters.values()) if filters else ()
+        params = {k.replace(" ", "_"): v for k, v in filters.items()} if filters else {}
 
         try:
-            df = self.fetch_dataframe_from_sql(query, params=params)
-        except sqlalchemy.exc.SQLAlchemyError as e:
+            df = self.fetch_dataframe_from_sql(text(query), params=params)
+        except Exception as e:
             raise ValueError(f"Database error while executing query: {e}")
-        except psycopg.Error as e:
-            raise ValueError(f"Error while connecting to the database: {e}")
 
         if columns and reference_date not in columns:
             df = df.drop(columns=[reference_date], errors="ignore")
@@ -68,12 +70,14 @@ class Client:
         return df["table_name"].tolist()
 
     def get_table_info(self, table_name: str) -> pd.DataFrame:
-        query = f"""
-        SELECT column_name, data_type, is_nullable, character_maximum_length
-        FROM information_schema.columns
-        WHERE table_name = '{table_name}';
-        """
-        df = self.fetch_dataframe_from_sql(query)
+        query = text(
+            """
+            SELECT column_name, data_type, is_nullable, character_maximum_length
+            FROM information_schema.columns
+            WHERE table_name = :table_name;
+            """
+        )
+        df = self.fetch_dataframe_from_sql(query, params={"table_name": table_name})
         return df
 
     def _validate_table_name(self, table_name: str) -> None:

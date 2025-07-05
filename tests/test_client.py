@@ -30,6 +30,7 @@ def test_ccee_spot_price():
         .any()
     )
 
+
 def test_ons_stored_energy():
     df = client.fetch_dataframe(
         table_name="ons_stored_energy",
