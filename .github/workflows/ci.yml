@@ -6,16 +6,28 @@ on:
       - master
 jobs:
   test-windows:
-    name: Run tests (Windows)
-    runs-on: [self-hosted, Windows]
+    name: Run tests (windows)
+    runs-on: [self-hosted, windows]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
       - run: uv run pytest -v -s
+        env:
+          POSTGRES_SERVER: ${{secrets.POSTGRES_SERVER}}
+          POSTGRES_PORT: ${{secrets.POSTGRES_PORT}}
+          POSTGRES_DB: ${{secrets.POSTGRES_DB}}
+          POSTGRES_USER: ${{secrets.POSTGRES_USER}}
+          POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}      
   test-linux:
-    name: Run tests (Linux)
-    runs-on: [self-hosted, Linux]
+    name: Run tests (linux)
+    runs-on: [self-hosted, linux]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
       - run: uv run pytest -v -s
+        env:
+          POSTGRES_SERVER: ${{secrets.POSTGRES_SERVER}}
+          POSTGRES_PORT: ${{secrets.POSTGRES_PORT}}
+          POSTGRES_DB: ${{secrets.POSTGRES_DB}}
+          POSTGRES_USER: ${{secrets.POSTGRES_USER}}
+          POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}      
