@@ -3,6 +3,8 @@ import pandas as pd
 import dotenv
 import tempfile
 import os
+import pytest
+from sqlalchemy.engine.row import Row
 
 dotenv.load_dotenv()
 server = os.getenv("POSTGRES_SERVER")
@@ -21,6 +23,7 @@ def test_ccee_spot_price():
         order_by="reference_date",
         ascending=True,
     )
+    print(df)
     assert not df.empty
     assert "reference_date" in df.columns
     assert "spot_price" in df.columns
@@ -44,6 +47,7 @@ def test_ons_stored_energy():
         order_by="reference_date",
         ascending=True,
     )
+    print(df)
     assert not df.empty
     assert "reference_date" in df.columns
     assert "subsystem" in df.columns
@@ -53,8 +57,8 @@ def test_ons_stored_energy():
 
 
 def test_fetch_dataframe_from_sql():
-    query = "SELECT * FROM ccee_spot_price WHERE reference_date = '2023-10-01' LIMIT 5"
-    df = client.fetch_dataframe_from_sql(query)
+    query = "SELECT * FROM ccee_spot_price WHERE reference_date = :ref_date LIMIT 5"
+    df = client.fetch_dataframe_from_sql(query, params={"ref_date": "2023-10-01"})
     assert not df.empty
     assert "reference_date" in df.columns
     assert "spot_price" in df.columns
@@ -105,3 +109,22 @@ def test_get_table_info():
     assert "character_maximum_length" in table_info.columns
     assert "reference_date" in table_info["column_name"].values
     assert "spot_price" in table_info["column_name"].values
+
+
+def test_execute_sql():
+    query = "SELECT * FROM ccee_spot_price WHERE reference_date = :ref_date"
+    results = client.execute_sql(query, params={"ref_date": "2023-10-01"})
+    assert isinstance(results, list)
+    assert len(results) > 0
+    assert isinstance(results[0], Row)
+
+
+def test_list_schemas():
+    schemas = client.list_schemas()
+    assert isinstance(schemas, list)
+    assert "public" in schemas
+
+
+def test_invalid_table():
+    with pytest.raises(ValueError, match="Invalid table name: invalid_table"):
+        client.fetch_dataframe(table_name="invalid_table")
