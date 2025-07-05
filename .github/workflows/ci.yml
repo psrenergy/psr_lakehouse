@@ -5,12 +5,16 @@ on:
     branches:
       - master
 jobs:
-  test:
-    name: Run tests
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+  test-windows:
+    name: Run tests (Windows)
+    runs-on: [self-hosted, Windows]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv run pytest -v -s
+  test-linux:
+    name: Run tests (Linux)
+    runs-on: [self-hosted, Linux]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
