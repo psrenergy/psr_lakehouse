@@ -1,1 +1,0 @@
-cd .. & uv run pytest -v -s

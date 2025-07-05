@@ -1,0 +1,1 @@
+uv run pytest -v -s
