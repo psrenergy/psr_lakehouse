@@ -1,1 +1,1 @@
-from .reader import PSRDataLakeReader
+from .client import Client

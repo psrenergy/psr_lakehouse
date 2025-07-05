@@ -5,7 +5,7 @@ import sqlalchemy
 
 reference_date = "reference_date"
 
-class PSRDataLakeReader:
+class Client:
     def __init__(self, server: str, port: str, db: str, user: str, password: str):
         self.connection_string = f"dbname='{db}' user='{user}' host='{server}' port='{port}' password='{password}'"
 

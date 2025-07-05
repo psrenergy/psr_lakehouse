@@ -12,7 +12,7 @@ port = os.getenv("POSTGRES_PORT")
 db = os.getenv("POSTGRES_DB")
 user = os.getenv("POSTGRES_USER")
 password = os.getenv("POSTGRES_PASSWORD")
-reader = psr.warehouse.PSRDataLakeReader(server, port, db, user, password)
+reader = psr.warehouse.Client(server, port, db, user, password)
 
 
 def test_ccee_spot_price():
