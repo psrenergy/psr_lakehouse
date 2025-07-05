@@ -1,5 +1,3 @@
-import pytest
-
 import psr.lakehouse
 import pandas as pd
 import dotenv
