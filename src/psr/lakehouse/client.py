@@ -66,6 +66,8 @@ class Client:
         filters: dict | None = None,
         order_by: str | None = None,
         ascending: bool = True,
+        start_reference_date: str | None = None,
+        end_reference_date: str | None = None,
     ) -> pd.DataFrame:
         """
         Fetches a Pandas DataFrame from a table.
@@ -80,6 +82,10 @@ class Client:
                 Defaults to None.
             ascending (bool, optional): Whether to sort in ascending order.
                 Defaults to True.
+            start_reference_date (str, optional): The start date for the reference_date
+                filter. Defaults to None.
+            end_reference_date (str, optional): The end date for the reference_date
+                filter. Defaults to None.
 
         Returns:
             pd.DataFrame: A Pandas DataFrame with the query results.
@@ -88,18 +94,30 @@ class Client:
 
         query = f'SELECT {", ".join(columns) if columns else "*"} FROM "{table_name}"'
 
+        filter_conditions = []
+        params = {}
+
         if filters:
-            filter_conditions = [
-                f'"{col}" = :{col.replace(" ", "_")}' for col in filters.keys()
-            ]
+            filter_conditions.extend(
+                [f'"{col}" = :{col.replace(" ", "_")}' for col in filters.keys()]
+            )
+            params.update({k.replace(" ", "_"): v for k, v in filters.items()})
+
+        if start_reference_date:
+            filter_conditions.append(f'"{reference_date}" >= :start_reference_date')
+            params["start_reference_date"] = start_reference_date
+
+        if end_reference_date:
+            filter_conditions.append(f'"{reference_date}" <= :end_reference_date')
+            params["end_reference_date"] = end_reference_date
+
+        if filter_conditions:
             query += " WHERE " + " AND ".join(filter_conditions)
 
         if order_by:
             query += f' ORDER BY "{order_by}" {"ASC" if ascending else "DESC"}'
 
-        params = {k.replace(" ", "_"): v for k, v in filters.items()} if filters else {}
-
-        df = self.fetch_dataframe_from_sql(query, params=params)
+        df = self.fetch_dataframe_from_sql(query, params=params if params else None)
 
         if columns and reference_date not in columns:
             df = df.drop(columns=[reference_date], errors="ignore")

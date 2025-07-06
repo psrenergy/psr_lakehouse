@@ -128,3 +128,39 @@ def test_list_schemas():
 def test_invalid_table():
     with pytest.raises(ValueError, match="Invalid table name: invalid_table"):
         client.fetch_dataframe(table_name="invalid_table")
+
+
+def test_invalid_schema():
+    with pytest.raises(ValueError, match="Invalid table name: invalid_schema.ccee_spot_price"):
+        client.fetch_dataframe(table_name="invalid_schema.ccee_spot_price")
+
+
+def test_invalid_file_format():
+    with pytest.raises(ValueError, match="Only CSV file format is supported for download."):
+        client.download_table(table_name="ccee_spot_price", file_path="test.txt")
+
+
+def test_ccee_spot_price_with_date_range():
+    df = client.fetch_dataframe(
+        table_name="ccee_spot_price",
+        columns=["reference_date", "subsystem", "spot_price"],
+        start_reference_date="2023-10-01",
+        end_reference_date="2023-10-02",
+        order_by="reference_date",
+        ascending=True,
+    )
+    print(df)
+    assert not df.empty
+    assert "reference_date" in df.columns
+    assert "spot_price" in df.columns
+    assert (
+        pd.to_datetime(df["reference_date"])
+        .dt.date.eq(pd.to_datetime("2023-10-01").date())
+        .any()
+    )
+    assert (
+        pd.to_datetime(df["reference_date"])
+        .dt.date.eq(pd.to_datetime("2023-10-02").date())
+        .any()
+    )
+
