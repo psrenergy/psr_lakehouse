@@ -92,8 +92,11 @@ class Client:
         params = {}
 
         if filters:
-            filter_conditions.extend([f'"{col}" = :{col.replace(" ", "_")}' for col in filters.keys()])
-            params.update({k.replace(" ", "_"): v for k, v in filters.items()})
+            for col, value in filters.items():
+                if value is not None:
+                    param_name = col.replace(" ", "_")
+                    filter_conditions.append(f'"{col}" = :{param_name}')
+                    params[param_name] = value
 
         if start_reference_date:
             filter_conditions.append(f'"{reference_date}" >= :start_reference_date')
