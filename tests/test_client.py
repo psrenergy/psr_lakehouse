@@ -27,11 +27,7 @@ def test_ccee_spot_price():
     assert not df.empty
     assert "reference_date" in df.columns
     assert "spot_price" in df.columns
-    assert (
-        pd.to_datetime(df["reference_date"])
-        .dt.date.eq(pd.to_datetime("2023-10-01").date())
-        .any()
-    )
+    assert pd.to_datetime(df["reference_date"]).dt.date.eq(pd.to_datetime("2023-10-01").date()).any()
 
 
 def test_ons_stored_energy():
@@ -62,11 +58,7 @@ def test_fetch_dataframe_from_sql():
     assert not df.empty
     assert "reference_date" in df.columns
     assert "spot_price" in df.columns
-    assert (
-        pd.to_datetime(df["reference_date"])
-        .dt.date.eq(pd.to_datetime("2023-10-01").date())
-        .any()
-    )
+    assert pd.to_datetime(df["reference_date"]).dt.date.eq(pd.to_datetime("2023-10-01").date()).any()
 
 
 def test_download_table():
@@ -85,11 +77,7 @@ def test_download_table():
         assert not df.empty
         assert "reference_date" in df.columns
         assert "spot_price" in df.columns
-        assert (
-            pd.to_datetime(df["reference_date"])
-            .dt.date.eq(pd.to_datetime("2023-10-01").date())
-            .any()
-        )
+        assert pd.to_datetime(df["reference_date"]).dt.date.eq(pd.to_datetime("2023-10-01").date()).any()
     finally:
         os.remove(file_path)
 
@@ -155,10 +143,5 @@ def test_ccee_spot_price_with_date_range():
     assert not df.empty
     assert "reference_date" in df.columns
     assert "spot_price" in df.columns
-    assert pd.to_datetime(df["reference_date"]).dt.date.min() >= pd.to_datetime(
-        start_date
-    ).date()
-    assert pd.to_datetime(df["reference_date"]).dt.date.max() <= pd.to_datetime(
-        end_date
-    ).date()
-
+    assert pd.to_datetime(df["reference_date"]).dt.date.min() >= pd.to_datetime(start_date).date()
+    assert pd.to_datetime(df["reference_date"]).dt.date.max() <= pd.to_datetime(end_date).date()

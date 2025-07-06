@@ -26,19 +26,13 @@ class Client:
     """
 
     def __init__(self, server: str, port: str, db: str, user: str, password: str):
-        connection_string = (
-            f"postgresql+psycopg://{user}:{password}@{server}:{port}/{db}"
-        )
+        connection_string = f"postgresql+psycopg://{user}:{password}@{server}:{port}/{db}"
         try:
             self.engine = create_engine(connection_string)
         except ImportError as e:
-            raise LakehouseError(
-                "SQLAlchemy and psycopg2 are required to use the Lakehouse client."
-            ) from e
+            raise LakehouseError("SQLAlchemy and psycopg2 are required to use the Lakehouse client.") from e
 
-    def fetch_dataframe_from_sql(
-        self, sql: str, params: dict | None = None
-    ) -> pd.DataFrame:
+    def fetch_dataframe_from_sql(self, sql: str, params: dict | None = None) -> pd.DataFrame:
         """
         Fetches a Pandas DataFrame from a SQL query.
 
@@ -98,9 +92,7 @@ class Client:
         params = {}
 
         if filters:
-            filter_conditions.extend(
-                [f'"{col}" = :{col.replace(" ", "_")}' for col in filters.keys()]
-            )
+            filter_conditions.extend([f'"{col}" = :{col.replace(" ", "_")}' for col in filters.keys()])
             params.update({k.replace(" ", "_"): v for k, v in filters.items()})
 
         if start_reference_date:
@@ -177,9 +169,7 @@ class Client:
             FROM information_schema.columns
             WHERE table_name = :table_name AND table_schema = :schema;
             """
-        df = self.fetch_dataframe_from_sql(
-            query, params={"table_name": table_name, "schema": schema}
-        )
+        df = self.fetch_dataframe_from_sql(query, params={"table_name": table_name, "schema": schema})
         return df
 
     def execute_sql(self, sql: str, params: dict | None = None) -> list[tuple]:
