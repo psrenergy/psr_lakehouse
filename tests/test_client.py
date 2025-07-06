@@ -146,6 +146,7 @@ def test_ccee_spot_price_with_date_range():
     assert pd.to_datetime(df["reference_date"]).dt.date.min() >= pd.to_datetime(start_date).date()
     assert pd.to_datetime(df["reference_date"]).dt.date.max() <= pd.to_datetime(end_date).date()
 
+
 def test_ccee_spot_price_with_none_filter():
     start_date = "2023-10-01"
     end_date = "2023-10-02"
