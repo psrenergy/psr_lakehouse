@@ -141,11 +141,13 @@ def test_invalid_file_format():
 
 
 def test_ccee_spot_price_with_date_range():
+    start_date = "2023-10-01"
+    end_date = "2023-10-02"
     df = client.fetch_dataframe(
         table_name="ccee_spot_price",
         columns=["reference_date", "subsystem", "spot_price"],
-        start_reference_date="2023-10-01",
-        end_reference_date="2023-10-02",
+        start_reference_date=start_date,
+        end_reference_date=end_date,
         order_by="reference_date",
         ascending=True,
     )
@@ -153,14 +155,10 @@ def test_ccee_spot_price_with_date_range():
     assert not df.empty
     assert "reference_date" in df.columns
     assert "spot_price" in df.columns
-    assert (
-        pd.to_datetime(df["reference_date"])
-        .dt.date.eq(pd.to_datetime("2023-10-01").date())
-        .any()
-    )
-    assert (
-        pd.to_datetime(df["reference_date"])
-        .dt.date.eq(pd.to_datetime("2023-10-02").date())
-        .any()
-    )
+    assert pd.to_datetime(df["reference_date"]).dt.date.min() >= pd.to_datetime(
+        start_date
+    ).date()
+    assert pd.to_datetime(df["reference_date"]).dt.date.max() <= pd.to_datetime(
+        end_date
+    ).date()
 
