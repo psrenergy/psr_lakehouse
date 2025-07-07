@@ -1,7 +1,3 @@
-"""
-This module provides a client for interacting with the PSR Lakehouse database.
-"""
-
 import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -38,8 +34,7 @@ class Client:
 
         Args:
             sql (str): The SQL query to execute.
-            params (dict, optional): A dictionary of parameters to pass to the query.
-                Defaults to None.
+            params (dict, optional): A dictionary of parameters to pass to the query. Defaults to None.
 
         Returns:
             pd.DataFrame: A Pandas DataFrame with the query results.
@@ -97,7 +92,7 @@ class Client:
             params["start_reference_date"] = start_reference_date
 
         if end_reference_date:
-            filter_conditions.append(f'"{reference_date}" <= :end_reference_date')
+            filter_conditions.append(f'"{reference_date}" < :end_reference_date')
             params["end_reference_date"] = end_reference_date
 
         query += " WHERE " + " AND ".join(filter_conditions)
@@ -134,8 +129,7 @@ class Client:
         Lists all tables in a given schema.
 
         Args:
-            schema (str, optional): The schema to list tables from.
-                Defaults to "public".
+            schema (str, optional): The schema to list tables from. Defaults to "public".
 
         Returns:
             list[str]: A list of table names.
@@ -174,8 +168,7 @@ class Client:
 
         Args:
             sql (str): The SQL query to execute.
-            params (dict, optional): A dictionary of parameters to pass to the query.
-                Defaults to None.
+            params (dict, optional): A dictionary of parameters to pass to the query. Defaults to None.
 
         Returns:
             list[tuple]: A list of tuples with the query results.

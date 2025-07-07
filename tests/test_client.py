@@ -22,6 +22,6 @@ def test_ccee_spot_price():
         data_columns=["spot_price"],
         filters={"subsystem": "SOUTHEAST"},
         start_reference_date="2023-05-01 03:00:00",
-        end_reference_date="2023-05-01 03:00:00",
+        end_reference_date="2023-05-01 04:00:00",
     )
     print(df)
