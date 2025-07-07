@@ -36,3 +36,14 @@ def test_ccee_spot_price():
 
     expected_series = pd.Series([69.04, 69.04, 69.04, 69.04], index=expected_index, name="spot_price")
     pd.testing.assert_series_equal(df["spot_price"], expected_series)
+
+
+def test_ons_stored_energy():
+    df = client.fetch_dataframe(
+        table_name="ons_stored_energy",
+        indices_columns=["reference_date", "subsystem"],
+        data_columns=["max_stored_energy", "verified_stored_energy_mwmonth", "verified_stored_energy_percentage"],
+        start_reference_date="2023-05-01",
+        end_reference_date="2023-05-02",
+    )    
+    print(df)
