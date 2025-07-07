@@ -105,6 +105,8 @@ class Client:
         if reference_date not in indices_columns:
             df = df.drop(columns=[reference_date], errors="ignore")
 
+        df = df.set_index(indices_columns)
+
         return df
 
     def download_table(self, table_name: str, file_path: str, **kwargs) -> None:
