@@ -96,7 +96,7 @@ class Client:
             params["end_reference_date"] = end_reference_date
 
         query += " WHERE " + " AND ".join(filter_conditions)
-        query += " ORDER BY " 
+        query += " ORDER BY "
         query += ", ".join([f"{column} ASC" for column in indices_columns])
         query += ", updated_at ASC"
 
