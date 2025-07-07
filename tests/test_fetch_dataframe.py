@@ -21,7 +21,6 @@ def test_ccee_spot_price():
         start_reference_date="2023-05-01 03:00:00",
         end_reference_date="2023-05-01 04:00:00",
     )
-    print(df)
 
     expected_index = pd.MultiIndex.from_tuples(
         [
@@ -45,5 +44,32 @@ def test_ons_stored_energy():
         data_columns=["max_stored_energy", "verified_stored_energy_mwmonth", "verified_stored_energy_percentage"],
         start_reference_date="2023-05-01",
         end_reference_date="2023-05-02",
-    )    
-    print(df)
+    )
+
+    expected_index = pd.MultiIndex.from_tuples(
+        [
+            (pd.to_datetime("2023-05-01"), "NORTH"),
+            (pd.to_datetime("2023-05-01"), "NORTHEAST"),
+            (pd.to_datetime("2023-05-01"), "SOUTHEAST"),
+            (pd.to_datetime("2023-05-01"), "SOUTH"),
+        ],
+        names=["reference_date", "subsystem"],
+    )
+    pd.testing.assert_index_equal(df.index, expected_index, check_exact=True)
+
+    expected_series = pd.Series(
+        [15302.396484, 51691.226562, 204615.328125, 20459.242188], index=expected_index, name="max_stored_energy"
+    )
+    pd.testing.assert_series_equal(df["max_stored_energy"], expected_series)
+
+    expected_series = pd.Series(
+        [15101.476562, 47018.351562, 176423.218750, 17171.507812],
+        index=expected_index,
+        name="verified_stored_energy_mwmonth",
+    )
+    pd.testing.assert_series_equal(df["verified_stored_energy_mwmonth"], expected_series)
+
+    expected_series = pd.Series(
+        [98.686996, 90.959999, 86.221901, 83.930298], index=expected_index, name="verified_stored_energy_percentage"
+    )
+    pd.testing.assert_series_equal(df["verified_stored_energy_percentage"], expected_series)
