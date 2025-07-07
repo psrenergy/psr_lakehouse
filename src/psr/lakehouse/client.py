@@ -159,4 +159,3 @@ class Client:
             """
         df = self.fetch_dataframe_from_sql(query)
         return df["schema_name"].tolist()
-
