@@ -73,7 +73,6 @@ class Client:
         Returns:
             pd.DataFrame: A Pandas DataFrame with the query results.
         """
-        self._validate_table_name(table_name)
 
         query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
 
@@ -108,23 +107,6 @@ class Client:
         df = df.set_index(indices_columns)
 
         return df
-
-    def download_table(self, table_name: str, file_path: str, **kwargs) -> None:
-        """
-        Downloads a table to a CSV file.
-
-        Args:
-            table_name (str): The name of the table to download.
-            file_path (str): The path to save the CSV file.
-            **kwargs: Additional arguments to pass to the fetch_dataframe method.
-        """
-        self._validate_table_name(table_name)
-
-        if not file_path.lower().endswith(".csv"):
-            raise ValueError("Only CSV file format is supported for download.")
-
-        df = self.fetch_dataframe(table_name=table_name, **kwargs)
-        df.to_csv(file_path, index=False)
 
     def list_tables(self, schema: str = "public") -> list[str]:
         """
@@ -164,24 +146,6 @@ class Client:
         df = self.fetch_dataframe_from_sql(query, params={"table_name": table_name, "schema": schema})
         return df
 
-    def execute_sql(self, sql: str, params: dict | None = None) -> list[tuple]:
-        """
-        Executes a raw SQL query and returns a list of tuples.
-
-        Args:
-            sql (str): The SQL query to execute.
-            params (dict, optional): A dictionary of parameters to pass to the query. Defaults to None.
-
-        Returns:
-            list[tuple]: A list of tuples with the query results.
-        """
-        try:
-            with self.engine.connect() as connection:
-                result = connection.execute(text(sql), params)
-                return result.fetchall()
-        except SQLAlchemyError as e:
-            raise LakehouseError(f"Database error while executing query: {e}") from e
-
     def list_schemas(self) -> list[str]:
         """
         Lists all schemas in the database.
@@ -196,15 +160,3 @@ class Client:
         df = self.fetch_dataframe_from_sql(query)
         return df["schema_name"].tolist()
 
-    def _validate_table_name(self, table_name: str) -> None:
-        if not table_name or not isinstance(table_name, str):
-            raise ValueError("Table name must be a non-empty string.")
-        if "." in table_name:
-            schema, table = table_name.split(".", 1)
-            valid_tables = self.list_tables(schema=schema)
-            if table not in valid_tables:
-                raise ValueError(f"Invalid table name: {table_name}")
-        else:
-            valid_tables = self.list_tables()
-            if table_name not in valid_tables:
-                raise ValueError(f"Invalid table name: {table_name}")
