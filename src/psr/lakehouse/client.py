@@ -97,7 +97,7 @@ class Client:
         query += " WHERE " + " AND ".join(filter_conditions)
         query += " ORDER BY "
         query += ", ".join([f"{column} ASC" for column in indices_columns])
-        query += ", updated_at ASC"
+        query += ", updated_at DESC"
 
         df = self.fetch_dataframe_from_sql(query, params=params if params else None)
 
