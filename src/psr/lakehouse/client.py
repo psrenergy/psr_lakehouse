@@ -1,7 +1,3 @@
-"""
-This module provides a client for interacting with the PSR Lakehouse database.
-"""
-
 import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -38,14 +34,15 @@ class Client:
 
         Args:
             sql (str): The SQL query to execute.
-            params (dict, optional): A dictionary of parameters to pass to the query.
-                Defaults to None.
+            params (dict, optional): A dictionary of parameters to pass to the query. Defaults to None.
 
         Returns:
             pd.DataFrame: A Pandas DataFrame with the query results.
         """
         try:
             with self.engine.connect() as connection:
+                print(f"Executing SQL query: {sql}")
+                print(f"With parameters: {params}")
                 df = pd.read_sql_query(text(sql), connection, params=params)
                 if reference_date in df.columns:
                     df[reference_date] = pd.to_datetime(df[reference_date])
@@ -56,10 +53,9 @@ class Client:
     def fetch_dataframe(
         self,
         table_name: str,
-        columns: list[str] | None = None,
+        indices_columns: list[str],
+        data_columns: list[str],
         filters: dict | None = None,
-        order_by: str | None = None,
-        ascending: bool = True,
         start_reference_date: str | None = None,
         end_reference_date: str | None = None,
     ) -> pd.DataFrame:
@@ -68,27 +64,19 @@ class Client:
 
         Args:
             table_name (str): The name of the table to fetch data from.
-            columns (list[str], optional): A list of columns to select.
-                Defaults to None, which selects all columns.
-            filters (dict, optional): A dictionary of filters to apply to the query.
-                Defaults to None.
-            order_by (str, optional): The column to order the results by.
-                Defaults to None.
-            ascending (bool, optional): Whether to sort in ascending order.
-                Defaults to True.
-            start_reference_date (str, optional): The start date for the reference_date
-                filter. Defaults to None.
-            end_reference_date (str, optional): The end date for the reference_date
-                filter. Defaults to None.
+            indices_columns (list[str]): A list of indices columns to select.
+            data_columns (list[str]): A list of data columns to select.
+            filters (dict, optional): A dictionary of filters to apply to the query. Defaults to None.
+            start_reference_date (str, optional): The start date for the reference_date filter. Defaults to None.
+            end_reference_date (str, optional): The end date for the reference_date filter. Defaults to None.
 
         Returns:
             pd.DataFrame: A Pandas DataFrame with the query results.
         """
-        self._validate_table_name(table_name)
 
-        query = f'SELECT {", ".join(columns) if columns else "*"} FROM "{table_name}"'
+        query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
 
-        filter_conditions = []
+        filter_conditions = ['"deleted_at" IS NULL']
         params = {}
 
         if filters:
@@ -103,46 +91,29 @@ class Client:
             params["start_reference_date"] = start_reference_date
 
         if end_reference_date:
-            filter_conditions.append(f'"{reference_date}" <= :end_reference_date')
+            filter_conditions.append(f'"{reference_date}" < :end_reference_date')
             params["end_reference_date"] = end_reference_date
 
-        if filter_conditions:
-            query += " WHERE " + " AND ".join(filter_conditions)
-
-        if order_by:
-            query += f' ORDER BY "{order_by}" {"ASC" if ascending else "DESC"}'
+        query += " WHERE " + " AND ".join(filter_conditions)
+        query += " ORDER BY "
+        query += ", ".join([f"{column} ASC" for column in indices_columns])
+        query += ", updated_at DESC"
 
         df = self.fetch_dataframe_from_sql(query, params=params if params else None)
 
-        if columns and reference_date not in columns:
+        if reference_date not in indices_columns:
             df = df.drop(columns=[reference_date], errors="ignore")
 
+        df = df.set_index(indices_columns)
+
         return df
-
-    def download_table(self, table_name: str, file_path: str, **kwargs) -> None:
-        """
-        Downloads a table to a CSV file.
-
-        Args:
-            table_name (str): The name of the table to download.
-            file_path (str): The path to save the CSV file.
-            **kwargs: Additional arguments to pass to the fetch_dataframe method.
-        """
-        self._validate_table_name(table_name)
-
-        if not file_path.lower().endswith(".csv"):
-            raise ValueError("Only CSV file format is supported for download.")
-
-        df = self.fetch_dataframe(table_name=table_name, **kwargs)
-        df.to_csv(file_path, index=False)
 
     def list_tables(self, schema: str = "public") -> list[str]:
         """
         Lists all tables in a given schema.
 
         Args:
-            schema (str, optional): The schema to list tables from.
-                Defaults to "public".
+            schema (str, optional): The schema to list tables from. Defaults to "public".
 
         Returns:
             list[str]: A list of table names.
@@ -175,25 +146,6 @@ class Client:
         df = self.fetch_dataframe_from_sql(query, params={"table_name": table_name, "schema": schema})
         return df
 
-    def execute_sql(self, sql: str, params: dict | None = None) -> list[tuple]:
-        """
-        Executes a raw SQL query and returns a list of tuples.
-
-        Args:
-            sql (str): The SQL query to execute.
-            params (dict, optional): A dictionary of parameters to pass to the query.
-                Defaults to None.
-
-        Returns:
-            list[tuple]: A list of tuples with the query results.
-        """
-        try:
-            with self.engine.connect() as connection:
-                result = connection.execute(text(sql), params)
-                return result.fetchall()
-        except SQLAlchemyError as e:
-            raise LakehouseError(f"Database error while executing query: {e}") from e
-
     def list_schemas(self) -> list[str]:
         """
         Lists all schemas in the database.
@@ -207,16 +159,3 @@ class Client:
             """
         df = self.fetch_dataframe_from_sql(query)
         return df["schema_name"].tolist()
-
-    def _validate_table_name(self, table_name: str) -> None:
-        if not table_name or not isinstance(table_name, str):
-            raise ValueError("Table name must be a non-empty string.")
-        if "." in table_name:
-            schema, table = table_name.split(".", 1)
-            valid_tables = self.list_tables(schema=schema)
-            if table not in valid_tables:
-                raise ValueError(f"Invalid table name: {table_name}")
-        else:
-            valid_tables = self.list_tables()
-            if table_name not in valid_tables:
-                raise ValueError(f"Invalid table name: {table_name}")
