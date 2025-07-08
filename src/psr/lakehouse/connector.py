@@ -3,7 +3,7 @@ import os
 import sqlalchemy
 
 
-class DatabaseConnector:
+class Connector:
     _instance = None
     _region: str = "us-east-1"
     _client = boto3.client("rds", region_name="us-east-1")
@@ -33,4 +33,4 @@ class DatabaseConnector:
         return sqlalchemy.create_engine(connection_string)
 
 
-connector = DatabaseConnector()
+connector = Connector()
