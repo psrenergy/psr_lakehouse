@@ -1,9 +1,6 @@
 import psr.lakehouse
 
-import dotenv
 import pandas as pd
-
-dotenv.load_dotenv()
 
 def test_ccee_spot_price():
     df = psr.lakehouse.ccee.spot_price(

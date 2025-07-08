@@ -1,9 +1,6 @@
 import psr.lakehouse
 
-import dotenv
 import pandas as pd
-
-dotenv.load_dotenv()
 
 expected_index = pd.MultiIndex.from_tuples(
     [
