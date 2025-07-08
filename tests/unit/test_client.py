@@ -5,21 +5,14 @@ import os
 import pandas as pd
 
 dotenv.load_dotenv()
-server = os.getenv("POSTGRES_SERVER")
-port = os.getenv("POSTGRES_PORT")
-db = os.getenv("POSTGRES_DB")
-user = os.getenv("POSTGRES_USER")
-password = os.getenv("POSTGRES_PASSWORD")
-
-# Configure the global connector
-psr.lakehouse.connector.configure(server, port, db, user, password)
-
-# Use the global client instance
-client = psr.lakehouse.client
-
+# server = os.getenv("POSTGRES_SERVER")
+# port = os.getenv("POSTGRES_PORT")
+# db = os.getenv("POSTGRES_DB")
+# user = os.getenv("POSTGRES_USER")
+# password = os.getenv("POSTGRES_PASSWORD")
 
 def test_ccee_spot_price():
-    df = client.fetch_dataframe(
+    df = psr.lakehouse.client.fetch_dataframe(
         table_name="ccee_spot_price",
         indices_columns=["reference_date", "subsystem"],
         data_columns=["spot_price"],
@@ -43,7 +36,7 @@ def test_ccee_spot_price():
 
 
 def test_ons_stored_energy():
-    df = client.fetch_dataframe(
+    df = psr.lakehouse.client.fetch_dataframe(
         table_name="ons_stored_energy",
         indices_columns=["reference_date", "subsystem"],
         data_columns=["max_stored_energy", "verified_stored_energy_mwmonth", "verified_stored_energy_percentage"],

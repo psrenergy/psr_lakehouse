@@ -9,15 +9,6 @@ reference_date = "reference_date"
 
 
 class Client:
-    """
-    A client for interacting with the PSR Lakehouse database.
-    
-    This client uses the global database connector to access database connections.
-    The connector must be configured before using this client.
-    
-    This class follows the singleton pattern to ensure only one client instance exists.
-    """
-
     _instance = None
 
     def __new__(cls):
@@ -25,37 +16,9 @@ class Client:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self):
-        """
-        Initialize the client using the global database connector.
-        
-        Raises:
-            LakehouseError: If the global connector is not configured.
-        """
-        # Only initialize once
-        if not hasattr(self, '_initialized'):
-            if not connector.is_configured():
-                raise LakehouseError("Database connector not configured. Call connector.configure() first.")
-            self._initialized = True
-
-    @property
-    def engine(self):
-        """Get the database engine from the global connector."""
-        return connector.engine
-
     def fetch_dataframe_from_sql(self, sql: str, params: dict | None = None) -> pd.DataFrame:
-        """
-        Fetches a Pandas DataFrame from a SQL query.
-
-        Args:
-            sql (str): The SQL query to execute.
-            params (dict, optional): A dictionary of parameters to pass to the query. Defaults to None.
-
-        Returns:
-            pd.DataFrame: A Pandas DataFrame with the query results.
-        """
         try:
-            with self.engine.connect() as connection:
+            with connector.engine().connect() as connection:
                 df = pd.read_sql_query(text(sql), connection, params=params)
                 if reference_date in df.columns:
                     df[reference_date] = pd.to_datetime(df[reference_date])
@@ -72,21 +35,6 @@ class Client:
         start_reference_date: str | None = None,
         end_reference_date: str | None = None,
     ) -> pd.DataFrame:
-        """
-        Fetches a Pandas DataFrame from a table.
-
-        Args:
-            table_name (str): The name of the table to fetch data from.
-            indices_columns (list[str]): A list of indices columns to select.
-            data_columns (list[str]): A list of data columns to select.
-            filters (dict, optional): A dictionary of filters to apply to the query. Defaults to None.
-            start_reference_date (str, optional): The start date for the reference_date filter. Defaults to None.
-            end_reference_date (str, optional): The end date for the reference_date filter. Defaults to None.
-
-        Returns:
-            pd.DataFrame: A Pandas DataFrame with the query results.
-        """
-
         query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
 
         filter_conditions = ['"deleted_at" IS NULL']
@@ -122,15 +70,6 @@ class Client:
         return df
 
     def list_tables(self, schema: str = "public") -> list[str]:
-        """
-        Lists all tables in a given schema.
-
-        Args:
-            schema (str, optional): The schema to list tables from. Defaults to "public".
-
-        Returns:
-            list[str]: A list of table names.
-        """
         query = """
             SELECT table_name
             FROM information_schema.tables
@@ -141,16 +80,6 @@ class Client:
         return df["table_name"].tolist()
 
     def get_table_info(self, table_name: str, schema: str = "public") -> pd.DataFrame:
-        """
-        Gets information about a table.
-
-        Args:
-            table_name (str): The name of the table.
-            schema (str, optional): The schema of the table. Defaults to "public".
-
-        Returns:
-            pd.DataFrame: A DataFrame with information about the table's columns.
-        """
         query = """
             SELECT column_name, data_type, is_nullable, character_maximum_length
             FROM information_schema.columns
@@ -160,12 +89,6 @@ class Client:
         return df
 
     def list_schemas(self) -> list[str]:
-        """
-        Lists all schemas in the database.
-
-        Returns:
-            list[str]: A list of schema names.
-        """
         query = """
             SELECT schema_name
             FROM information_schema.schemata;
@@ -174,5 +97,4 @@ class Client:
         return df["schema_name"].tolist()
 
 
-# Global client instance
 client = Client()
