@@ -5,7 +5,7 @@ import pandas as pd
 
 dotenv.load_dotenv()
 
-def test_spot_price():
+def test_ccee_spot_price():
     df = psr.lakehouse.ccee.spot_price(
         start_reference_date="2023-05-01 03:00:00",
         end_reference_date="2023-05-01 04:00:00",
