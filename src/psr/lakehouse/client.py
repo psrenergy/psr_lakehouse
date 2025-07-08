@@ -1,7 +1,8 @@
 from psr.lakehouse.exceptions import LakehouseError
+from psr.lakehouse.connector import connector
 
 import pandas as pd
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 reference_date = "reference_date"
@@ -10,21 +11,37 @@ reference_date = "reference_date"
 class Client:
     """
     A client for interacting with the PSR Lakehouse database.
-
-    Args:
-        server (str): The database server address.
-        port (str): The database server port.
-        db (str): The name of the database.
-        user (str): The username for authentication.
-        password (str): The password for authentication.
+    
+    This client uses the global database connector to access database connections.
+    The connector must be configured before using this client.
+    
+    This class follows the singleton pattern to ensure only one client instance exists.
     """
 
-    def __init__(self, server: str, port: str, db: str, user: str, password: str):
-        connection_string = f"postgresql+psycopg://{user}:{password}@{server}:{port}/{db}"
-        try:
-            self.engine = create_engine(connection_string)
-        except ImportError as e:
-            raise LakehouseError("SQLAlchemy and psycopg2 are required to use the Lakehouse client.") from e
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        """
+        Initialize the client using the global database connector.
+        
+        Raises:
+            LakehouseError: If the global connector is not configured.
+        """
+        # Only initialize once
+        if not hasattr(self, '_initialized'):
+            if not connector.is_configured():
+                raise LakehouseError("Database connector not configured. Call connector.configure() first.")
+            self._initialized = True
+
+    @property
+    def engine(self):
+        """Get the database engine from the global connector."""
+        return connector.engine
 
     def fetch_dataframe_from_sql(self, sql: str, params: dict | None = None) -> pd.DataFrame:
         """
@@ -155,3 +172,7 @@ class Client:
             """
         df = self.fetch_dataframe_from_sql(query)
         return df["schema_name"].tolist()
+
+
+# Global client instance
+client = Client()

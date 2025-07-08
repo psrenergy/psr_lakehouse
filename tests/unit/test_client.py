@@ -14,8 +14,8 @@ password = os.getenv("POSTGRES_PASSWORD")
 # Configure the global connector
 psr.lakehouse.connector.configure(server, port, db, user, password)
 
-# Create client using the global connector
-client = psr.lakehouse.Client()
+# Use the global client instance
+client = psr.lakehouse.client
 
 
 def test_ccee_spot_price():
