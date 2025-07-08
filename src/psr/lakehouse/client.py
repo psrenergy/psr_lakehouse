@@ -1,13 +1,10 @@
+from psr.lakehouse.exceptions import LakehouseError
+
 import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 reference_date = "reference_date"
-
-
-class LakehouseError(Exception):
-    """Custom exception for Lakehouse client errors."""
-
 
 class Client:
     """
@@ -41,8 +38,6 @@ class Client:
         """
         try:
             with self.engine.connect() as connection:
-                print(f"Executing SQL query: {sql}")
-                print(f"With parameters: {params}")
                 df = pd.read_sql_query(text(sql), connection, params=params)
                 if reference_date in df.columns:
                     df[reference_date] = pd.to_datetime(df[reference_date])
