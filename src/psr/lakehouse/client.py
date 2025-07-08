@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 reference_date = "reference_date"
 
+
 class Client:
     """
     A client for interacting with the PSR Lakehouse database.
