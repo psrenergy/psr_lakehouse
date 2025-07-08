@@ -5,9 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "boto3>=1.39.3",
     "pandas>=2.3.0",
+    "psycopg2>=2.9.10",
     "psycopg[binary]>=3.2.9",
-    "sqlalchemy>=2.0.41",    
+    "sqlalchemy>=2.0.41",
 ]
 
 [build-system]
@@ -23,3 +25,6 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
     packages = ["src/psr"]
+
+[project.scripts]
+experiments_iam = "psr.lakehouse.experiments.iam:main"
