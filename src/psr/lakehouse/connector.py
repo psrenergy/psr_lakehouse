@@ -1,34 +1,37 @@
+import json
 import boto3
-import os
 import sqlalchemy
 
 
 class Connector:
     _instance = None
     _region: str = "us-east-1"
-    _client = boto3.client("rds", region_name="us-east-1")
+    _rds = boto3.client("rds", region_name=_region)
+    _user: str
+    _endpoint: str
+    _port: str
+    _dbname: str
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            secrets_manager = boto3.client("secretsmanager", region_name="us-east-1")
+            secret_response = secrets_manager.get_secret_value(SecretId="psr-lakehouse-secrets")
+            secret = json.loads(secret_response["SecretString"])
+            cls._user = secret["POSTGRES_USER"]
+            cls._endpoint = secret["POSTGRES_SERVER"]
+            cls._port = secret["POSTGRES_PORT"]
+            cls._dbname = secret["POSTGRES_DB"]
         return cls._instance
 
     def engine(self) -> sqlalchemy.Engine:
-        user = os.getenv("POSTGRES_USER")
-        endpoint = os.getenv("POSTGRES_SERVER")
-        port = os.getenv("POSTGRES_PORT")
-        dbname = os.getenv("POSTGRES_DB")
-        region = self._region
-
-        token = self._client.generate_db_auth_token(
-            DBHostname=endpoint,
-            Port=port,
-            DBUsername=user,
-            Region=region,
+        token = self._rds.generate_db_auth_token(
+            DBHostname=self._endpoint,
+            Port=self._port,
+            DBUsername=self._user,
+            Region=self._region,
         )
-        connection_string = (
-            f"postgresql+psycopg://{user}:{token}@{endpoint}:{port}/{dbname}?sslmode=require&sslrootcert=SSLCERTIFICATE"
-        )
+        connection_string = f"postgresql+psycopg://{self._user}:{token}@{self._endpoint}:{self._port}/{self._dbname}?sslmode=require&sslrootcert=SSLCERTIFICATE"
 
         return sqlalchemy.create_engine(connection_string)
 
