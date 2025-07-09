@@ -7,5 +7,6 @@ for /d /r %%d in (__pycache__) do (
     rd /s /q "%%d"
 )
 
+uv sync
 uv build
 uv publish
