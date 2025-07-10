@@ -8,6 +8,7 @@ class Connector:
     _instance = None
 
     _region_name = "us-east-1"
+    _is_initialized: bool
     _user: str
     _endpoint: str
     _port: str
@@ -39,7 +40,12 @@ class Connector:
         self._port = secret["POSTGRES_PORT"]
         self._dbname = secret["POSTGRES_DB"]
 
+        self._is_initialized = True
+
     def engine(self) -> sqlalchemy.Engine:
+        if self._is_initialized is False:
+            self.initialize()
+
         token = self._rds.generate_db_auth_token(
             DBHostname=self._endpoint,
             Port=self._port,
