@@ -1,45 +1,40 @@
-import json
 import boto3
+import json
 import sqlalchemy
+import os
 
 
 class Connector:
     _instance = None
+
+    _region_name = "us-east-1"
     _user: str
     _endpoint: str
     _port: str
     _dbname: str
-    
-    _aws_access_key_id: str | None = None
-    _aws_secret_access_key: str | None = None
-    _aws_region_name: str
-
-    @classmethod
-    def set_credentials(
-        cls,
-        aws_access_key_id: str,
-        aws_secret_access_key: str,
-        aws_region_name: str = "us-east-1",
-    ):
-        cls._aws_access_key_id = aws_access_key_id
-        cls._aws_secret_access_key = aws_secret_access_key
-        cls._aws_region_name = aws_region_name
-        cls._instance = None
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance._initialize()
+            cls._instance.set_credentials(
+                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            )
         return cls._instance
 
-    def _initialize(self):
-        boto3_kwargs = {"region_name": self._aws_region_name}
-        if self._aws_access_key_id and self._aws_secret_access_key:
-            boto3_kwargs["aws_access_key_id"] = self._aws_access_key_id
-            boto3_kwargs["aws_secret_access_key"] = self._aws_secret_access_key
+    def set_credentials(
+        self,
+        aws_access_key_id: str,
+        aws_secret_access_key: str,
+    ):
+        boto_kwargs = {
+            "region_name": self._region_name,
+            "aws_access_key_id": aws_access_key_id,
+            "aws_secret_access_key":  aws_secret_access_key,
+        }
 
-        self._rds = boto3.client("rds", **boto3_kwargs)
-        self._secrets_manager = boto3.client("secretsmanager", **boto3_kwargs)
+        self._rds = boto3.client("rds", **boto_kwargs)
+        self._secrets_manager = boto3.client("secretsmanager", **boto_kwargs)
 
         secret_response = self._secrets_manager.get_secret_value(SecretId="psr-lakehouse-secrets")
         secret = json.loads(secret_response["SecretString"])
@@ -53,7 +48,7 @@ class Connector:
             DBHostname=self._endpoint,
             Port=self._port,
             DBUsername=self._user,
-            Region=self._region,
+            Region=self._region_name,
         )
         connection_string = f"postgresql+psycopg://{self._user}:{token}@{self._endpoint}:{self._port}/{self._dbname}?sslmode=require&sslrootcert=SSLCERTIFICATE"
 
