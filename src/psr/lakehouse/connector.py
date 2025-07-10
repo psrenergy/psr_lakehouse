@@ -30,7 +30,7 @@ class Connector:
         boto_kwargs = {
             "region_name": self._region_name,
             "aws_access_key_id": aws_access_key_id,
-            "aws_secret_access_key":  aws_secret_access_key,
+            "aws_secret_access_key": aws_secret_access_key,
         }
 
         self._rds = boto3.client("rds", **boto_kwargs)
