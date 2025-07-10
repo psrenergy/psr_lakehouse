@@ -16,16 +16,12 @@ class Connector:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance.set_credentials(
-                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-            )
         return cls._instance
 
-    def set_credentials(
+    def initialize(
         self,
-        aws_access_key_id: str,
-        aws_secret_access_key: str,
+        aws_access_key_id =os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key: str=os.getenv("AWS_SECRET_ACCESS_KEY")
     ):
         boto_kwargs = {
             "region_name": self._region_name,
