@@ -1,6 +1,6 @@
-import psr.lakehouse
-
 import pandas as pd
+
+import psr.lakehouse
 
 
 def test_ccee_spot_price():

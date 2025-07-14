@@ -1,7 +1,8 @@
-import boto3
 import json
-import sqlalchemy
 import os
+
+import boto3
+import sqlalchemy
 
 
 class Connector:

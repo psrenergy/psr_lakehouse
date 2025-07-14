@@ -1,9 +1,9 @@
 import os
+
 import boto3
 import dotenv
-from sqlalchemy import create_engine
-from sqlalchemy import text
 import pandas as pd
+from sqlalchemy import create_engine, text
 
 dotenv.load_dotenv()
 

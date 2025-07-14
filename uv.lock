@@ -169,7 +169,7 @@ wheels = [
 
 [[package]]
 name = "psr-lakehouse"
-version = "0.1.8"
+version = "0.1.9"
 source = { editable = "." }
 dependencies = [
     { name = "boto3" },

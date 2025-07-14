@@ -1,8 +1,6 @@
+from .aliases import ccee as ccee, ons as ons
 from .client import client
 from .connector import connector as connector
-
-from .aliases import ccee as ccee
-from .aliases import ons as ons
 
 
 def initialize(

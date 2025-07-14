@@ -1,9 +1,9 @@
-from psr.lakehouse.exceptions import LakehouseError
-from psr.lakehouse.connector import connector
-
 import pandas as pd
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+
+from psr.lakehouse.connector import connector
+from psr.lakehouse.exceptions import LakehouseError
 
 reference_date = "reference_date"
 

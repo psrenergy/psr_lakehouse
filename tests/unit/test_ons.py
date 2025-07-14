@@ -1,6 +1,6 @@
-import psr.lakehouse
-
 import pandas as pd
+
+import psr.lakehouse
 
 expected_index = pd.MultiIndex.from_tuples(
     [
