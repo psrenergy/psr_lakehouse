@@ -36,3 +36,11 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "lf"
+
+[lint]
+select = ["I"] # enable ruff's isort checks
+
+[lint.isort]
+known-first-party = ["app"]
+combine-as-imports = true
+split-on-trailing-comma = true
