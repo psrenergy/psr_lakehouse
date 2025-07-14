@@ -10,6 +10,7 @@ class Connector:
     _region_name = "us-east-1"
     _is_initialized: bool = False
     _user: str
+    _password: str
     _endpoint: str
     _port: str
     _dbname: str
@@ -21,8 +22,9 @@ class Connector:
 
     def initialize(
         self,
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_access_key_id: str = os.getenv("AWS_ACCESS_KEY_ID"),
         aws_secret_access_key: str = os.getenv("AWS_SECRET_ACCESS_KEY"),
+        postgres_password: str = os.getenv("POSTGRES_PASSWORD"),
     ):
         boto_kwargs = {
             "region_name": self._region_name,
@@ -36,6 +38,7 @@ class Connector:
         secret_response = self._secrets_manager.get_secret_value(SecretId="psr-lakehouse-secrets")
         secret = json.loads(secret_response["SecretString"])
         self._user = secret["POSTGRES_USER"]
+        self._password = postgres_password
         self._endpoint = secret["POSTGRES_SERVER"]
         self._port = secret["POSTGRES_PORT"]
         self._dbname = secret["POSTGRES_DB"]
@@ -46,13 +49,13 @@ class Connector:
         if self._is_initialized is False:
             self.initialize()
 
-        token = self._rds.generate_db_auth_token(
-            DBHostname=self._endpoint,
-            Port=self._port,
-            DBUsername=self._user,
-            Region=self._region_name,
-        )
-        connection_string = f"postgresql+psycopg://{self._user}:{token}@{self._endpoint}:{self._port}/{self._dbname}?sslmode=require&sslrootcert=SSLCERTIFICATE"
+        # token = self._rds.generate_db_auth_token(
+        #     DBHostname=self._endpoint,
+        #     Port=self._port,
+        #     DBUsername=self._user,
+        #     Region=self._region_name,
+        # )
+        connection_string = f"postgresql+psycopg://{self._user}:{self._password}@{self._endpoint}:{self._port}/{self._dbname}?sslmode=require&sslrootcert=SSLCERTIFICATE"
 
         return sqlalchemy.create_engine(connection_string)
 
