@@ -22,7 +22,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-    packages = ["src/psr"]
+packages = ["src/psr"]
 
 [project.scripts]
 experiments_iam = "psr.lakehouse.experiments.iam:main"
