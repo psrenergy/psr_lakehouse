@@ -55,3 +55,91 @@ def test_ons_verified_stored_energy_percentage():
         name="verified_stored_energy_percentage",
     )
     pd.testing.assert_series_equal(df["verified_stored_energy_percentage"], expected_series)
+
+
+def test_ons_load_marginal_cost_weekly_average():
+    df = psr.lakehouse.ons.load_marginal_cost_weekly_average(
+        start_reference_date="2022-01-07",
+        end_reference_date="2022-01-14",
+    )
+
+    expected_series = pd.Series(
+        [0.00, 36.09, 66.62, 66.62],
+        index=pd.MultiIndex.from_tuples(
+            [
+                (pd.to_datetime("2022-01-07"), "NORTH"),
+                (pd.to_datetime("2022-01-07"), "NORTHEAST"),
+                (pd.to_datetime("2022-01-07"), "SOUTHEAST"),
+                (pd.to_datetime("2022-01-07"), "SOUTH"),
+            ],
+            names=["reference_date", "subsystem"],
+        ),
+        name="average",
+    )
+    pd.testing.assert_series_equal(df["average"], expected_series)
+
+
+def test_ons_load_marginal_cost_weekly_light_load_segment():
+    df = psr.lakehouse.ons.load_marginal_cost_weekly_light_load_segment(
+        start_reference_date="2022-01-07",
+        end_reference_date="2022-01-14",
+    )
+
+    expected_series = pd.Series(
+        [0.00, 0.00, 64.12, 64.12],
+        index=pd.MultiIndex.from_tuples(
+            [
+                (pd.to_datetime("2022-01-07"), "NORTH"),
+                (pd.to_datetime("2022-01-07"), "NORTHEAST"),
+                (pd.to_datetime("2022-01-07"), "SOUTHEAST"),
+                (pd.to_datetime("2022-01-07"), "SOUTH"),
+            ],
+            names=["reference_date", "subsystem"],
+        ),
+        name="light_load_segment",
+    )
+    pd.testing.assert_series_equal(df["light_load_segment"], expected_series)
+
+
+def test_ons_load_marginal_cost_weekly_medium_load_segment():
+    df = psr.lakehouse.ons.load_marginal_cost_weekly_medium_load_segment(
+        start_reference_date="2022-01-07",
+        end_reference_date="2022-01-14",
+    )
+
+    expected_series = pd.Series(
+        [0.00, 68.65, 68.65, 68.65],
+        index=pd.MultiIndex.from_tuples(
+            [
+                (pd.to_datetime("2022-01-07"), "NORTH"),
+                (pd.to_datetime("2022-01-07"), "NORTHEAST"),
+                (pd.to_datetime("2022-01-07"), "SOUTHEAST"),
+                (pd.to_datetime("2022-01-07"), "SOUTH"),
+            ],
+            names=["reference_date", "subsystem"],
+        ),
+        name="medium_load_segment",
+    )
+    pd.testing.assert_series_equal(df["medium_load_segment"], expected_series)
+
+
+def test_ons_load_marginal_cost_weekly_heavy_load_segment():
+    df = psr.lakehouse.ons.load_marginal_cost_weekly_heavy_load_segment(
+        start_reference_date="2022-01-07",
+        end_reference_date="2022-01-14",
+    )
+
+    expected_series = pd.Series(
+        [0.00, 69.2, 69.2, 69.2],
+        index=pd.MultiIndex.from_tuples(
+            [
+                (pd.to_datetime("2022-01-07"), "NORTH"),
+                (pd.to_datetime("2022-01-07"), "NORTHEAST"),
+                (pd.to_datetime("2022-01-07"), "SOUTHEAST"),
+                (pd.to_datetime("2022-01-07"), "SOUTH"),
+            ],
+            names=["reference_date", "subsystem"],
+        ),
+        name="heavy_load_segment",
+    )
+    pd.testing.assert_series_equal(df["heavy_load_segment"], expected_series)
