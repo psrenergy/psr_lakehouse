@@ -56,6 +56,7 @@ def test_ons_verified_stored_energy_percentage():
     )
     pd.testing.assert_series_equal(df["verified_stored_energy_percentage"], expected_series)
 
+
 def test_ons_load_marginal_cost_weekly_average():
     df = psr.lakehouse.ons.load_marginal_cost_weekly_average(
         start_reference_date="2022-01-07",
@@ -76,6 +77,7 @@ def test_ons_load_marginal_cost_weekly_average():
         name="average",
     )
     pd.testing.assert_series_equal(df["average"], expected_series)
+
 
 def test_ons_load_marginal_cost_weekly_light_load_segment():
     df = psr.lakehouse.ons.load_marginal_cost_weekly_light_load_segment(
