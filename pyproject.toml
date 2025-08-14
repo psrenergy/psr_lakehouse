@@ -8,6 +8,7 @@ dependencies = [
     "pandas>=2.3.0",
     "psycopg[binary]>=3.2.9",
     "sqlalchemy>=2.0.41",
+    "streamlit>=1.48.1",
 ]
 
 [build-system]
