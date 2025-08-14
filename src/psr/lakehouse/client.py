@@ -4,6 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from psr.lakehouse.connector import connector
 from psr.lakehouse.exceptions import LakehouseError
+from psr.lakehouse.metadata import metadata_registry
 
 reference_date = "reference_date"
 
@@ -95,6 +96,38 @@ class Client:
             """
         df = self.fetch_dataframe_from_sql(query)
         return df["schema_name"].tolist()
+
+    def get_table_metadata(self, table_name: str):
+        """Get metadata for a specific table."""
+        return metadata_registry.get_metadata(table_name)
+
+    def list_available_datasets(self) -> pd.DataFrame:
+        """List all available datasets with their metadata."""
+        datasets = []
+        for table_name, metadata in metadata_registry.get_all_metadata().items():
+            datasets.append(
+                {
+                    "table_name": table_name,
+                    "organization": metadata.organization,
+                    "data_name": metadata.data_name,
+                    "description": metadata.description,
+                    "columns_count": len(metadata.columns),
+                }
+            )
+        return pd.DataFrame(datasets)
+
+    def get_column_info(self, table_name: str) -> pd.DataFrame:
+        """Get detailed column information including units for a specific table."""
+        metadata = metadata_registry.get_metadata(table_name)
+        if not metadata:
+            raise LakehouseError(f"No metadata found for table: {table_name}")
+
+        columns_info = []
+        for col in metadata.columns:
+            columns_info.append(
+                {"column_name": col.name, "description": col.description, "unit": col.unit, "data_type": col.data_type}
+            )
+        return pd.DataFrame(columns_info)
 
 
 client = Client()

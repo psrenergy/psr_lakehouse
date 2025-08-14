@@ -40,6 +40,11 @@ PSR Lakehouse is a Python client library for accessing Brazilian energy market d
 - `aliases/ccee.py` - CCEE (electricity market) data functions like `spot_price()`
 - `aliases/ons.py` - ONS (transmission operator) data functions like `stored_energy()` and `load_marginal_cost_weekly()`
 
+**Metadata System**:
+- `metadata.py` - Centralized metadata registry with table and column information
+- Provides organization name, data descriptions, units, and data types for all datasets
+- Accessible via `client.get_table_metadata()`, `client.list_available_datasets()`, and `client.get_column_info()`
+
 **AWS Integration**:
 - Uses boto3 for AWS services (RDS, Secrets Manager)
 - Credentials from environment variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `POSTGRES_PASSWORD`
