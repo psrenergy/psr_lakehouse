@@ -89,10 +89,21 @@ def get_data_frequency(df: pd.DataFrame) -> str:
     if time_diffs.empty:
         return "Unknown"
     
-    # Get the most common time difference
-    # Convert to total seconds for comparison
-    time_diffs_seconds = time_diffs.total_seconds()
-    mode_diff_seconds = time_diffs_seconds.mode()[0] if not time_diffs_seconds.empty else 86400  # default to 1 day
+    # Get the most common time difference using a simpler approach
+    # Convert to total seconds and create a Series for mode calculation
+    time_diffs_seconds = pd.Series(time_diffs.total_seconds())
+    
+    if time_diffs_seconds.empty:
+        return "Unknown"
+    
+    # Get mode or use the first difference if mode fails
+    try:
+        mode_result = time_diffs_seconds.mode()
+        mode_diff_seconds = mode_result.iloc[0] if not mode_result.empty else time_diffs_seconds.iloc[0]
+    except:
+        # Fallback to first difference
+        mode_diff_seconds = time_diffs_seconds.iloc[0]
+    
     mode_diff = timedelta(seconds=mode_diff_seconds)
     
     if mode_diff <= timedelta(hours=1):
@@ -351,13 +362,6 @@ def create_visualization(data_dict: Dict[str, pd.DataFrame]):
 def main():
     """Main application function."""
     initialize_session_state()
-    
-    # Title and description
-    st.title("⚡ PSR Lakehouse Data Explorer")
-    st.markdown("""
-    Explore Brazilian energy market data with this interactive data explorer.
-    Use the sidebar to select organization, dataset, and specific columns to visualize.
-    """)
     
     # Sidebar selectors
     org, dataset, columns = create_tree_selector()
