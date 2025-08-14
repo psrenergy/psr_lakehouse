@@ -8,7 +8,7 @@ def spot_price(**kwargs) -> pd.DataFrame:
     """
     Retrieve hourly electricity spot prices by subsystem from CCEE.
 
-    Organization: CCEE (Câmara de Comercialização de Energia Elétrica)
+    Organization: CCEE
     Data: Spot Price - Hourly electricity spot prices by subsystem in the Brazilian electricity market
 
     Columns:

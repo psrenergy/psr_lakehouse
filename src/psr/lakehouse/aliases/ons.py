@@ -8,7 +8,7 @@ def stored_energy(**kwargs) -> pd.DataFrame:
     """
     Retrieve reservoir stored energy levels by subsystem from ONS.
 
-    Organization: ONS (Operador Nacional do Sistema Elétrico)
+    Organization: ONS
     Data: Stored Energy - Reservoir stored energy levels by subsystem from the Brazilian National System Operator
 
     Columns:
@@ -36,7 +36,7 @@ def load_marginal_cost_weekly(**kwargs) -> pd.DataFrame:
     """
     Retrieve weekly marginal cost of load by subsystem and load segment from ONS.
 
-    Organization: ONS (Operador Nacional do Sistema Elétrico)
+    Organization: ONS
     Data: Load Marginal Cost Weekly - Weekly marginal cost of load by subsystem and load segment from the Brazilian National System Operator
 
     Columns:
