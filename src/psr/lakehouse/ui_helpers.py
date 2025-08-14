@@ -265,20 +265,20 @@ def get_streamlit_selector_options() -> Dict[str, List]:
 
 def format_column_display_name(column_info: Dict[str, str]) -> str:
     """
-    Format a column name for display in UI.
+    Format a column name for display in UI using description and unit.
 
     Args:
         column_info (Dict[str, str]): Column information from get_data_columns()
 
     Returns:
-        str: Formatted display name with unit if available
+        str: Formatted display name with description and unit if available
     """
-    name = column_info["column_name"]
+    description = column_info.get("description", column_info["column_name"])
     unit = column_info.get("unit", "")
 
     if unit:
-        return f"{name} ({unit})"
-    return name
+        return f"{description} ({unit})"
+    return description
 
 
 def parse_date_range_for_filters(start_date, end_date) -> Dict[str, str]:

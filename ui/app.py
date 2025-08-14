@@ -144,16 +144,6 @@ def create_tree_selector():
             if selected_dataset_display:
                 selected_dataset = dataset_options[selected_dataset_display]
                 
-                # Show dataset information
-                with st.sidebar.expander("ℹ️ Dataset Information", expanded=False):
-                    st.markdown(f"""
-                    <div class="dataset-info">
-                    <strong>Organization:</strong> {selected_dataset['data_name']}<br>
-                    <strong>Table:</strong> {selected_dataset['table_name']}<br>
-                    <strong>Description:</strong> {selected_dataset['description']}
-                    </div>
-                    """, unsafe_allow_html=True)
-                
                 # Column selector (multi-select)
                 columns = get_data_columns(selected_dataset['table_name'])
                 if columns:
@@ -171,49 +161,18 @@ def create_tree_selector():
                     if selected_columns_display:
                         selected_columns = [column_options[col] for col in selected_columns_display]
                         
-                        # Show column information
-                        with st.sidebar.expander("📋 Column Details", expanded=False):
-                            for col in columns:
-                                if col['column_name'] in selected_columns:
-                                    unit_text = f" ({col['unit']})" if col['unit'] else ""
-                                    st.markdown(f"""
-                                    <div class="column-info">
-                                    <strong>{col['column_name']}{unit_text}</strong><br>
-                                    <small>{col['description']}</small>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                        
                         return selected_org, selected_dataset, selected_columns
     
     return None, None, None
 
 
 def create_filters_section():
-    """Create the filters section in the sidebar."""
-    st.sidebar.header("🔍 Filters")
-    
-    # Date range filter
-    col1, col2 = st.sidebar.columns(2)
-    
-    with col1:
-        start_date = st.date_input(
-            "Start Date",
-            value=datetime.now() - timedelta(days=30),
-            help="Filter data from this date onwards"
-        )
-    
-    with col2:
-        end_date = st.date_input(
-            "End Date", 
-            value=datetime.now(),
-            help="Filter data up to this date"
-        )
-    
-    # Subsystem filter
+    """Create the filters section in the sidebar (now simplified)."""
+    # Subsystem filter only
     try:
         subsystems = get_subsystems()
         selected_subsystems = st.sidebar.multiselect(
-            "🔌 Subsystems",
+            "🔌 Subsystems (Optional)",
             subsystems,
             default=subsystems,
             help="Select electrical subsystems to include"
@@ -221,7 +180,7 @@ def create_filters_section():
     except Exception:
         selected_subsystems = None
     
-    return start_date, end_date, selected_subsystems
+    return selected_subsystems
 
 
 def add_to_selection(org: str, dataset: dict, columns: List[str]):
@@ -231,41 +190,40 @@ def add_to_selection(org: str, dataset: dict, columns: List[str]):
     # Check if already selected
     existing_keys = [item['key'] for item in st.session_state.selected_data]
     if selection_key not in existing_keys:
+        # Get column descriptions for display
+        columns_metadata = get_data_columns(dataset['table_name'])
+        column_name_to_description = {
+            col['column_name']: col['description'] for col in columns_metadata
+        }
+        
+        # Create display names using descriptions
+        column_descriptions = [column_name_to_description.get(col, col) for col in columns]
+        
         st.session_state.selected_data.append({
             'key': selection_key,
             'organization': org,
             'dataset': dataset,
             'columns': columns,
-            'display_name': f"{org} - {dataset['data_name']} ({', '.join(columns)})"
+            'display_name': f"{org} - {dataset['data_name']} ({', '.join(column_descriptions)})"
         })
-        st.success(f"Added: {org} - {dataset['data_name']} ({', '.join(columns)})")
+        st.success(f"Added: {org} - {dataset['data_name']} ({', '.join(column_descriptions)})")
     else:
         st.warning("This selection is already added!")
 
 
-def fetch_and_cache_data(selection: dict, start_date, end_date, subsystems):
+def fetch_and_cache_data(selection: dict, subsystems):
     """Fetch data for a selection and cache it."""
-    cache_key = f"{selection['key']}_{start_date}_{end_date}_{','.join(subsystems or [])}"
+    cache_key = f"{selection['key']}_{','.join(subsystems or [])}"
     
     if cache_key in st.session_state.data_cache:
         return st.session_state.data_cache[cache_key]
     
     try:
-        # Prepare filters
-        date_filters = parse_date_range_for_filters(start_date, end_date)
-        filters = {}
-        
-        if subsystems:
-            # Note: This assumes 'subsystem' is a filter field
-            # The actual implementation might need adjustment based on the data structure
-            pass
-        
-        # Fetch data
+        # Fetch all data (no date filtering)
         df = fetch_data_by_strings(
             organization=selection['organization'],
             data_name=selection['dataset']['data_name'],
-            columns=selection['columns'],
-            **date_filters
+            columns=selection['columns']
         )
         
         # Filter by subsystems if specified
@@ -302,6 +260,12 @@ def create_visualization(data_dict: Dict[str, pd.DataFrame]):
         if not selection:
             continue
         
+        # Get column metadata for user-friendly names
+        columns_metadata = get_data_columns(selection['dataset']['table_name'])
+        column_name_to_description = {
+            col['column_name']: col['description'] for col in columns_metadata
+        }
+        
         # Get frequency info
         frequency = get_data_frequency(df)
         
@@ -313,14 +277,18 @@ def create_visualization(data_dict: Dict[str, pd.DataFrame]):
                 
                 for column in selection['columns']:
                     if column in subsystem_data.columns:
+                        # Use description for display name
+                        display_name = column_name_to_description.get(column, column)
+                        legend_name = f"{selection['organization']} - {display_name} ({subsystem})"
+                        
                         fig.add_trace(
                             go.Scatter(
                                 x=subsystem_data.index,
                                 y=subsystem_data[column],
                                 mode='lines+markers',
-                                name=f"{selection['organization']} - {column} ({subsystem})",
+                                name=legend_name,
                                 line=dict(color=colors[color_idx % len(colors)]),
-                                hovertemplate=f"<b>{column} ({subsystem})</b><br>Date: %{{x}}<br>Value: %{{y}}<br>Frequency: {frequency}<extra></extra>"
+                                hovertemplate=f"<b>{display_name} ({subsystem})</b><br>Date: %{{x}}<br>Value: %{{y}}<br>Frequency: {frequency}<extra></extra>"
                             )
                         )
                         color_idx += 1
@@ -328,14 +296,18 @@ def create_visualization(data_dict: Dict[str, pd.DataFrame]):
             # Simple index
             for column in selection['columns']:
                 if column in df.columns:
+                    # Use description for display name
+                    display_name = column_name_to_description.get(column, column)
+                    legend_name = f"{selection['organization']} - {display_name}"
+                    
                     fig.add_trace(
                         go.Scatter(
                             x=df.index,
                             y=df[column],
                             mode='lines+markers',
-                            name=f"{selection['organization']} - {column}",
+                            name=legend_name,
                             line=dict(color=colors[color_idx % len(colors)]),
-                            hovertemplate=f"<b>{column}</b><br>Date: %{{x}}<br>Value: %{{y}}<br>Frequency: {frequency}<extra></extra>"
+                            hovertemplate=f"<b>{display_name}</b><br>Date: %{{x}}<br>Value: %{{y}}<br>Frequency: {frequency}<extra></extra>"
                         )
                     )
                     color_idx += 1
@@ -365,7 +337,7 @@ def main():
     
     # Sidebar selectors
     org, dataset, columns = create_tree_selector()
-    start_date, end_date, subsystems = create_filters_section()
+    subsystems = create_filters_section()
     
     # Add to selection button
     if org and dataset and columns:
@@ -399,7 +371,7 @@ def main():
         
         with st.spinner("Fetching data..."):
             for selection in st.session_state.selected_data:
-                df = fetch_and_cache_data(selection, start_date, end_date, subsystems)
+                df = fetch_and_cache_data(selection, subsystems)
                 if not df.empty:
                     data_dict[selection['key']] = df
         
@@ -449,8 +421,9 @@ def main():
         2. Choose a **Dataset** from the available options
         3. Select one or more **Columns** to visualize
         4. Click **"Add to Visualization"** to add the data
-        5. Adjust filters as needed and explore your data!
+        5. Optionally filter by **Subsystems** if needed
         
+        The application fetches all available historical data for comprehensive analysis.
         You can add multiple datasets and columns to compare different metrics on the same chart.
         """)
 
