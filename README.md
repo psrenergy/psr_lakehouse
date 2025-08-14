@@ -15,12 +15,7 @@ pip install psr-lakehouse
 ```python
 from psr.lakehouse import ccee
 
-# Get ccee spot prices
-spot_prices = ccee.spot_price(
-    filters = {"subsystem": "SE"},
-    start_reference_date="2024-01-01",
-    end_reference_date="2024-12-31"
-)
+df = ccee.spot_price()
 ```
 
 ### ONS
@@ -28,19 +23,10 @@ spot_prices = ccee.spot_price(
 ```python
 from psr.lakehouse import ons
 
-# Get ons maximum stored energy
-max_energy = ons.max_stored_energy(
-    filters = {"subsystem": "SE"},
-    start_reference_date = "2024-01-01"
+df = ons.stored_energy(
+    start_reference_date="2023-05-01 03:00:00",
+    end_reference_date="2023-05-01 04:00:00",
 )
-
-# Get ons verified stored energy in MW/month
-verified_energy = ons.verified_stored_energy_mwmonth(
-    filters = {"subsystem": "NE"}
-)
-
-# Get ons verified stored energy as percentage
-energy_percentage = ons.verified_stored_energy_percentage()
 ```
 
 ## Support
