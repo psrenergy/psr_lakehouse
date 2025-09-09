@@ -125,7 +125,7 @@ class Client:
         columns_info = []
         for col in metadata.columns:
             columns_info.append(
-                {"column_name": col.name, "description": col.description, "unit": col.unit, "data_type": col.data_type}
+                {"column_name": col.name, "description": col.description, "unit": col.unit, "data_type": col.data_type, "column_type": col.column_type}
             )
         return pd.DataFrame(columns_info)
 

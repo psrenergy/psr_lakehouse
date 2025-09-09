@@ -1,5 +1,14 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional
+from enum import Enum
+
+
+class ColumnType(Enum):
+    DATETIME = "datetime"
+    CATEGORY = "category"
+    IDENTIFIER = "identifier"
+    DATA = "data" 
+    METADATA = "metadata"
 
 
 @dataclass
@@ -8,6 +17,7 @@ class ColumnMetadata:
     description: str
     unit: Optional[str] = None
     data_type: Optional[str] = None
+    column_type: Optional[ColumnType] = None
 
 
 @dataclass
@@ -40,9 +50,9 @@ class MetadataRegistry:
             data_name="Spot Price",
             description="Hourly electricity spot prices by subsystem in the Brazilian electricity market",
             columns=[
-                ColumnMetadata("reference_date", "Date and time of the price observation", None, "datetime"),
-                ColumnMetadata("subsystem", "Electrical subsystem identifier", None, "string"),
-                ColumnMetadata("spot_price", "Electricity spot price", "R$/MWh", "float"),
+                ColumnMetadata("reference_date", "Date and time of the price observation", None, "datetime", ColumnType.DATETIME),
+                ColumnMetadata("subsystem", "Electrical subsystem identifier", None, "string", ColumnType.IDENTIFIER),
+                ColumnMetadata("spot_price", "Electricity spot price", "R$/MWh", "float", ColumnType.DATA),
             ],
         )
 
@@ -53,15 +63,16 @@ class MetadataRegistry:
             data_name="Stored Energy",
             description="Reservoir stored energy levels by subsystem from the Brazilian National System Operator",
             columns=[
-                ColumnMetadata("reference_date", "Date and time of the observation", None, "datetime"),
-                ColumnMetadata("subsystem", "Electrical subsystem identifier", None, "string"),
-                ColumnMetadata("max_stored_energy", "Maximum storage capacity", "MWmonth", "float"),
-                ColumnMetadata("verified_stored_energy_mwmonth", "Verified stored energy amount", "MWmonth", "float"),
+                ColumnMetadata("reference_date", "Date and time of the observation", None, "datetime", ColumnType.DATETIME),
+                ColumnMetadata("subsystem", "Electrical subsystem identifier", None, "string", ColumnType.IDENTIFIER),
+                ColumnMetadata("max_stored_energy", "Maximum storage capacity", "MWmonth", "float", ColumnType.DATA),
+                ColumnMetadata("verified_stored_energy_mwmonth", "Verified stored energy amount", "MWmonth", "float", ColumnType.DATA),
                 ColumnMetadata(
                     "verified_stored_energy_percentage",
                     "Verified stored energy as percentage of capacity",
                     "%",
                     "float",
+                    ColumnType.DATA
                 ),
             ],
         )
@@ -72,12 +83,51 @@ class MetadataRegistry:
             data_name="Load Marginal Cost Weekly",
             description="Weekly marginal cost of load by subsystem and load segment from the Brazilian National System Operator",
             columns=[
-                ColumnMetadata("reference_date", "Date and time of the weekly period", None, "datetime"),
-                ColumnMetadata("subsystem", "Electrical subsystem identifier", None, "string"),
-                ColumnMetadata("average", "Average marginal cost across all load segments", "R$/MWh", "float"),
-                ColumnMetadata("light_load_segment", "Marginal cost during light load periods", "R$/MWh", "float"),
-                ColumnMetadata("medium_load_segment", "Marginal cost during medium load periods", "R$/MWh", "float"),
-                ColumnMetadata("heavy_load_segment", "Marginal cost during heavy load periods", "R$/MWh", "float"),
+                ColumnMetadata("reference_date", "Date and time of the weekly period", None, "datetime", ColumnType.DATETIME),
+                ColumnMetadata("subsystem", "Electrical subsystem identifier", None, "string", ColumnType.IDENTIFIER),
+                ColumnMetadata("average", "Average marginal cost across all load segments", "R$/MWh", "float", ColumnType.DATA),
+                ColumnMetadata("light_load_segment", "Marginal cost during light load periods", "R$/MWh", "float", ColumnType.DATA),
+                ColumnMetadata("medium_load_segment", "Marginal cost during medium load periods", "R$/MWh", "float", ColumnType.DATA),
+                ColumnMetadata("heavy_load_segment", "Marginal cost during heavy load periods", "R$/MWh", "float", ColumnType.DATA),
+            ],
+        )
+
+        self._registry["ons_power_plant_availability"] = TableMetadata(
+            table_name="ons_power_plant_availability",
+            organization="ONS",
+            data_name="Power Plant Availability",
+            description="Power plant availability data from the Brazilian National System Operator",
+            columns=[
+            ColumnMetadata("reference_date", "Date and time of the observation", None, "datetime", ColumnType.DATETIME),
+            ColumnMetadata("subsystem", "Electrical subsystem identifier", None, "string", ColumnType.CATEGORY),
+            ColumnMetadata("state_code", "State code of the generator", None, "string", ColumnType.CATEGORY),
+            ColumnMetadata("plant_type", "Type of the plant", None, "string", ColumnType.CATEGORY),
+            ColumnMetadata("fuel_type", "Fuel type of the generator", None, "string", ColumnType.METADATA),
+            ColumnMetadata("generator_name", "Name of the generator", None, "string", ColumnType.IDENTIFIER),
+            ColumnMetadata("ons_id", "ONS ID of the generator", None, "string", ColumnType.IDENTIFIER),
+            ColumnMetadata("ceg", "ONS CEG ID of the generator", None, "string", ColumnType.IDENTIFIER),
+            ColumnMetadata("installed_capacity", "Installed capacity of the power plant", "MW", "float", ColumnType.DATA),
+            ColumnMetadata("operational_availability", "Operational availability of the plant", "MW", "float", ColumnType.DATA),
+            ColumnMetadata("synchronized_availability", "Synchronized operational availability", "MW", "float", ColumnType.DATA),
+            ],
+        )
+
+        self._registry["ons_power_plant_hourly_generation"] = TableMetadata(
+            table_name="ons_power_plant_hourly_generation",
+            organization="ONS",
+            data_name="Power Plant Hourly Generation",
+            description="Hourly power generation data from individual power plants in the Brazilian National System Operator",
+            columns=[
+                ColumnMetadata("reference_date", "Date and time of the generation observation", None, "datetime", ColumnType.DATETIME),
+                ColumnMetadata("subsystem", "Electrical subsystem identifier", None, "string", ColumnType.CATEGORY),
+                ColumnMetadata("state_code", "State code of the generator", None, "string", ColumnType.CATEGORY),
+                ColumnMetadata("operation_mode", "Operation mode of the generator", None, "string", ColumnType.CATEGORY),
+                ColumnMetadata("plant_type", "Type of the plant", None, "string", ColumnType.CATEGORY),
+                ColumnMetadata("fuel_type", "Fuel type of the generator", None, "string", ColumnType.METADATA),
+                ColumnMetadata("generator_name", "Name of the generator", None, "string", ColumnType.IDENTIFIER),
+                ColumnMetadata("ons_id", "ONS ID of the generator", None, "string", ColumnType.IDENTIFIER),
+                ColumnMetadata("ceg", "ONS CEG ID of the generator", None, "string", ColumnType.IDENTIFIER),
+                ColumnMetadata("generation", "Forecasted power generation value", "MW", "float", ColumnType.DATA),
             ],
         )
 

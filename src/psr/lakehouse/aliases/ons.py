@@ -61,6 +61,92 @@ def load_marginal_cost_weekly(**kwargs) -> pd.DataFrame:
     )
 
 
+def power_plant_availability(**kwargs) -> pd.DataFrame:
+    """
+    Retrieve power plant availability data from ONS.
+
+    Organization: ONS
+    Data: Power Plant Availability - Power plant availability data from the Brazilian National System Operator
+
+    Columns:
+    - reference_date: Date and time of the observation (datetime)
+    - subsystem: Electrical subsystem identifier (string)
+    - state_code: State code of the generator (string)
+    - plant_type: Type of the plant (string)
+    - fuel_type: Fuel type of the generator (string, nullable)
+    - generator_name: Name of the generator (string)
+    - ons_id: ONS ID of the generator (string)
+    - ceg: ONS CEG ID of the generator (string, nullable)
+    - installed_capacity: Installed capacity of the power plant (MW)
+    - operational_availability: Operational availability of the plant (MW)
+    - synchronized_availability: Synchronized operational availability (MW)
+
+    Args:
+        **kwargs: Additional filtering parameters (filters, start_reference_date, end_reference_date)
+
+    Returns:
+        pd.DataFrame: DataFrame with power plant availability data indexed by reference_date, subsystem, ons_id, ceg
+    """
+    return client.fetch_dataframe(
+        table_name="ons_power_plant_availability",
+        indices_columns=["reference_date", "ons_id"],
+        data_columns=[
+            "ceg",
+            "subsystem",
+            "state_code",
+            "plant_type",
+            "fuel_type",
+            "generator_name",
+            "installed_capacity",
+            "operational_availability",
+            "synchronized_availability",
+        ],
+        **kwargs,
+    )
+
+
+def power_plant_hourly_generation(**kwargs) -> pd.DataFrame:
+    """
+    Retrieve hourly power generation data from individual power plants in ONS.
+
+    Organization: ONS
+    Data: Power Plant Hourly Generation - Hourly power generation data from individual power plants in the Brazilian National System Operator
+
+    Columns:
+    - reference_date: Date and time of the generation observation (datetime)
+    - subsystem: Electrical subsystem identifier (string)
+    - state_code: State code of the generator (string)
+    - operation_mode: Operation mode of the generator (string)
+    - plant_type: Type of the plant (string)
+    - fuel_type: Fuel type of the generator (string, nullable)
+    - generator_name: Name of the generator (string)
+    - ons_id: ONS ID of the generator (string)
+    - ceg: ONS CEG ID of the generator (string, nullable)
+    - generation: Forecasted power generation value (MW)
+
+    Args:
+        **kwargs: Additional filtering parameters (filters, start_reference_date, end_reference_date)
+
+    Returns:
+        pd.DataFrame: DataFrame with hourly generation data indexed by reference_date and ons_id
+    """
+    return client.fetch_dataframe(
+        table_name="ons_power_plant_hourly_generation",
+        indices_columns=["reference_date", "ons_id"],
+        data_columns=[
+            "subsystem",
+            "state_code",
+            "operation_mode",
+            "plant_type",
+            "fuel_type",
+            "generator_name",
+            "ceg",
+            "generation",
+        ],
+        **kwargs,
+    )
+
+
 def get_stored_energy_metadata():
     """Get metadata information for ONS stored energy data."""
     return metadata_registry.get_metadata("ons_stored_energy")
@@ -69,3 +155,13 @@ def get_stored_energy_metadata():
 def get_load_marginal_cost_weekly_metadata():
     """Get metadata information for ONS load marginal cost weekly data."""
     return metadata_registry.get_metadata("ons_load_marginal_cost_weekly")
+
+
+def get_power_plant_availability_metadata():
+    """Get metadata information for ONS power plant availability data."""
+    return metadata_registry.get_metadata("ons_power_plant_availability")
+
+
+def get_power_plant_hourly_generation_metadata():
+    """Get metadata information for ONS power plant hourly generation data."""
+    return metadata_registry.get_metadata("ons_power_plant_hourly_generation")
