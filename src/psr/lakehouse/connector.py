@@ -28,7 +28,7 @@ class Connector:
         postgres_password: str = None,
     ):
         
-        if os.get_env("ENVIRONMENT") == "local":
+        if os.getenv("ENVIRONMENT") == "local":
             self._user = os.getenv("POSTGRES_USER")
             self._password = os.getenv("POSTGRES_PASSWORD")
             self._endpoint = os.getenv("POSTGRES_SERVER")
