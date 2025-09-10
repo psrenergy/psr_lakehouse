@@ -44,13 +44,8 @@ class Client:
         if group_by:
             # remove the indices_columns and data_columns if they are not in group_by keys (except reference_date)
             group_by_keys = list(group_by.keys())
-            for col in list(indices_columns + data_columns):
-                if col != reference_date and col not in group_by_keys:
-                    if col in indices_columns:
-                        indices_columns.remove(col)
-                    if col in data_columns:
-                        data_columns.remove(col)
-
+            indices_columns = [col for col in indices_columns if col == reference_date or col in group_by_keys]
+            data_columns = [col for col in data_columns if col == reference_date or col in group_by_keys]
 
         query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
 
