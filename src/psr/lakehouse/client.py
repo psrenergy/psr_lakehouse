@@ -55,15 +55,14 @@ class Client:
         
 
         if group_by:
-           
+            
+            if reference_date not in group_by:
+                group_by[reference_date] = ""
             for col, func in group_by.items():
                 if col not in data_columns + indices_columns:
                     raise LakehouseGroupByFunctionError(f"Column '{col}' in group_by is not in data_columns or indices_columns.")
                 if func.lower() not in ["sum", "avg", "min", "max"]:
                     raise LakehouseGroupByFunctionError(f"Unsupported grouping function '{func}' for column '{col}'.")
-                
-                if reference_date not in group_by:
-                    group_by[reference_date] = ""
                 query = query.replace(col, f"{func.upper()}({col}) AS {col}")
 
 
