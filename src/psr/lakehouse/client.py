@@ -9,6 +9,7 @@ from psr.lakehouse.metadata import metadata_registry
 
 reference_date = "reference_date"
 
+
 class Client:
     _instance = None
 
@@ -40,7 +41,6 @@ class Client:
         end_reference_date: str | None = None,
         group_by: dict[str, str] | None = None,
     ) -> pd.DataFrame:
-        
         if group_by:
             # remove the indices_columns and data_columns if they are not in group_by keys (except reference_date)
             group_by_keys = list(group_by.keys())
@@ -51,22 +51,41 @@ class Client:
 
         filter_conditions = ['"deleted_at" IS NULL']
         params = {}
-
-        
+        grouping_columns = []
 
         if group_by:
-            
+            # Split columns into grouping columns and aggregation columns
+            aggregation_replacements = {}
+
             if reference_date not in group_by:
                 group_by[reference_date] = ""
+
             for col, func in group_by.items():
                 if col not in data_columns + indices_columns:
-                    raise LakehouseGroupByFunctionError(f"Column '{col}' in group_by is not in data_columns or indices_columns.")
-                if func.lower() not in ["sum", "avg", "min", "max"]:
-                    if col == reference_date and func == "":
-                        continue
-                    raise LakehouseGroupByFunctionError(f"Unsupported grouping function '{func}' for column '{col}'.")
-                query = query.replace(col, f"{func.upper()}({col}) AS {col}")
+                    raise LakehouseGroupByFunctionError(
+                        f"Column '{col}' in group_by is not in data_columns or indices_columns."
+                    )
 
+                # If no function specified or empty string, treat as grouping column
+                if not func or func == "":
+                    grouping_columns.append(col)
+                else:
+                    # Validate aggregation function
+                    if func.lower() not in ["sum", "avg", "min", "max"]:
+                        raise LakehouseGroupByFunctionError(
+                            f"Unsupported grouping function '{func}' for column '{col}'."
+                        )
+
+                    # Only apply aggregation to data columns (not indices/grouping columns)
+                    if col in data_columns:
+                        aggregation_replacements[col] = f"{func.upper()}({col}) AS {col}"
+                    else:
+                        # If it's an index column with an aggregation function, treat it as grouping instead
+                        grouping_columns.append(col)
+
+            # Apply aggregation replacements to the query
+            for col, replacement in aggregation_replacements.items():
+                query = query.replace(col, replacement)
 
         if filters:
             for col, value in filters.items():
@@ -85,7 +104,7 @@ class Client:
 
         query += " WHERE " + " AND ".join(filter_conditions)
         if group_by:
-            query += " GROUP BY " + ", ".join(group_by)
+            query += " GROUP BY " + ", ".join(grouping_columns)
         query += " ORDER BY "
         query += ", ".join([f"{column} ASC" for column in indices_columns])
         query += ", updated_at DESC"
@@ -154,7 +173,13 @@ class Client:
         columns_info = []
         for col in metadata.columns:
             columns_info.append(
-                {"column_name": col.name, "description": col.description, "unit": col.unit, "data_type": col.data_type, "column_type": col.column_type}
+                {
+                    "column_name": col.name,
+                    "description": col.description,
+                    "unit": col.unit,
+                    "data_type": col.data_type,
+                    "column_type": col.column_type,
+                }
             )
         return pd.DataFrame(columns_info)
 
