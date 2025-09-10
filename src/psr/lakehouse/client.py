@@ -62,8 +62,8 @@ class Client:
         if group_by:
            
             for col, func in group_by.items():
-                if col not in data_columns:
-                    raise LakehouseGroupByFunctionError(f"Column '{col}' in group_by is not in data_columns.")
+                if col not in data_columns + indices_columns:
+                    raise LakehouseGroupByFunctionError(f"Column '{col}' in group_by is not in data_columns or indices_columns.")
                 if func.lower() not in ["sum", "avg", "min", "max"]:
                     raise LakehouseGroupByFunctionError(f"Unsupported grouping function '{func}' for column '{col}'.")
                 
