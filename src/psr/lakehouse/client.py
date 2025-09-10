@@ -54,7 +54,7 @@ class Client:
         
         indices_columns = group_by if group_by else indices_columns
         data_columns = [f"{aggregation_method.upper()}({col}) AS {col}" for col in data_columns] if aggregation_method else data_columns
-        query = f'SELECT DISTINCT ON ({", ".join(indices_columns)})"' 
+        query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) ' 
         query += f'{", ".join(indices_columns)},' 
         query += " MAX(updated_at), " if group_by else ""
         query += f'{", ".join(data_columns)} FROM "{table_name}"'
