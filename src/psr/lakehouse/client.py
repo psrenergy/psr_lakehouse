@@ -44,7 +44,7 @@ class Client:
         if group_by:
             # remove the indices_columns and data_columns if they are not in group_by keys (except reference_date)
             group_by_keys = list(group_by.keys())
-            for col in indices_columns + data_columns:
+            for col in list(indices_columns + data_columns):
                 if col != reference_date and col not in group_by_keys:
                     if col in indices_columns:
                         indices_columns.remove(col)
