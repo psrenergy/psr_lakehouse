@@ -89,14 +89,17 @@ def power_plant_availability(**kwargs) -> pd.DataFrame:
     """
     return client.fetch_dataframe(
         table_name="ons_power_plant_availability",
-        indices_columns=["reference_date", "ons_id"],
-        data_columns=[
+        indices_columns=[
+            "reference_date",
+            "ons_id",
             "ceg",
             "subsystem",
             "state_code",
             "plant_type",
             "fuel_type",
             "generator_name",
+        ],
+        data_columns=[
             "installed_capacity",
             "operational_availability",
             "synchronized_availability",
@@ -132,15 +135,18 @@ def power_plant_hourly_generation(**kwargs) -> pd.DataFrame:
     """
     return client.fetch_dataframe(
         table_name="ons_power_plant_hourly_generation",
-        indices_columns=["reference_date", "ons_id"],
-        data_columns=[
-            "subsystem",
+        indices_columns=[
+            "reference_date",
+            "ons_id",
+            "ubsystem",
             "state_code",
             "operation_mode",
             "plant_type",
             "fuel_type",
             "generator_name",
             "ceg",
+        ],
+        data_columns=[
             "generation",
         ],
         **kwargs,

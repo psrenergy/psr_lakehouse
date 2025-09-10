@@ -105,7 +105,7 @@ class MetadataRegistry:
             ColumnMetadata("fuel_type", "Fuel type of the generator", None, "string", ColumnType.METADATA),
             ColumnMetadata("generator_name", "Name of the generator", None, "string", ColumnType.IDENTIFIER),
             ColumnMetadata("ons_id", "ONS ID of the generator", None, "string", ColumnType.IDENTIFIER),
-            ColumnMetadata("ceg", "ONS CEG ID of the generator", None, "string", ColumnType.IDENTIFIER),
+            ColumnMetadata("ceg", "ONS CEG ID of the generator", None, "string", ColumnType.METADATA),
             ColumnMetadata("installed_capacity", "Installed capacity of the power plant", "MW", "float", ColumnType.DATA),
             ColumnMetadata("operational_availability", "Operational availability of the plant", "MW", "float", ColumnType.DATA),
             ColumnMetadata("synchronized_availability", "Synchronized operational availability", "MW", "float", ColumnType.DATA),
@@ -126,7 +126,7 @@ class MetadataRegistry:
                 ColumnMetadata("fuel_type", "Fuel type of the generator", None, "string", ColumnType.METADATA),
                 ColumnMetadata("generator_name", "Name of the generator", None, "string", ColumnType.IDENTIFIER),
                 ColumnMetadata("ons_id", "ONS ID of the generator", None, "string", ColumnType.IDENTIFIER),
-                ColumnMetadata("ceg", "ONS CEG ID of the generator", None, "string", ColumnType.IDENTIFIER),
+                ColumnMetadata("ceg", "ONS CEG ID of the generator", None, "string", ColumnType.METADATA),
                 ColumnMetadata("generation", "Forecasted power generation value", "MW", "float", ColumnType.DATA),
             ],
         )
