@@ -4,7 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from psr.lakehouse.connector import connector
-from psr.lakehouse.exceptions import LakehouseError, LakehouseGroupByFunctionError, LakehouseInputError
+from psr.lakehouse.exceptions import LakehouseError, LakehouseInputError
 from psr.lakehouse.metadata import metadata_registry
 
 reference_date = "reference_date"
@@ -39,63 +39,25 @@ class Client:
         filters: dict | None = None,
         start_reference_date: str | None = None,
         end_reference_date: str | None = None,
-        group_by: dict[str, str] | None = None,
+        group_by: list[str] | None = None,
+        aggregation_method: str | None = None,
     ) -> pd.DataFrame:
-        if group_by:
-            # remove the indices_columns and data_columns if they are not in group_by keys (except reference_date)
-            group_by_keys = list(group_by.keys())
-            indices_columns = [col for col in indices_columns if col == reference_date or col in group_by_keys]
-            data_columns = [col for col in data_columns if col == reference_date or col in group_by_keys]
-
-        # Construct SELECT columns list
-        select_columns = indices_columns.copy()
-        for col in data_columns:
-            if col not in select_columns:
-                select_columns.append(col)
         
-        query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(select_columns)} FROM "{table_name}"'
+        if bool(group_by) ^ bool(aggregation_method):
+            raise LakehouseError("Both 'group_by' and 'aggregation_method' must be provided together.")
+        
+        if aggregation_method and aggregation_method not in ["", "sum", "avg", "min", "max"]:
+            raise LakehouseError(f"Unsupported aggregation method '{aggregation_method}'. Supported methods are '', 'sum', 'avg', 'min', 'max'.")
+        
+        if group_by and reference_date not in group_by:
+            group_by.append(reference_date)
+        
+        indices_columns = [col for col in indices_columns if col == reference_date or col in group_by] if group_by else indices_columns
+        data_columns = [f"{aggregation_method.upper()}({col}) AS {col}" for col in data_columns] if aggregation_method else data_columns
+        query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
 
         filter_conditions = ['"deleted_at" IS NULL']
         params = {}
-        grouping_columns = []
-
-        if group_by:
-            # Split columns into grouping columns and aggregation columns
-            aggregation_replacements = {}
-
-            if reference_date not in group_by:
-                group_by[reference_date] = ""
-
-            for col, func in group_by.items():
-                if col not in data_columns + indices_columns:
-                    raise LakehouseGroupByFunctionError(
-                        f"Column '{col}' in group_by is not in data_columns or indices_columns."
-                    )
-
-                # If no function specified or empty string, treat as grouping column
-                if not func or func == "":
-                    grouping_columns.append(col)
-                else:
-                    # Validate aggregation function
-                    if func.lower() not in ["sum", "avg", "min", "max"]:
-                        raise LakehouseGroupByFunctionError(
-                            f"Unsupported grouping function '{func}' for column '{col}'."
-                        )
-
-                    # Only apply aggregation to data columns (not indices/grouping columns)
-                    if col in data_columns:
-                        aggregation_replacements[col] = f"{func.upper()}({col}) AS {col}"
-                    else:
-                        # If it's an index column with an aggregation function, treat it as grouping instead
-                        grouping_columns.append(col)
-
-            # Apply aggregation replacements to the query
-            for col, replacement in aggregation_replacements.items():
-                # Replace the column in select_columns list
-                if col in select_columns:
-                    select_columns[select_columns.index(col)] = replacement
-                    # Update the query with the new select_columns
-                    query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(select_columns)} FROM "{table_name}"'
 
         if filters:
             for col, value in filters.items():
@@ -114,7 +76,7 @@ class Client:
 
         query += " WHERE " + " AND ".join(filter_conditions)
         if group_by:
-            query += " GROUP BY " + ", ".join(grouping_columns)
+            query += " GROUP BY " + ", ".join(group_by)
         query += " ORDER BY "
         query += ", ".join([f"{column} ASC" for column in indices_columns])
         query += ", updated_at DESC"
