@@ -76,12 +76,12 @@ class Client:
 
 
         if group_by:
-            query += "JOIN ( SELECT " + ", ".join(indices_columns) + ", MAX(updated_at) as latest_updated_at" + f' FROM "{table_name}"' 
-            query += "GROUP BY " + ", ".join(indices_columns) + ") latest_per_group "
-            query += "ON " + " AND ".join([f'"{table_name}"."{col}" = latest_per_group."{col}"' for col in indices_columns])
+            query += " JOIN ( SELECT " + ", ".join(indices_columns) + ", MAX(updated_at) as latest_updated_at" + f' FROM "{table_name}"' 
+            query += " GROUP BY " + ", ".join(indices_columns) + ") latest_per_group "
+            query += " ON " + " AND ".join([f'"{table_name}"."{col}" = latest_per_group."{col}"' for col in indices_columns])
             query += f' AND "{table_name}".updated_at = latest_per_group.latest_updated_at '
-            query += "GROUP BY " + ", ".join(group_by)
-            query += "WHERE " + " AND ".join(filter_conditions)
+            query += " GROUP BY " + ", ".join(group_by)
+            query += " WHERE " + " AND ".join(filter_conditions)
             query += " ORDER BY "
             query += ", ".join([f"{column} ASC" for column in indices_columns])
         else:
