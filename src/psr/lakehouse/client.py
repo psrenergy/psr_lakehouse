@@ -40,13 +40,27 @@ class Client:
         end_reference_date: str | None = None,
         group_by: dict[str, str] | None = None,
     ) -> pd.DataFrame:
+        
+        if group_by:
+            # remove the indices_columns and data_columns if they are not in group_by keys (except reference_date)
+            group_by_keys = list(group_by.keys())
+            for col in indices_columns + data_columns:
+                if col != reference_date and col not in group_by_keys:
+                    if col in indices_columns:
+                        indices_columns.remove(col)
+                    if col in data_columns:
+                        data_columns.remove(col)
+
+
         query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
 
         filter_conditions = ['"deleted_at" IS NULL']
         params = {}
 
+        
 
         if group_by:
+           
             for col, func in group_by.items():
                 if col not in data_columns:
                     raise LakehouseGroupByFunctionError(f"Column '{col}' in group_by is not in data_columns.")
