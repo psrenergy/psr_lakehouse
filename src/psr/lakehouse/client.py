@@ -1,13 +1,13 @@
 import pandas as pd
+from psycopg.errors import InvalidTextRepresentation
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from psr.lakehouse.connector import connector
-from psr.lakehouse.exceptions import LakehouseError
+from psr.lakehouse.exceptions import LakehouseError, LakehouseGroupByFunctionError, LakehouseInputError
 from psr.lakehouse.metadata import metadata_registry
 
 reference_date = "reference_date"
-
 
 class Client:
     _instance = None
@@ -25,7 +25,10 @@ class Client:
                     df[reference_date] = pd.to_datetime(df[reference_date])
                 return df
         except SQLAlchemyError as e:
-            raise LakehouseError(f"Database error while executing query: {e}") from e
+            if isinstance(e.__cause__, InvalidTextRepresentation):
+                raise LakehouseInputError(f"Invalid input error while executing query: {e}") from e
+            else:
+                raise LakehouseError(f"Database error while executing query: {e}") from e
 
     def fetch_dataframe(
         self,
@@ -35,11 +38,25 @@ class Client:
         filters: dict | None = None,
         start_reference_date: str | None = None,
         end_reference_date: str | None = None,
+        group_by: dict[str, str] | None = None,
     ) -> pd.DataFrame:
         query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
 
         filter_conditions = ['"deleted_at" IS NULL']
         params = {}
+
+
+        if group_by:
+            for col, func in group_by.items():
+                if col not in data_columns:
+                    raise LakehouseGroupByFunctionError(f"Column '{col}' in group_by is not in data_columns.")
+                if func.lower() not in ["sum", "avg", "min", "max"]:
+                    raise LakehouseGroupByFunctionError(f"Unsupported grouping function '{func}' for column '{col}'.")
+                
+                if reference_date not in group_by:
+                    group_by[reference_date] = ""
+                query = query.replace(col, f"{func.upper()}({col}) AS {col}")
+
 
         if filters:
             for col, value in filters.items():
@@ -57,6 +74,8 @@ class Client:
             params["end_reference_date"] = end_reference_date
 
         query += " WHERE " + " AND ".join(filter_conditions)
+        if group_by:
+            query += " GROUP BY " + ", ".join(group_by)
         query += " ORDER BY "
         query += ", ".join([f"{column} ASC" for column in indices_columns])
         query += ", updated_at DESC"
