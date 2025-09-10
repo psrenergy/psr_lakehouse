@@ -138,7 +138,7 @@ def power_plant_hourly_generation(**kwargs) -> pd.DataFrame:
         indices_columns=[
             "reference_date",
             "ons_id",
-            "ubsystem",
+            "subsystem",
             "state_code",
             "operation_mode",
             "plant_type",
