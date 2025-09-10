@@ -43,19 +43,13 @@ class Client:
         aggregation_method: str | None = None,
     ) -> pd.DataFrame:
         
-        if bool(group_by) ^ bool(aggregation_method):
-            raise LakehouseError("Both 'group_by' and 'aggregation_method' must be provided together.")
-        
         if aggregation_method and aggregation_method not in ["", "sum", "avg", "min", "max"]:
             raise LakehouseError(f"Unsupported aggregation method '{aggregation_method}'. Supported methods are '', 'sum', 'avg', 'min', 'max'.")
         
         if group_by and reference_date not in group_by:
             group_by.append(reference_date)
         
-        indices_columns = group_by if group_by else indices_columns
-        data_columns = [f"{aggregation_method.upper()}({col}) AS {col}" for col in data_columns] if aggregation_method else data_columns
-        query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
-
+        # Build filter conditions and parameters
         filter_conditions = ['"deleted_at" IS NULL']
         params = {}
 
@@ -74,22 +68,80 @@ class Client:
             filter_conditions.append(f'"{reference_date}" < :end_reference_date')
             params["end_reference_date"] = end_reference_date
 
-
         if group_by:
-            query += " JOIN ( SELECT " + ", ".join(indices_columns) + ", MAX(updated_at) as latest_updated_at" + f' FROM "{table_name}"'
-            query += " WHERE " + " AND ".join(filter_conditions)
-            query += " GROUP BY " + ", ".join(indices_columns) + ") latest_per_group "
-            query += " ON " + " AND ".join([f'"{table_name}"."{col}" = latest_per_group."{col}"' for col in indices_columns])
-            query += f' AND "{table_name}".updated_at = latest_per_group.latest_updated_at '
-            query += " WHERE " + " AND ".join(filter_conditions)
-            query += " GROUP BY " + ", ".join(group_by)
-            query += " ORDER BY "
-            query += ", ".join([f"{column} ASC" for column in indices_columns])
+            # Use group_by columns as indices_columns for aggregation queries
+            actual_indices = group_by
+            # Apply aggregation to data columns if specified
+            if aggregation_method and aggregation_method != "":
+                select_data_columns = [f"{aggregation_method.upper()}(main.\"{col}\") AS {col}" for col in data_columns]
+            else:
+                select_data_columns = [f'main."{col}"' for col in data_columns]
+            
+            # Fully qualified column names for SELECT
+            select_indices = [f'main."{col}"' for col in actual_indices]
+            
+            # Build the main query with table alias
+            query = f'SELECT {", ".join(select_indices + select_data_columns)} FROM "{table_name}" main'
+            
+            # Add JOIN to get latest records per group
+            subquery_columns = [f'"{col}"' for col in actual_indices]
+            query += f' JOIN (SELECT {", ".join(subquery_columns)}, MAX(updated_at) as latest_updated_at FROM "{table_name}"'
+            
+            # Apply filters in subquery
+            subquery_filter_conditions = []
+            for condition in filter_conditions:
+                subquery_filter_conditions.append(condition)
+            
+            if subquery_filter_conditions:
+                query += " WHERE " + " AND ".join(subquery_filter_conditions)
+            
+            query += f' GROUP BY {", ".join(subquery_columns)}) latest_per_group'
+            
+            # JOIN conditions
+            join_conditions = [f'main."{col}" = latest_per_group."{col}"' for col in actual_indices]
+            join_conditions.append('main.updated_at = latest_per_group.latest_updated_at')
+            query += " ON " + " AND ".join(join_conditions)
+            
+            # Apply main table filters
+            main_filter_conditions = []
+            for condition in filter_conditions:
+                # Prefix main table conditions with 'main.'
+                if condition.startswith('"deleted_at"'):
+                    main_filter_conditions.append('main."deleted_at" IS NULL')
+                elif condition.startswith('"reference_date"'):
+                    main_filter_conditions.append(condition.replace(f'"{reference_date}"', f'main."{reference_date}"'))
+                else:
+                    # Handle other filter conditions by prefixing with main.
+                    for col, value in (filters or {}).items():
+                        if f'"{col}"' in condition:
+                            main_filter_conditions.append(condition.replace(f'"{col}"', f'main."{col}"'))
+                            break
+                    else:
+                        if 'main.' not in condition:
+                            main_filter_conditions.append(condition)
+            
+            if main_filter_conditions:
+                query += " WHERE " + " AND ".join(main_filter_conditions)
+            
+            # GROUP BY for aggregation
+            if aggregation_method and aggregation_method != "":
+                group_by_columns = [f'main."{col}"' for col in actual_indices]
+                query += " GROUP BY " + ", ".join(group_by_columns)
+            
+            # ORDER BY
+            order_columns = [f'main."{col}" ASC' for col in actual_indices]
+            query += " ORDER BY " + ", ".join(order_columns)
+            
+            # Set indices_columns for final processing
+            indices_columns = actual_indices
         else:
+            # Non-aggregated query (original logic)
+            select_indices = [f'"{col}"' for col in indices_columns]
+            select_data_columns = [f'"{col}"' for col in data_columns]
+            
+            query = f'SELECT DISTINCT ON ({", ".join(select_indices)}) {", ".join(select_indices + select_data_columns)} FROM "{table_name}"'
             query += " WHERE " + " AND ".join(filter_conditions)
-            query += " ORDER BY "
-            query += ", ".join([f"{column} ASC" for column in indices_columns])
-            query += ", updated_at DESC"
+            query += " ORDER BY " + ", ".join([f'"{column}" ASC' for column in indices_columns]) + ", updated_at DESC"
 
         df = self.fetch_dataframe_from_sql(query, params=params if params else None)
 
