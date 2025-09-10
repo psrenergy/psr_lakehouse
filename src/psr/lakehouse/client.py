@@ -47,7 +47,13 @@ class Client:
             indices_columns = [col for col in indices_columns if col == reference_date or col in group_by_keys]
             data_columns = [col for col in data_columns if col == reference_date or col in group_by_keys]
 
-        query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
+        # Construct SELECT columns list
+        select_columns = indices_columns.copy()
+        for col in data_columns:
+            if col not in select_columns:
+                select_columns.append(col)
+        
+        query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(select_columns)} FROM "{table_name}"'
 
         filter_conditions = ['"deleted_at" IS NULL']
         params = {}
@@ -85,7 +91,11 @@ class Client:
 
             # Apply aggregation replacements to the query
             for col, replacement in aggregation_replacements.items():
-                query = query.replace(col, replacement)
+                # Replace the column in select_columns list
+                if col in select_columns:
+                    select_columns[select_columns.index(col)] = replacement
+                    # Update the query with the new select_columns
+                    query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(select_columns)} FROM "{table_name}"'
 
         if filters:
             for col, value in filters.items():
