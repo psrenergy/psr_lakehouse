@@ -52,7 +52,7 @@ class Client:
         if group_by and reference_date not in group_by:
             group_by.append(reference_date)
         
-        indices_columns = [col for col in indices_columns if col == reference_date or col in group_by] if group_by else indices_columns
+        indices_columns = group_by if group_by else indices_columns
         data_columns = [f"{aggregation_method.upper()}({col}) AS {col}" for col in data_columns] if aggregation_method else data_columns
         query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
 
@@ -74,12 +74,21 @@ class Client:
             filter_conditions.append(f'"{reference_date}" < :end_reference_date')
             params["end_reference_date"] = end_reference_date
 
-        query += " WHERE " + " AND ".join(filter_conditions)
+
         if group_by:
-            query += " GROUP BY " + ", ".join(group_by)
-        query += " ORDER BY "
-        query += ", ".join([f"{column} ASC" for column in indices_columns])
-        query += ", updated_at DESC"
+            query += "JOIN ( SELECT " + ", ".join(indices_columns) + ", MAX(updated_at) as latest_updated_at" + f' FROM "{table_name}"' 
+            query += "GROUP BY " + ", ".join(indices_columns) + ") latest_per_group "
+            query += "ON " + " AND ".join([f'"{table_name}"."{col}" = latest_per_group."{col}"' for col in indices_columns])
+            query += f' AND "{table_name}".updated_at = latest_per_group.latest_updated_at '
+            query += "GROUP BY " + ", ".join(group_by)
+            query += "WHERE " + " AND ".join(filter_conditions)
+            query += " ORDER BY "
+            query += ", ".join([f"{column} ASC" for column in indices_columns])
+        else:
+            query += " WHERE " + " AND ".join(filter_conditions)
+            query += " ORDER BY "
+            query += ", ".join([f"{column} ASC" for column in indices_columns])
+            query += ", updated_at DESC"
 
         df = self.fetch_dataframe_from_sql(query, params=params if params else None)
 
