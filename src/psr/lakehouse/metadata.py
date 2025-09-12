@@ -127,7 +127,7 @@ class MetadataRegistry:
                 ColumnMetadata("generator_name", "Name of the generator", None, "string", ColumnType.IDENTIFIER),
                 ColumnMetadata("ons_id", "ONS ID of the generator", None, "string", ColumnType.IDENTIFIER),
                 ColumnMetadata("ceg", "ONS CEG ID of the generator", None, "string", ColumnType.METADATA),
-                ColumnMetadata("generation", "Forecasted power generation value", "MW", "float", ColumnType.DATA),
+                ColumnMetadata("generation", "Forecasted power generation value", "MWavg", "float", ColumnType.DATA),
             ],
         )
 
