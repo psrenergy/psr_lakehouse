@@ -37,7 +37,13 @@ class TestMetadataRegistry:
 
     def test_list_tables(self):
         tables = metadata_registry.list_tables()
-        expected_tables = ["ccee_spot_price", "ons_stored_energy", "ons_load_marginal_cost_weekly"]
+        expected_tables = [
+            "ccee_spot_price", 
+            "ons_stored_energy", 
+            "ons_load_marginal_cost_weekly",
+            "ons_power_plant_availability",
+            "ons_power_plant_hourly_generation"
+        ]
         assert set(tables) == set(expected_tables)
 
     def test_column_units(self):
