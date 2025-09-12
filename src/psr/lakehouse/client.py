@@ -66,12 +66,12 @@ class Client:
             group_by.append(reference_date)
 
         indices_columns = group_by if group_by else indices_columns
-        
+
         # If we're going to do time frequency aggregation, we need reference_date in the query
         if time_frequency and time_frequency_aggregation_method:
             if reference_date not in indices_columns:
                 indices_columns = indices_columns + [reference_date]
-        
+
         data_columns = (
             [f"{aggregation_method.upper()}({col}) AS {col}" for col in data_columns]
             if aggregation_method
@@ -119,8 +119,8 @@ class Client:
                     inner_data_columns.append(alias)
                 else:
                     inner_data_columns.append(col)
-            
-            # For time frequency aggregation, we want to group by the ORIGINAL indices_columns 
+
+            # For time frequency aggregation, we want to group by the ORIGINAL indices_columns
             # (before any reference_date was added) and the new reference_date_period
             # Get the original indices_columns without reference_date
             if group_by:
@@ -131,7 +131,7 @@ class Client:
                 # We need to reconstruct what the original indices_columns were
                 original_indices_columns = [col for col in indices_columns if col != reference_date]
                 time_group_columns = original_indices_columns
-            
+
             query = f"""
                 SELECT {", ".join(time_group_columns)}, 
                 DATE_TRUNC('{time_frequency}', {reference_date})::date AS reference_date_period,
@@ -156,7 +156,7 @@ class Client:
         if time_frequency and time_frequency_aggregation_method:
             # For time frequency, use only the non-reference_date columns plus reference_date_period
             final_indices_columns = [col for col in indices_columns if col != reference_date]
-            final_indices_columns.append('reference_date_period')
+            final_indices_columns.append("reference_date_period")
 
         df = df.set_index(final_indices_columns)
 
