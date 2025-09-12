@@ -23,9 +23,9 @@ class Connector:
 
     def initialize(
         self,
-        aws_access_key_id: str = None,
-        aws_secret_access_key: str = None,
-        postgres_password: str = None,
+        aws_access_key_id: str = os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key: str = os.getenv("AWS_SECRET_ACCESS_KEY"),
+        postgres_password: str = os.getenv("POSTGRES_PASSWORD")
     ):
         
         if os.getenv("ENVIRONMENT") == "local":
