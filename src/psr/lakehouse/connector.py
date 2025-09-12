@@ -51,7 +51,7 @@ class Connector:
             secret_response = self._secrets_manager.get_secret_value(SecretId="psr-lakehouse-secrets")
             secret = json.loads(secret_response["SecretString"])
             self._user = secret["POSTGRES_USER"]
-            self._password = postgres_password
+            self._password = secret.get("POSTGRES_PASSWORD", postgres_password)
             self._endpoint = secret["POSTGRES_SERVER"]
             self._port = secret["POSTGRES_PORT"]
             self._dbname = secret["POSTGRES_DB"]
