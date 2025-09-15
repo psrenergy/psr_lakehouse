@@ -223,6 +223,7 @@ class Client:
                     "unit": col.unit,
                     "data_type": col.data_type,
                     "column_type": col.column_type,
+                    "possible_values": col.values,
                 }
             )
         return pd.DataFrame(columns_info)
