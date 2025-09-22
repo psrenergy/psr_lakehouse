@@ -170,12 +170,17 @@ class TestConvenienceFunctions:
         # With unit
         column_with_unit = {"column_name": "spot_price", "unit": "R$/MWh", "description": "Price"}
         result = format_column_display_name(column_with_unit)
-        assert result == "spot_price (R$/MWh)"
-
-        # Without unit
-        column_without_unit = {"column_name": "subsystem", "unit": "", "description": "Subsystem"}
+        assert result == "Price (R$/MWh)"
+        
+        # Without unit  
+        column_without_unit = {"column_name": "spot_price", "description": "Price"}
         result = format_column_display_name(column_without_unit)
-        assert result == "subsystem"
+        assert result == "Price"
+        
+        # Without description (fallback to column_name)
+        column_no_description = {"column_name": "spot_price", "unit": "R$/MWh"}
+        result = format_column_display_name(column_no_description)
+        assert result == "spot_price (R$/MWh)"
 
     def test_parse_date_range_for_filters(self):
         """Test parsing date ranges."""

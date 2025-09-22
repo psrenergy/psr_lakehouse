@@ -1,9 +1,10 @@
 import pandas as pd
+from psycopg.errors import InvalidTextRepresentation
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from psr.lakehouse.connector import connector
-from psr.lakehouse.exceptions import LakehouseError
+from psr.lakehouse.exceptions import LakehouseError, LakehouseInputError
 from psr.lakehouse.metadata import metadata_registry
 
 reference_date = "reference_date"
@@ -25,7 +26,10 @@ class Client:
                     df[reference_date] = pd.to_datetime(df[reference_date])
                 return df
         except SQLAlchemyError as e:
-            raise LakehouseError(f"Database error while executing query: {e}") from e
+            if isinstance(e.__cause__, InvalidTextRepresentation):
+                raise LakehouseInputError(f"Invalid input error while executing query: {e}") from e
+            else:
+                raise LakehouseError(f"Database error while executing query: {e}") from e
 
     def fetch_dataframe(
         self,
@@ -35,8 +39,48 @@ class Client:
         filters: dict | None = None,
         start_reference_date: str | None = None,
         end_reference_date: str | None = None,
+        group_by: list[str] | None = None,
+        aggregation_method: str | None = None,
+        time_frequency: str | None = None,
+        time_frequency_aggregation_method: str | None = None,
     ) -> pd.DataFrame:
-        query = f'SELECT DISTINCT ON ({", ".join(indices_columns)}) {", ".join(indices_columns)}, {", ".join(data_columns)} FROM "{table_name}"'
+        if bool(group_by) ^ bool(aggregation_method is not None):
+            raise LakehouseError("Both 'group_by' and 'aggregation_method' must be provided together.")
+
+        if aggregation_method and aggregation_method not in ["", "sum", "avg", "min", "max"]:
+            raise LakehouseError(
+                f"Unsupported aggregation method '{aggregation_method}'. Supported methods are '', 'sum', 'avg', 'min', 'max'."
+            )
+
+        if time_frequency and time_frequency_aggregation_method:
+            if time_frequency_aggregation_method not in ["sum", "avg", "min", "max"]:
+                raise LakehouseError(
+                    f"Unsupported time frequency aggregation method '{time_frequency_aggregation_method}'. Supported methods are 'sum', 'avg', 'min', 'max'."
+                )
+            if time_frequency not in ["day", "week", "month", "quarter", "year"]:
+                raise LakehouseError(
+                    f"Unsupported time frequency '{time_frequency}'. Supported frequencies are 'day', 'week', 'month', 'quarter', 'year'."
+                )
+
+        if group_by and reference_date not in group_by:
+            group_by.append(reference_date)
+
+        indices_columns = group_by if group_by else indices_columns
+
+        # If we're going to do time frequency aggregation, we need reference_date in the query
+        if time_frequency and time_frequency_aggregation_method:
+            if reference_date not in indices_columns:
+                indices_columns = indices_columns + [reference_date]
+
+        data_columns = (
+            [f"{aggregation_method.upper()}({col}) AS {col}" for col in data_columns]
+            if aggregation_method
+            else data_columns
+        )
+        query = f"SELECT DISTINCT ON ({', '.join(indices_columns)}) "
+        query += f"{', '.join(indices_columns)},"
+        query += " MAX(updated_at), " if group_by else ""
+        query += f'{", ".join(data_columns)} FROM "{table_name}"'
 
         filter_conditions = ['"deleted_at" IS NULL']
         params = {}
@@ -57,16 +101,64 @@ class Client:
             params["end_reference_date"] = end_reference_date
 
         query += " WHERE " + " AND ".join(filter_conditions)
+        if group_by:
+            query += " GROUP BY " + ", ".join(group_by)
         query += " ORDER BY "
         query += ", ".join([f"{column} ASC" for column in indices_columns])
-        query += ", updated_at DESC"
+
+        if not group_by:
+            query += ", updated_at DESC"
+
+        if time_frequency and time_frequency_aggregation_method:
+            # Extract just the column names without the aggregation for the inner query
+            inner_data_columns = []
+            for col in data_columns:
+                if " AS " in col:
+                    # Extract the alias (column name after AS)
+                    alias = col.split(" AS ")[-1]
+                    inner_data_columns.append(alias)
+                else:
+                    inner_data_columns.append(col)
+
+            # For time frequency aggregation, we want to group by the ORIGINAL indices_columns
+            # (before any reference_date was added) and the new reference_date_period
+            # Get the original indices_columns without reference_date
+            if group_by:
+                # If group_by was used, get the original group_by columns minus reference_date
+                time_group_columns = [col for col in group_by if col != reference_date]
+            else:
+                # If no group_by, use the original indices_columns passed to the function
+                # We need to reconstruct what the original indices_columns were
+                original_indices_columns = [col for col in indices_columns if col != reference_date]
+                time_group_columns = original_indices_columns
+
+            query = f"""
+                SELECT {", ".join(time_group_columns)}, 
+                DATE_TRUNC('{time_frequency}', {reference_date})::date AS reference_date_period,
+                {", ".join([f"{time_frequency_aggregation_method.upper()}({col}) AS {col}" for col in inner_data_columns])}
+                FROM ({query}
+                ) GROUP BY {", ".join(time_group_columns)}, reference_date_period
+                ORDER BY {", ".join(time_group_columns)}, reference_date_period ASC
+                """
+
+        print("Executing SQL Query:")
+        print(query)
+        print("With parameters:")
+        print(params)
 
         df = self.fetch_dataframe_from_sql(query, params=params if params else None)
 
         if reference_date not in indices_columns:
             df = df.drop(columns=[reference_date], errors="ignore")
 
-        df = df.set_index(indices_columns)
+        # Adjust the index columns if time_frequency was applied
+        final_indices_columns = indices_columns.copy()
+        if time_frequency and time_frequency_aggregation_method:
+            # For time frequency, use only the non-reference_date columns plus reference_date_period
+            final_indices_columns = [col for col in indices_columns if col != reference_date]
+            final_indices_columns.append("reference_date_period")
+
+        df = df.set_index(final_indices_columns)
 
         return df
 
@@ -125,7 +217,14 @@ class Client:
         columns_info = []
         for col in metadata.columns:
             columns_info.append(
-                {"column_name": col.name, "description": col.description, "unit": col.unit, "data_type": col.data_type}
+                {
+                    "column_name": col.name,
+                    "description": col.description,
+                    "unit": col.unit,
+                    "data_type": col.data_type,
+                    "column_type": col.column_type,
+                    "possible_values": col.values,
+                }
             )
         return pd.DataFrame(columns_info)
 
