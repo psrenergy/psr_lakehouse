@@ -23,11 +23,10 @@ class Connector:
 
     def initialize(
         self,
-        aws_access_key_id: str = os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key: str = os.getenv("AWS_SECRET_ACCESS_KEY"),
+        aws_access_key_id: str = os.getenv("LAKEHOUSE_ACCESS_KEY_ID"),
+        aws_secret_access_key: str = os.getenv("LAKEHOUSE_SECRET_ACCESS_KEY"),
         postgres_password: str = os.getenv("POSTGRES_PASSWORD")
     ):
-        
         if os.getenv("ENVIRONMENT") == "local":
             self._user = os.getenv("POSTGRES_USER")
             self._password = os.getenv("POSTGRES_PASSWORD")
@@ -36,9 +35,6 @@ class Connector:
             self._dbname = os.getenv("POSTGRES_DB")
             self._is_initialized = True
         else:
-            aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-            aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-            postgres_password = os.getenv("POSTGRES_PASSWORD")
             boto_kwargs = {
                 "region_name": self._region_name,
                 "aws_access_key_id": aws_access_key_id,
