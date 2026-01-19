@@ -1,5 +1,3 @@
-import pytest
-
 from psr.lakehouse.metadata import get_model_name
 
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PSR Lakehouse is a Python client library for accessing Brazilian energy market data from PSR's data lakehouse. It provides convenient interfaces to CCEE (electricity market) and ONS (transmission operator) datasets.
+PSR Lakehouse is a Python client library for accessing Brazilian energy market data from PSR's data lakehouse API. It provides convenient interfaces to ANEEL, CCEE (electricity market) and ONS (transmission operator) datasets via HTTP API.
 
 ## Development Commands
 
@@ -21,8 +21,8 @@ PSR Lakehouse is a Python client library for accessing Brazilian energy market d
 ### Testing
 - `make test` - Run all tests
 - `uv run pytest -v -s` - Run tests with verbose output
-- `uv run pytest tests/unit/test_ccee.py -v` - Run specific test file
-- `uv run pytest tests/unit/test_ccee.py::test_function_name -v` - Run specific test function
+- `uv run pytest tests/unit/test_client.py -v` - Run specific test file
+- `uv run pytest tests/unit/test_client.py::TestFetchDataframe -v` - Run specific test class
 
 ## Architecture
 
@@ -30,42 +30,50 @@ PSR Lakehouse is a Python client library for accessing Brazilian energy market d
 
 **Singleton Pattern**: Both `Client` and `Connector` classes use singleton pattern to ensure single instances throughout the application.
 
-**Database Layer**:
-- `connector.py` - Handles AWS authentication and PostgreSQL connection management
-- `client.py` - Provides high-level data access methods with automatic query building
-- Uses SQLAlchemy for database connections and pandas for data manipulation
+**HTTP Layer**:
+- `connector.py` - HTTP client with AWS IAM authentication (AWS4Auth)
+- `client.py` - High-level data access methods that build JSON query requests
+- Uses `requests` for HTTP and `pandas` for data manipulation
 
-**Data Access**:
-- `aliases/` - Contains domain-specific data access functions
-- `aliases/ccee.py` - CCEE (electricity market) data functions like `spot_price()`
-- `aliases/ons.py` - ONS (transmission operator) data functions like `stored_energy()` and `load_marginal_cost_weekly()`
-
-**Metadata System**:
-- `metadata.py` - Centralized metadata registry with table and column information
-- Provides organization name, data descriptions, units, and data types for all datasets
-- Accessible via `client.get_table_metadata()`, `client.list_available_datasets()`, and `client.get_column_info()`
+**Metadata**:
+- `metadata.py` - Contains `get_model_name()` function to convert table names to API model names
+- Handles uppercase prefixes (ONS, CCEE) in model name conversion
 
 **AWS Integration**:
-- Uses boto3 for AWS services (RDS, Secrets Manager)
-- Credentials from environment variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `POSTGRES_PASSWORD`
-- Retrieves database connection details from AWS Secrets Manager
+- Uses `requests-aws4auth` for API Gateway IAM authentication
+- Uses `boto3` for AWS credential resolution
+- Credentials from environment variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- API URL from environment variable: `LAKEHOUSE_API_URL`
 
 ### Key Patterns
 
 **Data Fetching**: All data access follows the pattern:
 1. Use `client.fetch_dataframe()` with table name, index columns, and data columns
-2. Automatic filtering by `reference_date` ranges and soft-delete handling (`deleted_at IS NULL`)
-3. Results returned as pandas DataFrames with proper indexing
+2. Client converts table name to model name and builds JSON query request
+3. Automatic pagination - fetches all pages and concatenates results
+4. Results returned as pandas DataFrames with proper MultiIndex
 
-**Connection Management**: Database connections are lazy-loaded - `connector.initialize()` is called automatically when first database access occurs.
+**Schema Discovery**:
+- `client.list_tables()` - List all available table names
+- `client.list_models()` - List all available API model names
+- `client.get_table_columns(table_name)` - Get column info as DataFrame
+- `client.get_schema()` - Get full schema for all models
+- `client.get_model_schema(model_name)` - Get schema for specific model
+
+**Connection Management**: HTTP connector is lazy-initialized - `connector.initialize()` is called automatically on first API request.
 
 ## Configuration
 
 - **Python Version**: Requires Python 3.13+
 - **Package Manager**: Uses `uv` instead of pip/poetry
 - **Code Style**: Configured via `ruff.toml` - 120 character line length, double quotes, Python 3.13 target
-- **Dependencies**: Core deps include boto3, pandas, psycopg, sqlalchemy
+- **Dependencies**: Core deps include boto3, pandas, requests, requests-aws4auth
 
 ## Testing
 
-Tests are located in `tests/unit/` with separate files for each alias module. Uses pytest framework with configuration in `conftest.py`.
+Tests are located in `tests/unit/` using pytest with HTTP mocking via `responses` library:
+- `test_client.py` - Tests for Client class (fetch_dataframe, schema methods)
+- `test_connector.py` - Tests for Connector class (HTTP requests, initialization)
+- `test_metadata.py` - Tests for model name conversion
+
+Test configuration in `conftest.py` sets up mock API URL environment variable.
