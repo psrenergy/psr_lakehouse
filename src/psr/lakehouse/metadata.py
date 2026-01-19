@@ -1,10 +1,3 @@
-from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, List, Optional
-
-SUBSYSTEMS = ["NORTH", "NORTHEAST", "SOUTHEAST", "SOUTH"]
-
-
 def get_model_name(table_name: str) -> str:
     """
     Convert a table name to the corresponding API model name.
