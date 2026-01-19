@@ -95,8 +95,8 @@ class Client:
     def fetch_dataframe(
         self,
         table_name: str,
-        indices_columns: list[str],
-        data_columns: list[str],
+        indices_columns: list[str] | None = None,
+        data_columns: list[str] | None = None,
         filters: dict | None = None,
         start_reference_date: str | None = None,
         end_reference_date: str | None = None,
@@ -108,8 +108,8 @@ class Client:
 
         Args:
             table_name: Name of the table to query (e.g., "ccee_spot_price")
-            indices_columns: Columns to use as DataFrame index
-            data_columns: Data columns to fetch
+            indices_columns: Optional columns to use as DataFrame index. If not provided, DataFrame will use default integer index.
+            data_columns: Optional data columns to fetch. If not provided along with indices_columns, all columns will be fetched.
             filters: Optional dict of column: value filters (equality)
             start_reference_date: Optional start date filter (inclusive)
             end_reference_date: Optional end date filter (exclusive)
@@ -138,7 +138,14 @@ class Client:
         final_indices = group_by if group_by else indices_columns
 
         # Combine all columns, ensuring no duplicates
-        all_columns = list(dict.fromkeys(final_indices + data_columns))
+        if final_indices and data_columns:
+            all_columns = list(dict.fromkeys(final_indices + data_columns))
+        elif final_indices:
+            all_columns = final_indices
+        elif data_columns:
+            all_columns = data_columns
+        else:
+            all_columns = []
 
         # Build JSON request body
         json_body = {
@@ -169,9 +176,13 @@ class Client:
             df["reference_date"] = pd.to_datetime(df["reference_date"])
 
         # Set index
-        existing_indices = [col for col in final_indices if col in df.columns]
-        if existing_indices:
-            df = df.set_index(existing_indices)
+        if final_indices:
+            existing_indices = [col for col in final_indices if col in df.columns]
+            if existing_indices:
+                df = df.set_index(existing_indices)
+        elif "reference_date" in df.columns:
+            # If no index specified but reference_date exists, use it as index
+            df = df.set_index("reference_date")
 
         return df
 
