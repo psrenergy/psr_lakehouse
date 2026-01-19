@@ -1,56 +1,45 @@
 import pytest
 
-from psr.lakehouse.metadata import ColumnMetadata, TableMetadata, metadata_registry
+from psr.lakehouse.metadata import get_model_name
 
 
-class TestMetadataRegistry:
-    def test_metadata_registry_singleton(self):
-        registry1 = metadata_registry
-        from psr.lakehouse.metadata import metadata_registry as registry2
+class TestGetModelName:
+    def test_simple_table_name(self):
+        """Test table name without underscore returns as-is."""
+        assert get_model_name("simple") == "simple"
 
-        assert registry1 is registry2
+    def test_ccee_prefix_uppercase(self):
+        """Test CCEE prefix is converted to uppercase."""
+        assert get_model_name("ccee_spot_price") == "CCEESpotPrice"
 
-    def test_get_ccee_metadata(self):
-        metadata = metadata_registry.get_metadata("ccee_spot_price")
-        assert metadata is not None
-        assert metadata.organization == "CCEE"
-        assert metadata.data_name == "Spot Price"
-        assert len(metadata.columns) == 3
+    def test_ons_prefix_uppercase(self):
+        """Test ONS prefix is converted to uppercase."""
+        assert get_model_name("ons_energy_load_daily") == "ONSEnergyLoadDaily"
 
-    def test_get_ons_stored_energy_metadata(self):
-        metadata = metadata_registry.get_metadata("ons_stored_energy")
-        assert metadata is not None
-        assert metadata.organization == "ONS"
-        assert metadata.data_name == "Stored Energy"
-        assert len(metadata.columns) == 5
+    def test_ons_stored_energy_subsystem(self):
+        """Test ONS stored energy subsystem conversion."""
+        assert get_model_name("ons_stored_energy_subsystem") == "ONSStoredEnergySubsystem"
 
-    def test_get_ons_marginal_cost_metadata(self):
-        metadata = metadata_registry.get_metadata("ons_load_marginal_cost_weekly")
-        assert metadata is not None
-        assert metadata.organization == "ONS"
-        assert metadata.data_name == "Load Marginal Cost Weekly"
-        assert len(metadata.columns) == 6
+    def test_ons_load_marginal_cost_weekly(self):
+        """Test ONS load marginal cost weekly conversion."""
+        assert get_model_name("ons_load_marginal_cost_weekly") == "ONSLoadMarginalCostWeekly"
 
-    def test_get_nonexistent_metadata(self):
-        metadata = metadata_registry.get_metadata("nonexistent_table")
-        assert metadata is None
+    def test_ons_power_plant_availability(self):
+        """Test ONS power plant availability conversion."""
+        assert get_model_name("ons_power_plant_availability") == "ONSPowerPlantAvailability"
 
-    def test_list_tables(self):
-        tables = metadata_registry.list_tables()
-        expected_tables = [
-            "ccee_spot_price", 
-            "ons_stored_energy", 
-            "ons_load_marginal_cost_weekly",
-            "ons_power_plant_availability",
-            "ons_power_plant_hourly_generation"
-        ]
-        assert set(tables) == set(expected_tables)
+    def test_ons_power_plant_hourly_generation(self):
+        """Test ONS power plant hourly generation conversion."""
+        assert get_model_name("ons_power_plant_hourly_generation") == "ONSPowerPlantHourlyGeneration"
 
-    def test_column_units(self):
-        metadata = metadata_registry.get_metadata("ccee_spot_price")
-        spot_price_col = metadata.get_column_metadata("spot_price")
-        assert spot_price_col.unit == "R$/MWh"
+    def test_multiple_words(self):
+        """Test conversion of multiple words to PascalCase."""
+        assert get_model_name("foo_bar_baz") == "FooBarBaz"
 
-        metadata = metadata_registry.get_metadata("ons_stored_energy")
-        energy_col = metadata.get_column_metadata("max_stored_energy")
-        assert energy_col.unit == "MWmonth"
+    def test_ons_multiple_occurrences(self):
+        """Test that ONS is uppercased wherever it appears (it's an acronym)."""
+        assert get_model_name("ons_ons_data") == "ONSONSData"
+
+    def test_camel_case_input(self):
+        """Test that CamelCase input remains unchanged."""
+        assert get_model_name("ONSEnergyLoadDaily") == "ONSEnergyLoadDaily"
