@@ -102,26 +102,34 @@ print(models)
 # ['CCEESpotPrice', 'ONSEnergyLoadDaily', 'ONSStoredEnergySubsystem', ...]
 ```
 
-### Get Table Columns
+### Get Table Schema
 
 ```python
-columns_df = client.get_table_columns("ccee_spot_price")
-print(columns_df)
-#              name       type  nullable  primary_key
-# 0  reference_date  TIMESTAMP     False         True
-# 1       subsystem    VARCHAR     False         True
-# 2      spot_price      FLOAT     False        False
-```
-
-### Get Full Schema
-
-```python
-# Get schema for a specific model
-schema = client.get_model_schema("CCEESpotPrice")
+# Get schema for a specific table
+schema = client.get_schema("ccee_spot_price")
 print(schema)
-
-# Get schema for all models
-all_schemas = client.get_schema()
+# {
+#     'id': {'type': 'integer', 'nullable': True, 'title': 'Id'},
+#     'reference_date': {
+#         'type': 'string',
+#         'nullable': False,
+#         'format': 'date-time',
+#         'title': 'Reference Date',
+#         'description': 'Timestamp of the spot price'
+#     },
+#     'subsystem': {
+#         'type': 'enum',
+#         'nullable': True,
+#         'description': 'Subsystem identifier',
+#         'enum_values': ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
+#     },
+#     'spot_price': {
+#         'type': 'number',
+#         'nullable': False,
+#         'title': 'Spot Price',
+#         'description': 'Spot price in R$/MWh'
+#     }
+# }
 ```
 
 ## 📖 API Reference
@@ -154,29 +162,20 @@ List all available API model names.
 
 **Returns:** `list[str]`
 
-### `client.get_table_columns(table_name)`
+### `client.get_schema(table_name)`
 
-Get column information for a specific table.
-
-**Parameters:**
-- `table_name` (str): Snake_case table name
-
-**Returns:** `pandas.DataFrame` with columns: name, type, nullable, primary_key, description
-
-### `client.get_model_schema(model_name)`
-
-Get schema information for a specific model.
+Get detailed schema information for a specific table, including field types, nullability, formats, and enum values.
 
 **Parameters:**
-- `model_name` (str): API model name (e.g., "CCEESpotPrice")
+- `table_name` (str): Snake_case table name (e.g., "ccee_spot_price")
 
-**Returns:** `dict` with model_name, table_name, and columns list
-
-### `client.get_schema()`
-
-Get schema information for all available models.
-
-**Returns:** `dict` with model names as keys and schema info as values
+**Returns:** `dict` with field names as keys and field metadata as values. Each field contains:
+- `type` (str): Field type (`string`, `integer`, `number`, `enum`, etc.)
+- `nullable` (bool): Whether the field accepts null values
+- `title` (str, optional): Human-readable field name
+- `description` (str, optional): Field description
+- `format` (str, optional): Format specification (e.g., `date-time`)
+- `enum_values` (list[str], optional): Allowed values for enum fields
 
 ## 💬 Support
 

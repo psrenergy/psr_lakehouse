@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 
 from psr.lakehouse.connector import connector
@@ -52,7 +54,7 @@ class Client:
                 {
                     "column": f"{model_name}.reference_date",
                     "value": end_reference_date,
-                    "operator": "<",
+                    "operator": "<=",
                 }
             )
 
@@ -131,10 +133,6 @@ class Client:
         # Convert table name to model name
         model_name = get_model_name(table_name)
 
-        # Handle group_by with reference_date
-        if group_by and "reference_date" not in group_by:
-            group_by = group_by + ["reference_date"]
-
         final_indices = group_by if group_by else indices_columns
 
         # Combine all columns, ensuring no duplicates
@@ -162,10 +160,19 @@ class Client:
         if group_by_clause:
             json_body["group_by"] = group_by_clause
 
-        # Fetch all pages
-        data = self._fetch_all_pages(json_body)
+        return self.fetch_dataframe_from_query(json_body)
 
-        # Convert to DataFrame
+    def fetch_dataframe_from_query(self, json_body: dict, page_size: int = 1000) -> pd.DataFrame:
+        """
+        Fetch data from the API using a custom query JSON body and return as a pandas DataFrame.
+
+        Args:
+            json_body: JSON request body for the query
+
+        Returns:
+            pandas DataFrame with the query results
+        """
+        data = self._fetch_all_pages(json_body, page_size=page_size)
         df = pd.DataFrame(data)
 
         if df.empty:
@@ -175,78 +182,111 @@ class Client:
         if "reference_date" in df.columns:
             df["reference_date"] = pd.to_datetime(df["reference_date"])
 
-        # Set index
-        if final_indices:
-            existing_indices = [col for col in final_indices if col in df.columns]
-            if existing_indices:
-                df = df.set_index(existing_indices)
-        elif "reference_date" in df.columns:
-            # If no index specified but reference_date exists, use it as index
+        # Set index if reference_date exists
+        if "reference_date" in df.columns:
             df = df.set_index("reference_date")
 
         return df
 
-    def get_schema(self) -> dict:
-        """
-        Get schema information for all available models from the API.
+    def _fetch_openapi_schema(self) -> dict:
+        """Fetch OpenAPI schema from the API."""
+        return connector.get("/openapi.json")["components"]["schemas"]
 
-        Returns:
-            Dictionary with model names as keys and schema info as values.
-            Each model contains table_name and columns list with:
-            - name: Column name
-            - type: Column data type
-            - nullable: Whether column is nullable
-            - primary_key: Whether column is a primary key
-            - description: Column description (if available)
-            - enum_values: Possible values for enum columns (if applicable)
-        """
-        return connector.get("/query/schema")
+    def _get_enum_values(self, enum_reference: dict) -> list[str]:
+        """Get enum values from OpenAPI schema."""
+        schemas = self._fetch_openapi_schema()
+        reference_match = r"^#/components/schemas/(\w+)$"
+        enum_name = re.findall(reference_match, enum_reference["$ref"])[0]
+        return schemas[enum_name]["enum"]
 
-    def get_model_schema(self, model_name: str) -> dict:
-        """
-        Get schema information for a specific model from the API.
+    def get_schema(self, table_name: str) -> dict:
+        """Get clean schema for a given table."""
+        table_name = get_model_name(table_name)
+        schemas = self._fetch_openapi_schema()
+        properties = schemas[table_name]["properties"]
 
-        Args:
-            model_name: The API model name (e.g., "CCEESpotPrice", "ONSEnergyLoadDaily")
+        # Build clean schema
+        clean_schema = {}
+        for key, value in properties.items():
+            field_info = {
+                "type": self._extract_type(value),
+                "nullable": self._is_nullable(value),
+            }
 
-        Returns:
-            Dictionary with model_name, table_name, and columns list.
-        """
-        return connector.get(f"/query/schema/{model_name}")
+            # Add description if present
+            if "description" in value:
+                field_info["description"] = value["description"]
 
-    def list_models(self) -> list[str]:
-        """
-        List all available model names from the API.
+            # Add title if present
+            if "title" in value:
+                field_info["title"] = value["title"]
 
-        Returns:
-            List of model names (e.g., ["CCEESpotPrice", "ONSEnergyLoadDaily", ...])
-        """
-        schema = self.get_schema()
-        return sorted(schema.keys())
+            # Add format if present (e.g., date-time)
+            if "format" in value:
+                field_info["format"] = value["format"]
 
+            # Handle enum values
+            enum_values = None
+            if "$ref" in value:
+                enum_values = self._get_enum_values(value)
+            elif "anyOf" in value:
+                for item in value["anyOf"]:
+                    if "$ref" in item:
+                        enum_values = self._get_enum_values(item)
+                        break
+
+            if enum_values:
+                field_info["type"] = "enum"
+                field_info["enum_values"] = enum_values
+
+            clean_schema[key] = field_info
+
+        return clean_schema
+
+    def _extract_type(self, value: dict) -> str:
+        """Extract the primary type from a field definition."""
+        if "type" in value:
+            return value["type"]
+        elif "anyOf" in value:
+            # Get first non-null type
+            for item in value["anyOf"]:
+                if item.get("type") != "null":
+                    return item.get("type", "unknown")
+            return "null"
+        return "unknown"
+
+    def _is_nullable(self, value: dict) -> bool:
+        """Check if a field is nullable."""
+        if "anyOf" in value:
+            return any(item.get("type") == "null" for item in value["anyOf"])
+        return False
+    
     def list_tables(self) -> list[str]:
-        """
-        List all available table names from the API.
-
-        Returns:
-            List of table names (e.g., ["ccee_spot_price", "ons_energy_load_daily", ...])
-        """
-        schema = self.get_schema()
-        return sorted([info["table_name"] for info in schema.values()])
-
-    def get_table_columns(self, table_name: str) -> pd.DataFrame:
-        """
-        Get column information for a specific table from the API.
-
-        Args:
-            table_name: Snake_case table name (e.g., "ccee_spot_price") or final API model name (e.g., "CCEESpotPrice")
-
-        Returns:
-            DataFrame with column information (name, type, nullable, primary_key, description)
-        """
-        model_name = get_model_name(table_name)
-        schema = self.get_model_schema(model_name)
-        return pd.DataFrame(schema["columns"])
+        """List all available tables in Lakehouse."""
+        schemas = self._fetch_openapi_schema()
+        
+        # Filter out non-table schemas
+        table_names = []
+        for key, schema in schemas.items():
+            # Skip enums (they have 'enum' field instead of 'properties')
+            if "enum" in schema:
+                continue
+            
+            # Skip schemas without properties
+            if "properties" not in schema:
+                continue
+            
+            # Check if it's a database model by looking for common model fields
+            properties = schema.get("properties", {})
+            
+            # Database models typically have these fields
+            has_model_fields = any(field in properties for field in ["id", "updated_at", "deleted_at"])
+            
+            # If it has model fields, it's likely a table
+            if has_model_fields:
+                table_names.append(key)
+        
+        return sorted(table_names)
 
 
 client = Client()
