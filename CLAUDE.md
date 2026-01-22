@@ -55,10 +55,8 @@ PSR Lakehouse is a Python client library for accessing Brazilian energy market d
 
 **Schema Discovery**:
 - `client.list_tables()` - List all available table names
-- `client.list_models()` - List all available API model names
 - `client.get_table_columns(table_name)` - Get column info as DataFrame
 - `client.get_schema()` - Get full schema for all models
-- `client.get_model_schema(model_name)` - Get schema for specific model
 
 **Connection Management**: HTTP connector is lazy-initialized - `connector.initialize()` is called automatically on first API request.
 

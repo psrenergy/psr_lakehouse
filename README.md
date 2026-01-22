@@ -16,12 +16,12 @@ Set the API URL via environment variable:
 export LAKEHOUSE_API_URL="https://api.example.com"
 ```
 
-For AWS IAM authentication, configure your AWS credentials:
+For AWS IAM authentication, configure your AWS credentials in your environment:
 
 ```bash
-export AWS_ACCESS_KEY_ID="your-access-key"
-export AWS_SECRET_ACCESS_KEY="your-secret-key"
-export AWS_DEFAULT_REGION="us-east-1"
+AWS_ACCESS_KEY_ID="your-access-key"
+AWS_SECRET_ACCESS_KEY="your-secret-key"
+AWS_DEFAULT_REGION="us-east-1"
 ```
 
 Or initialize programmatically:
@@ -163,16 +163,9 @@ df = client.fetch_dataframe_from_query({
 ```python
 tables = client.list_tables()
 print(tables)
-# ['ccee_spot_price', 'ons_energy_load_daily', 'ons_stored_energy_subsystem', ...]
+#  ['CCEESpotPrice', 'ONSEnergyLoadDaily', 'ONSStoredEnergySubsystem', ...]
 ```
 
-### List Available Models
-
-```python
-models = client.list_models()
-print(models)
-# ['CCEESpotPrice', 'ONSEnergyLoadDaily', 'ONSStoredEnergySubsystem', ...]
-```
 
 ### Get Table Schema
 
@@ -245,12 +238,6 @@ Fetch data using a custom JSON query body for advanced features like joins.
 ### `client.list_tables()`
 
 List all available table names.
-
-**Returns:** `list[str]`
-
-### `client.list_models()`
-
-List all available API model names.
 
 **Returns:** `list[str]`
 
