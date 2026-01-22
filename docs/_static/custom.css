@@ -1,0 +1,325 @@
+/* Custom styling for PSR Lakehouse documentation */
+
+/* Import Roboto font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+/* CSS Variables for Light and Dark Modes */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --heading-color: #2c3e50;
+    --link-color: #2980b9;
+    --link-hover-color: #1f5c7d;
+    --border-color: #e1e4e8;
+    --code-bg: #f6f8fa;
+    --code-border: #e1e4e8;
+    --code-text: #24292e;
+    --highlight-bg: #f6f8fa;
+    --highlight-border: #e1e4e8;
+    --table-header-bg: #f6f8fa;
+    --table-border: #d0d7de;
+    --note-bg: #e7f2fa;
+    --note-border: #2980b9;
+    --warn-bg: #fff4e6;
+    --warn-border: #f39c12;
+    --sidebar-bg: #f8f8f8;
+    --sidebar-text: #333333;
+    --h1-border: #2980b9;
+    --h2-border: #e1e4e8;
+}
+
+[data-theme="dark"] {
+    --bg-color: #1e1e1e;
+    --text-color: #e0e0e0;
+    --heading-color: #64b5f6;
+    --link-color: #64b5f6;
+    --link-hover-color: #90caf9;
+    --border-color: #3e3e3e;
+    --code-bg: #2d2d2d;
+    --code-border: #3e3e3e;
+    --code-text: #e0e0e0;
+    --highlight-bg: #2d2d2d;
+    --highlight-border: #3e3e3e;
+    --table-header-bg: #2d2d2d;
+    --table-border: #3e3e3e;
+    --note-bg: #1a3a52;
+    --note-border: #64b5f6;
+    --warn-bg: #4a3b1f;
+    --warn-border: #f39c12;
+    --sidebar-bg: #252525;
+    --sidebar-text: #e0e0e0;
+    --h1-border: #64b5f6;
+    --h2-border: #3e3e3e;
+}
+
+/* Theme Toggle Switch in Sidebar */
+.theme-toggle-container {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 15px;
+}
+
+.theme-toggle-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+}
+
+.theme-toggle-text {
+    font-size: 14px;
+    color: var(--sidebar-text);
+    font-weight: 500;
+}
+
+.theme-toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    background-color: var(--border-color);
+    border-radius: 13px;
+    transition: background-color 0.3s;
+}
+
+.theme-toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+[data-theme="dark"] .theme-toggle-switch {
+    background-color: #64b5f6;
+}
+
+[data-theme="dark"] .theme-toggle-switch::after {
+    transform: translateX(24px);
+}
+
+/* Apply theme colors */
+body, div.body, div.document {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+div.bodywrapper {
+    background-color: var(--bg-color);
+}
+
+.sphinxsidebar {
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
+
+/* Set Roboto as the primary font */
+body, div.body, div.document, div.documentwrapper, div.bodywrapper {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+    font-weight: 500;
+}
+
+p, li, dt, dd, td, th, span {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+}
+
+code, pre, .highlight, tt, kbd, samp {
+    font-family: 'Roboto Mono', 'Consolas', 'Monaco', monospace !important;
+}
+
+/* Better code block styling */
+div.highlight {
+    border-radius: 4px;
+    border: 1px solid var(--highlight-border);
+    margin: 1em 0;
+    background-color: var(--highlight-bg);
+}
+
+div.highlight pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 14px;
+    line-height: 1.45;
+    background-color: var(--highlight-bg);
+    color: var(--text-color);
+}
+
+/* Improve inline code appearance */
+code.literal {
+    background-color: var(--code-bg);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 90%;
+    color: var(--code-text);
+    border: 1px solid var(--code-border);
+}
+
+/* Better admonition boxes */
+.admonition {
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin: 1em 0;
+}
+
+.admonition.note {
+    background-color: var(--note-bg);
+    border-left: 4px solid var(--note-border);
+}
+
+.admonition.warning {
+    background-color: var(--warn-bg);
+    border-left: 4px solid var(--warn-border);
+}
+
+.admonition-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+/* Improve table styling */
+table.docutils {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 1em 0;
+    width: 100%;
+}
+
+table.docutils th {
+    background-color: var(--table-header-bg);
+    border: 1px solid var(--table-border);
+    padding: 8px 12px;
+    font-weight: 600;
+}
+
+table.docutils td {
+    border: 1px solid var(--table-border);
+    padding: 8px 12px;
+}
+
+/* Better section headers */
+h1 {
+    border-bottom: 2px solid var(--h1-border);
+    padding-bottom: 0.3em;
+    margin-top: 0;
+    color: var(--heading-color);
+}
+
+h2 {
+    border-bottom: 1px solid var(--h2-border);
+    padding-bottom: 0.3em;
+    margin-top: 1.5em;
+    color: var(--heading-color);
+}
+
+h3 {
+    margin-top: 1.2em;
+    color: var(--heading-color);
+}
+
+/* Improve link styling */
+a, a.reference.internal, a.reference.external {
+    color: var(--link-color);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--link-color);
+}
+
+a:hover, a.reference.internal:hover, a.reference.external:hover {
+    color: var(--link-hover-color);
+    border-bottom: 1px solid var(--link-hover-color);
+}
+
+/* Better parameter lists */
+dl.field-list {
+    margin: 1em 0;
+}
+
+dl.field-list dt {
+    font-weight: bold;
+    color: var(--heading-color);
+}
+
+dl.field-list dd {
+    margin-left: 2em;
+    margin-bottom: 0.5em;
+}
+
+/* Improve navigation */
+.sphinxsidebar {
+    font-size: 14px;
+    background-color: var(--sidebar-bg) !important;
+    color: var(--sidebar-text) !important;
+}
+
+.sphinxsidebar h3 {
+    font-size: 1.2em;
+    margin-top: 1em;
+    color: var(--heading-color) !important;
+}
+
+.sphinxsidebar ul {
+    margin: 10px 0;
+}
+
+.sphinxsidebar a {
+    color: var(--link-color) !important;
+    border-bottom: none !important;
+}
+
+.sphinxsidebar a:hover {
+    color: var(--link-hover-color) !important;
+    text-decoration: underline;
+}
+
+.sphinxsidebar p {
+    color: var(--sidebar-text) !important;
+}
+
+.sphinxsidebar li {
+    color: var(--sidebar-text) !important;
+}
+
+/* Better signature styling */
+.sig-name {
+    font-weight: bold;
+}
+
+.sig-param {
+    font-style: italic;
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 875px) {
+    div.body {
+        padding: 0 20px;
+    }
+}
+
+/* Improve return type and parameter documentation */
+.field-list .field-name {
+    font-weight: 600;
+    color: var(--heading-color);
+    white-space: nowrap;
+}
+
+/* Code example headers */
+.literal-block-wrapper {
+    margin: 1em 0;
+}
+
+.code-block-caption {
+    background-color: var(--code-bg);
+    padding: 8px 12px;
+    border: 1px solid var(--code-border);
+    border-bottom: none;
+    font-weight: 600;
+    border-radius: 4px 4px 0 0;
+    color: var(--text-color);
+}
