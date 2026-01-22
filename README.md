@@ -16,12 +16,12 @@ Set the API URL via environment variable:
 export LAKEHOUSE_API_URL="https://api.example.com"
 ```
 
-For AWS IAM authentication, configure your AWS credentials:
+For AWS IAM authentication, configure your AWS credentials in your environment:
 
 ```bash
-export AWS_ACCESS_KEY_ID="your-access-key"
-export AWS_SECRET_ACCESS_KEY="your-secret-key"
-export AWS_DEFAULT_REGION="us-east-1"
+AWS_ACCESS_KEY_ID="your-access-key"
+AWS_SECRET_ACCESS_KEY="your-secret-key"
+AWS_DEFAULT_REGION="us-east-1"
 ```
 
 Or initialize programmatically:
@@ -82,6 +82,78 @@ df = client.fetch_dataframe(
     group_by=["subsystem"],
     aggregation_method="avg",
 )
+
+# Aggregate hourly data to daily with datetime granularity
+df = client.fetch_dataframe(
+    table_name="ons_power_plant_hourly_generation",
+    data_columns=["plant_type", "generation"],
+    start_reference_date="2025-01-01",
+    end_reference_date="2025-01-31",
+    group_by=["reference_date", "plant_type"],
+    aggregation_method="sum",
+    datetime_granularity="day",  # Aggregate to daily level
+)
+```
+
+### Ordering Results
+
+```python
+# Order results by multiple columns
+df = client.fetch_dataframe(
+    table_name="ons_power_plant_hourly_generation",
+    data_columns=["plant_type", "generation"],
+    group_by=["reference_date", "plant_type"],
+    aggregation_method="sum",
+    datetime_granularity="day",
+    order_by=[
+        {"column": "reference_date", "direction": "desc"},
+        {"column": "plant_type", "direction": "asc"},
+    ],
+)
+```
+
+### Advanced Queries with Joins
+
+```python
+# Use fetch_dataframe_from_query for complex queries with joins
+df = client.fetch_dataframe_from_query({
+    "query_data": [
+        "ONSEnergyLoadDaily.reference_date",
+        "ONSEnergyLoadDaily.subsystem",
+        "ONSEnergyLoadDaily.energy_load",
+        "ONSInflowEnergySubsystem.gross_inflow_energy_mwavg",
+    ],
+    "joins": [
+        {
+            "join_model": "ONSInflowEnergySubsystem",
+            "join_filters": [
+                {
+                    "column": "ONSEnergyLoadDaily.reference_date",
+                    "value": "ONSInflowEnergySubsystem.reference_date",
+                    "operator": "=",
+                },
+                {
+                    "column": "ONSEnergyLoadDaily.subsystem",
+                    "value": "ONSInflowEnergySubsystem.subsystem",
+                    "operator": "=",
+                },
+            ],
+            "is_outer_join": False,
+        }
+    ],
+    "query_filters": [
+        {
+            "column": "ONSEnergyLoadDaily.reference_date",
+            "operator": ">=",
+            "value": "2025-01-01",
+        },
+        {
+            "column": "ONSEnergyLoadDaily.reference_date",
+            "operator": "<=",
+            "value": "2025-01-31",
+        },
+    ],
+})
 ```
 
 ## 🔍 Schema Discovery
@@ -91,16 +163,9 @@ df = client.fetch_dataframe(
 ```python
 tables = client.list_tables()
 print(tables)
-# ['ccee_spot_price', 'ons_energy_load_daily', 'ons_stored_energy_subsystem', ...]
+#  ['CCEESpotPrice', 'ONSEnergyLoadDaily', 'ONSStoredEnergySubsystem', ...]
 ```
 
-### List Available Models
-
-```python
-models = client.list_models()
-print(models)
-# ['CCEESpotPrice', 'ONSEnergyLoadDaily', 'ONSStoredEnergySubsystem', ...]
-```
 
 ### Get Table Schema
 
@@ -140,25 +205,39 @@ Fetch data from the API and return as a pandas DataFrame.
 
 **Parameters:**
 - `table_name` (str): Name of the table to query (e.g., "ccee_spot_price")
-- `indices_columns` (list[str]): Columns to use as DataFrame index
-- `data_columns` (list[str]): Data columns to fetch
+- `indices_columns` (list[str], optional): Columns to use as DataFrame index
+- `data_columns` (list[str], optional): Data columns to fetch
 - `filters` (dict, optional): Column filters as `{column: value}` for equality
 - `start_reference_date` (str, optional): Start date filter (inclusive)
 - `end_reference_date` (str, optional): End date filter (exclusive)
 - `group_by` (list[str], optional): Columns to group by
 - `aggregation_method` (str, optional): Aggregation method (`sum`, `avg`, `min`, `max`)
+- `datetime_granularity` (str, optional): Temporal aggregation level (`hour`, `day`, `week`, `month`)
+- `order_by` (list[dict], optional): Sort order as list of `{"column": str, "direction": "asc"|"desc"}`
+- `output_timezone` (str, optional): Output timezone (default: "America/Sao_Paulo")
+
+**Returns:** `pandas.DataFrame`
+
+### `client.fetch_dataframe_from_query()`
+
+Fetch data using a custom JSON query body for advanced features like joins.
+
+**Parameters:**
+- `json_body` (dict): JSON request body with query specification
+- `page_size` (int, optional): Results per page (default: 1000)
+
+**Query body structure:**
+- `query_data` (list[str]): Columns to fetch in "ModelName.column" format
+- `query_filters` (list[dict], optional): Filters with `column`, `operator`, `value`
+- `group_by` (dict, optional): Group by clause with `group_by_clause`, `default_aggregation_method`, `datetime_granularity`
+- `order_by` (list[dict], optional): Sort order with `column` and `direction`
+- `joins` (list[dict], optional): Join specifications with `join_model`, `join_filters`, `is_outer_join`
 
 **Returns:** `pandas.DataFrame`
 
 ### `client.list_tables()`
 
 List all available table names.
-
-**Returns:** `list[str]`
-
-### `client.list_models()`
-
-List all available API model names.
 
 **Returns:** `list[str]`
 

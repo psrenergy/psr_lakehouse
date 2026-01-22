@@ -65,6 +65,7 @@ class Client:
         model_name: str,
         group_by: list[str] | None,
         aggregation_method: str | None,
+        datetime_granularity: str | None = None,
     ) -> dict | None:
         """Build group_by clause."""
         if not group_by or not aggregation_method:
@@ -73,7 +74,35 @@ class Client:
         return {
             "group_by_clause": [f"{model_name}.{col}" for col in group_by],
             "default_aggregation_method": aggregation_method,
+            "datetime_granularity": datetime_granularity,
         }
+
+    def _build_order_by(
+        self,
+        model_name: str,
+        order_by: list[dict] | None,
+    ) -> list[dict] | None:
+        """Build order_by clause."""
+        if not order_by:
+            return None
+
+        return [
+            {
+                "column": f"{model_name}.{item['column']}",
+                "direction": item["direction"],
+            }
+            for item in order_by
+        ]
+
+    def _build_joins(
+        self,
+        joins: list[dict] | None,
+    ) -> list[dict] | None:
+        """Build joins clause."""
+        if not joins:
+            return None
+
+        return joins
 
     def _fetch_all_pages(self, json_body: dict, page_size: int = 1000) -> list[dict]:
         """Fetch all pages of results."""
@@ -103,7 +132,11 @@ class Client:
         start_reference_date: str | None = None,
         end_reference_date: str | None = None,
         group_by: list[str] | None = None,
+        datetime_granularity: str | None = None,
+        order_by: list[dict] | None = None,
         aggregation_method: str | None = None,
+        joins: list[dict] | None = None,
+        output_timezone: str = "America/Sao_Paulo",
     ) -> pd.DataFrame:
         """
         Fetch data from the API and return as a pandas DataFrame.
@@ -148,7 +181,7 @@ class Client:
         # Build JSON request body
         json_body = {
             "query_data": self._build_query_data(model_name, all_columns),
-            "output_timezone": "America/Sao_Paulo",
+            "output_timezone": output_timezone,
         }
 
         # Add optional fields
@@ -156,9 +189,17 @@ class Client:
         if query_filters:
             json_body["query_filters"] = query_filters
 
-        group_by_clause = self._build_group_by(model_name, group_by, aggregation_method)
+        group_by_clause = self._build_group_by(model_name, group_by, aggregation_method, datetime_granularity)
         if group_by_clause:
             json_body["group_by"] = group_by_clause
+
+        order_by_clause = self._build_order_by(model_name, order_by)
+        if order_by_clause:
+            json_body["order_by"] = order_by_clause
+
+        joins_clause = self._build_joins(joins)
+        if joins_clause:
+            json_body["joins"] = joins_clause
 
         return self.fetch_dataframe_from_query(json_body)
 
@@ -260,34 +301,34 @@ class Client:
         if "anyOf" in value:
             return any(item.get("type") == "null" for item in value["anyOf"])
         return False
-    
+
     def list_tables(self) -> list[str]:
         """List all available tables in Lakehouse."""
         schemas = self._fetch_openapi_schema()
-        
+
         # Filter out non-table schemas
         table_names = []
         for key, schema in schemas.items():
             # Skip enums (they have 'enum' field instead of 'properties')
             if "enum" in schema:
                 continue
-            
+
             # Skip schemas without properties
             if "properties" not in schema:
                 continue
-            
+
             # Check if it's a database model by looking for common model fields
             properties = schema.get("properties", {})
-            
+
             # Database models typically have these fields
             has_model_fields = any(field in properties for field in ["id", "updated_at", "deleted_at"])
-            
+
             # If it has model fields, it's likely a table
             if has_model_fields:
                 table_names.append(key)
-        
+
         return sorted(table_names)
-    
+
     def get_table_columns(self, table_name: str) -> list[str]:
         """Get list of columns for a given table."""
         schema = self.get_schema(table_name)
