@@ -1,13 +1,10 @@
+import re
+
 import pandas as pd
-from psycopg.errors import InvalidTextRepresentation
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
 
 from psr.lakehouse.connector import connector
-from psr.lakehouse.exceptions import LakehouseError, LakehouseInputError
-from psr.lakehouse.metadata import metadata_registry
-
-reference_date = "reference_date"
+from psr.lakehouse.exceptions import LakehouseError
+from psr.lakehouse.metadata import get_model_name
 
 
 class Client:
@@ -18,215 +15,324 @@ class Client:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def fetch_dataframe_from_sql(self, sql: str, params: dict | None = None) -> pd.DataFrame:
-        try:
-            with connector.engine().connect() as connection:
-                df = pd.read_sql_query(text(sql), connection, params=params)
-                if reference_date in df.columns:
-                    df[reference_date] = pd.to_datetime(df[reference_date])
-                return df
-        except SQLAlchemyError as e:
-            if isinstance(e.__cause__, InvalidTextRepresentation):
-                raise LakehouseInputError(f"Invalid input error while executing query: {e}") from e
-            else:
-                raise LakehouseError(f"Database error while executing query: {e}") from e
+    def _build_query_data(self, model_name: str, columns: list[str]) -> list[str]:
+        """Build query_data list with Model.column format."""
+        return [f"{model_name}.{col}" for col in columns]
+
+    def _build_query_filters(
+        self,
+        model_name: str,
+        filters: dict | None,
+        start_reference_date: str | None,
+        end_reference_date: str | None,
+    ) -> list[dict] | None:
+        """Build query_filters list from parameters."""
+        query_filters = []
+
+        if filters:
+            for col, value in filters.items():
+                if value is not None:
+                    query_filters.append(
+                        {
+                            "column": f"{model_name}.{col}",
+                            "value": str(value),
+                            "operator": "=",
+                        }
+                    )
+
+        if start_reference_date:
+            query_filters.append(
+                {
+                    "column": f"{model_name}.reference_date",
+                    "value": start_reference_date,
+                    "operator": ">=",
+                }
+            )
+
+        if end_reference_date:
+            query_filters.append(
+                {
+                    "column": f"{model_name}.reference_date",
+                    "value": end_reference_date,
+                    "operator": "<=",
+                }
+            )
+
+        return query_filters if query_filters else None
+
+    def _build_group_by(
+        self,
+        model_name: str,
+        group_by: list[str] | None,
+        aggregation_method: str | None,
+        datetime_granularity: str | None = None,
+    ) -> dict | None:
+        """Build group_by clause."""
+        if not group_by or not aggregation_method:
+            return None
+
+        return {
+            "group_by_clause": [f"{model_name}.{col}" for col in group_by],
+            "default_aggregation_method": aggregation_method,
+            "datetime_granularity": datetime_granularity,
+        }
+
+    def _build_order_by(
+        self,
+        model_name: str,
+        order_by: list[dict] | None,
+    ) -> list[dict] | None:
+        """Build order_by clause."""
+        if not order_by:
+            return None
+
+        return [
+            {
+                "column": f"{model_name}.{item['column']}",
+                "direction": item["direction"],
+            }
+            for item in order_by
+        ]
+
+    def _build_joins(
+        self,
+        joins: list[dict] | None,
+    ) -> list[dict] | None:
+        """Build joins clause."""
+        if not joins:
+            return None
+
+        return joins
+
+    def _fetch_all_pages(self, json_body: dict, page_size: int = 1000) -> list[dict]:
+        """Fetch all pages of results."""
+        all_data = []
+        page = 1
+
+        while True:
+            response = connector.post(
+                "/query/",
+                json_body,
+                params={"page": page, "page_size": page_size},
+            )
+            all_data.extend(response["data"])
+
+            if not response["pagination"]["has_next"]:
+                break
+            page += 1
+
+        return all_data
 
     def fetch_dataframe(
         self,
         table_name: str,
-        indices_columns: list[str],
-        data_columns: list[str],
+        indices_columns: list[str] | None = None,
+        data_columns: list[str] | None = None,
         filters: dict | None = None,
         start_reference_date: str | None = None,
         end_reference_date: str | None = None,
         group_by: list[str] | None = None,
+        datetime_granularity: str | None = None,
+        order_by: list[dict] | None = None,
         aggregation_method: str | None = None,
-        time_frequency: str | None = None,
-        time_frequency_aggregation_method: str | None = None,
+        joins: list[dict] | None = None,
+        output_timezone: str = "America/Sao_Paulo",
     ) -> pd.DataFrame:
+        """
+        Fetch data from the API and return as a pandas DataFrame.
+
+        Args:
+            table_name: Name of the table to query (e.g., "ccee_spot_price")
+            indices_columns: Optional columns to use as DataFrame index. If not provided, DataFrame will use default integer index.
+            data_columns: Optional data columns to fetch. If not provided along with indices_columns, all columns will be fetched.
+            filters: Optional dict of column: value filters (equality)
+            start_reference_date: Optional start date filter (inclusive)
+            end_reference_date: Optional end date filter (exclusive)
+            group_by: Optional list of columns to group by
+            aggregation_method: Aggregation method (sum, avg, min, max) - required if group_by is set
+
+        Returns:
+            pandas DataFrame with the query results
+        """
+        # Validate group_by and aggregation_method
         if bool(group_by) ^ bool(aggregation_method is not None):
             raise LakehouseError("Both 'group_by' and 'aggregation_method' must be provided together.")
 
         if aggregation_method and aggregation_method not in ["", "sum", "avg", "min", "max"]:
             raise LakehouseError(
-                f"Unsupported aggregation method '{aggregation_method}'. Supported methods are '', 'sum', 'avg', 'min', 'max'."
+                f"Unsupported aggregation method '{aggregation_method}'. Supported: '', 'sum', 'avg', 'min', 'max'."
             )
 
-        if time_frequency and time_frequency_aggregation_method:
-            if time_frequency_aggregation_method not in ["sum", "avg", "min", "max"]:
-                raise LakehouseError(
-                    f"Unsupported time frequency aggregation method '{time_frequency_aggregation_method}'. Supported methods are 'sum', 'avg', 'min', 'max'."
-                )
-            if time_frequency not in ["day", "week", "month", "quarter", "year"]:
-                raise LakehouseError(
-                    f"Unsupported time frequency '{time_frequency}'. Supported frequencies are 'day', 'week', 'month', 'quarter', 'year'."
-                )
+        # Convert table name to model name
+        model_name = get_model_name(table_name)
 
-        if group_by and reference_date not in group_by:
-            group_by.append(reference_date)
+        final_indices = group_by if group_by else indices_columns
 
-        indices_columns = group_by if group_by else indices_columns
+        # Combine all columns, ensuring no duplicates
+        if final_indices and data_columns:
+            all_columns = list(dict.fromkeys(final_indices + data_columns))
+        elif final_indices:
+            all_columns = final_indices
+        elif data_columns:
+            all_columns = data_columns
+        else:
+            all_columns = []
 
-        # If we're going to do time frequency aggregation, we need reference_date in the query
-        if time_frequency and time_frequency_aggregation_method:
-            if reference_date not in indices_columns:
-                indices_columns = indices_columns + [reference_date]
+        # Build JSON request body
+        json_body = {
+            "query_data": self._build_query_data(model_name, all_columns),
+            "output_timezone": output_timezone,
+        }
 
-        data_columns = (
-            [f"{aggregation_method.upper()}({col}) AS {col}" for col in data_columns]
-            if aggregation_method
-            else data_columns
-        )
-        query = f"SELECT DISTINCT ON ({', '.join(indices_columns)}) "
-        query += f"{', '.join(indices_columns)},"
-        query += " MAX(updated_at), " if group_by else ""
-        query += f'{", ".join(data_columns)} FROM "{table_name}"'
+        # Add optional fields
+        query_filters = self._build_query_filters(model_name, filters, start_reference_date, end_reference_date)
+        if query_filters:
+            json_body["query_filters"] = query_filters
 
-        filter_conditions = ['"deleted_at" IS NULL']
-        params = {}
+        group_by_clause = self._build_group_by(model_name, group_by, aggregation_method, datetime_granularity)
+        if group_by_clause:
+            json_body["group_by"] = group_by_clause
 
-        if filters:
-            for col, value in filters.items():
-                if value is not None:
-                    param_name = col.replace(" ", "_")
-                    filter_conditions.append(f'"{col}" = :{param_name}')
-                    params[param_name] = value
+        order_by_clause = self._build_order_by(model_name, order_by)
+        if order_by_clause:
+            json_body["order_by"] = order_by_clause
 
-        if start_reference_date:
-            filter_conditions.append(f'"{reference_date}" >= :start_reference_date')
-            params["start_reference_date"] = start_reference_date
+        joins_clause = self._build_joins(joins)
+        if joins_clause:
+            json_body["joins"] = joins_clause
 
-        if end_reference_date:
-            filter_conditions.append(f'"{reference_date}" < :end_reference_date')
-            params["end_reference_date"] = end_reference_date
+        return self.fetch_dataframe_from_query(json_body)
 
-        query += " WHERE " + " AND ".join(filter_conditions)
-        if group_by:
-            query += " GROUP BY " + ", ".join(group_by)
-        query += " ORDER BY "
-        query += ", ".join([f"{column} ASC" for column in indices_columns])
+    def fetch_dataframe_from_query(self, json_body: dict, page_size: int = 1000) -> pd.DataFrame:
+        """
+        Fetch data from the API using a custom query JSON body and return as a pandas DataFrame.
 
-        if not group_by:
-            query += ", updated_at DESC"
+        Args:
+            json_body: JSON request body for the query
 
-        if time_frequency and time_frequency_aggregation_method:
-            # Extract just the column names without the aggregation for the inner query
-            inner_data_columns = []
-            for col in data_columns:
-                if " AS " in col:
-                    # Extract the alias (column name after AS)
-                    alias = col.split(" AS ")[-1]
-                    inner_data_columns.append(alias)
-                else:
-                    inner_data_columns.append(col)
+        Returns:
+            pandas DataFrame with the query results
+        """
+        data = self._fetch_all_pages(json_body, page_size=page_size)
+        df = pd.DataFrame(data)
 
-            # For time frequency aggregation, we want to group by the ORIGINAL indices_columns
-            # (before any reference_date was added) and the new reference_date_period
-            # Get the original indices_columns without reference_date
-            if group_by:
-                # If group_by was used, get the original group_by columns minus reference_date
-                time_group_columns = [col for col in group_by if col != reference_date]
-            else:
-                # If no group_by, use the original indices_columns passed to the function
-                # We need to reconstruct what the original indices_columns were
-                original_indices_columns = [col for col in indices_columns if col != reference_date]
-                time_group_columns = original_indices_columns
+        if df.empty:
+            return df
 
-            query = f"""
-                SELECT {", ".join(time_group_columns)}, 
-                DATE_TRUNC('{time_frequency}', {reference_date})::date AS reference_date_period,
-                {", ".join([f"{time_frequency_aggregation_method.upper()}({col}) AS {col}" for col in inner_data_columns])}
-                FROM ({query}
-                ) GROUP BY {", ".join(time_group_columns)}, reference_date_period
-                ORDER BY {", ".join(time_group_columns)}, reference_date_period ASC
-                """
+        # Convert datetime columns
+        if "reference_date" in df.columns:
+            df["reference_date"] = pd.to_datetime(df["reference_date"])
 
-        print("Executing SQL Query:")
-        print(query)
-        print("With parameters:")
-        print(params)
-
-        df = self.fetch_dataframe_from_sql(query, params=params if params else None)
-
-        if reference_date not in indices_columns:
-            df = df.drop(columns=[reference_date], errors="ignore")
-
-        # Adjust the index columns if time_frequency was applied
-        final_indices_columns = indices_columns.copy()
-        if time_frequency and time_frequency_aggregation_method:
-            # For time frequency, use only the non-reference_date columns plus reference_date_period
-            final_indices_columns = [col for col in indices_columns if col != reference_date]
-            final_indices_columns.append("reference_date_period")
-
-        df = df.set_index(final_indices_columns)
+        # Set index if reference_date exists
+        if "reference_date" in df.columns:
+            df = df.set_index("reference_date")
 
         return df
 
-    def list_tables(self, schema: str = "public") -> list[str]:
-        query = """
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema = :schema AND table_type = 'BASE TABLE'
-            AND table_name != 'alembic_version';
-            """
-        df = self.fetch_dataframe_from_sql(query, params={"schema": schema})
-        return df["table_name"].tolist()
+    def _fetch_openapi_schema(self) -> dict:
+        """Fetch OpenAPI schema from the API."""
+        return connector.get("/openapi.json")["components"]["schemas"]
 
-    def get_table_info(self, table_name: str, schema: str = "public") -> pd.DataFrame:
-        query = """
-            SELECT column_name, data_type, is_nullable, character_maximum_length
-            FROM information_schema.columns
-            WHERE table_name = :table_name AND table_schema = :schema;
-            """
-        df = self.fetch_dataframe_from_sql(query, params={"table_name": table_name, "schema": schema})
-        return df
+    def _get_enum_values(self, enum_reference: dict) -> list[str]:
+        """Get enum values from OpenAPI schema."""
+        schemas = self._fetch_openapi_schema()
+        reference_match = r"^#/components/schemas/(\w+)$"
+        enum_name = re.findall(reference_match, enum_reference["$ref"])[0]
+        return schemas[enum_name]["enum"]
 
-    def list_schemas(self) -> list[str]:
-        query = """
-            SELECT schema_name
-            FROM information_schema.schemata;
-            """
-        df = self.fetch_dataframe_from_sql(query)
-        return df["schema_name"].tolist()
+    def get_schema(self, table_name: str) -> dict:
+        """Get clean schema for a given table."""
+        table_name = get_model_name(table_name)
+        schemas = self._fetch_openapi_schema()
+        properties = schemas[table_name]["properties"]
 
-    def get_table_metadata(self, table_name: str):
-        """Get metadata for a specific table."""
-        return metadata_registry.get_metadata(table_name)
+        # Build clean schema
+        clean_schema = {}
+        for key, value in properties.items():
+            field_info = {
+                "type": self._extract_type(value),
+                "nullable": self._is_nullable(value),
+            }
 
-    def list_available_datasets(self) -> pd.DataFrame:
-        """List all available datasets with their metadata."""
-        datasets = []
-        for table_name, metadata in metadata_registry.get_all_metadata().items():
-            datasets.append(
-                {
-                    "table_name": table_name,
-                    "organization": metadata.organization,
-                    "data_name": metadata.data_name,
-                    "description": metadata.description,
-                    "columns_count": len(metadata.columns),
-                }
-            )
-        return pd.DataFrame(datasets)
+            # Add description if present
+            if "description" in value:
+                field_info["description"] = value["description"]
 
-    def get_column_info(self, table_name: str) -> pd.DataFrame:
-        """Get detailed column information including units for a specific table."""
-        metadata = metadata_registry.get_metadata(table_name)
-        if not metadata:
-            raise LakehouseError(f"No metadata found for table: {table_name}")
+            # Add title if present
+            if "title" in value:
+                field_info["title"] = value["title"]
 
-        columns_info = []
-        for col in metadata.columns:
-            columns_info.append(
-                {
-                    "column_name": col.name,
-                    "description": col.description,
-                    "unit": col.unit,
-                    "data_type": col.data_type,
-                    "column_type": col.column_type,
-                    "possible_values": col.values,
-                }
-            )
-        return pd.DataFrame(columns_info)
+            # Add format if present (e.g., date-time)
+            if "format" in value:
+                field_info["format"] = value["format"]
+
+            # Handle enum values
+            enum_values = None
+            if "$ref" in value:
+                enum_values = self._get_enum_values(value)
+            elif "anyOf" in value:
+                for item in value["anyOf"]:
+                    if "$ref" in item:
+                        enum_values = self._get_enum_values(item)
+                        break
+
+            if enum_values:
+                field_info["type"] = "enum"
+                field_info["enum_values"] = enum_values
+
+            clean_schema[key] = field_info
+
+        return clean_schema
+
+    def _extract_type(self, value: dict) -> str:
+        """Extract the primary type from a field definition."""
+        if "type" in value:
+            return value["type"]
+        elif "anyOf" in value:
+            # Get first non-null type
+            for item in value["anyOf"]:
+                if item.get("type") != "null":
+                    return item.get("type", "unknown")
+            return "null"
+        return "unknown"
+
+    def _is_nullable(self, value: dict) -> bool:
+        """Check if a field is nullable."""
+        if "anyOf" in value:
+            return any(item.get("type") == "null" for item in value["anyOf"])
+        return False
+
+    def list_tables(self) -> list[str]:
+        """List all available tables in Lakehouse."""
+        schemas = self._fetch_openapi_schema()
+
+        # Filter out non-table schemas
+        table_names = []
+        for key, schema in schemas.items():
+            # Skip enums (they have 'enum' field instead of 'properties')
+            if "enum" in schema:
+                continue
+
+            # Skip schemas without properties
+            if "properties" not in schema:
+                continue
+
+            # Check if it's a database model by looking for common model fields
+            properties = schema.get("properties", {})
+
+            # Database models typically have these fields
+            has_model_fields = any(field in properties for field in ["id", "updated_at", "deleted_at"])
+
+            # If it has model fields, it's likely a table
+            if has_model_fields:
+                table_names.append(key)
+
+        return sorted(table_names)
+
+    def get_table_columns(self, table_name: str) -> list[str]:
+        """Get list of columns for a given table."""
+        schema = self.get_schema(table_name)
+        return list(schema.keys())
 
 
 client = Client()
