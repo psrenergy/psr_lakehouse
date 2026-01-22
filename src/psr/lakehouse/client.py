@@ -287,6 +287,11 @@ class Client:
                 table_names.append(key)
         
         return sorted(table_names)
+    
+    def get_table_columns(self, table_name: str) -> list[str]:
+        """Get list of columns for a given table."""
+        schema = self.get_schema(table_name)
+        return list(schema.keys())
 
 
 client = Client()
