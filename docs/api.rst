@@ -58,6 +58,9 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
        end_reference_date: str | None = None,
        group_by: list[str] | None = None,
        aggregation_method: str | None = None,
+       datetime_granularity: str | None = None,
+       order_by: list[dict] | None = None,
+       output_timezone: str = "America/Sao_Paulo",
    ) -> pd.DataFrame
 
 **Parameters:**
@@ -70,6 +73,9 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
 * ``end_reference_date`` (str, optional) - End date filter in ISO format (exclusive), e.g., ``"2023-05-02"``
 * ``group_by`` (list[str], optional) - List of columns to group by for aggregation
 * ``aggregation_method`` (str, optional) - Aggregation method when using ``group_by``. Options: ``"sum"``, ``"avg"``, ``"min"``, ``"max"``
+* ``datetime_granularity`` (str, optional) - Temporal aggregation level. Options: ``"hour"``, ``"day"``, ``"week"``, ``"month"``
+* ``order_by`` (list[dict], optional) - Sort order as list of dictionaries with ``column`` and ``direction`` (``"asc"`` or ``"desc"``)
+* ``output_timezone`` (str, optional) - Output timezone for datetime fields. Default: ``"America/Sao_Paulo"``
 
 **Returns:**
 
@@ -110,6 +116,29 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
        end_reference_date="2023-02-01",
        group_by=["subsystem"],
        aggregation_method="avg",
+   )
+
+   # With temporal aggregation
+   df = client.fetch_dataframe(
+       table_name="ons_power_plant_hourly_generation",
+       data_columns=["plant_type", "generation"],
+       start_reference_date="2025-01-01",
+       end_reference_date="2025-01-31",
+       group_by=["reference_date", "plant_type"],
+       aggregation_method="sum",
+       datetime_granularity="day",
+   )
+
+   # With ordering
+   df = client.fetch_dataframe(
+       table_name="ccee_spot_price",
+       data_columns=["spot_price"],
+       start_reference_date="2023-01-01",
+       end_reference_date="2023-02-01",
+       order_by=[
+           {"column": "reference_date", "direction": "desc"},
+           {"column": "subsystem", "direction": "asc"},
+       ],
    )
 
 fetch_dataframe_from_query()

@@ -36,3 +36,8 @@ intersphinx_mapping = {
 
 html_theme = 'classic'
 html_static_path = ['_static']
+
+html_theme_options = {
+    "rightsidebar": "false",
+    "relbarbgcolor": "red"
+}

@@ -88,6 +88,46 @@ Available aggregation methods:
 * ``min`` - Minimum value
 * ``max`` - Maximum value
 
+Temporal Aggregation
+~~~~~~~~~~~~~~~~~~~~
+
+Use ``datetime_granularity`` to aggregate datetime data to a coarser granularity:
+
+.. code-block:: python
+
+   # Aggregate hourly data to daily
+   df = client.fetch_dataframe(
+       table_name="ons_power_plant_hourly_generation",
+       data_columns=["plant_type", "generation"],
+       start_reference_date="2025-01-01",
+       end_reference_date="2025-01-31",
+       group_by=["reference_date", "plant_type"],
+       aggregation_method="sum",
+       datetime_granularity="day",  # Options: hour, day, week, month
+   )
+
+Ordering Results
+----------------
+
+Sort By Multiple Columns
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``order_by`` parameter to sort results:
+
+.. code-block:: python
+
+   df = client.fetch_dataframe(
+       table_name="ons_power_plant_hourly_generation",
+       data_columns=["plant_type", "generation"],
+       group_by=["reference_date", "plant_type"],
+       aggregation_method="sum",
+       datetime_granularity="day",
+       order_by=[
+           {"column": "reference_date", "direction": "desc"},
+           {"column": "plant_type", "direction": "asc"},
+       ],
+   )
+
 Schema Discovery
 ----------------
 
