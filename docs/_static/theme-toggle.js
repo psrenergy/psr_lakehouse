@@ -95,16 +95,19 @@
     function createMobileHeader() {
         const header = document.createElement('div');
         header.className = 'mobile-header';
-        
+
         const menuButton = createMobileMenuToggle();
-        
-        const title = document.createElement('h1');
+
+        const title = document.createElement('span');
         title.className = 'mobile-header-title';
         title.textContent = 'PSR Lakehouse';
-        
+
+        const themeToggle = createThemeToggle();
+
         header.appendChild(menuButton);
         header.appendChild(title);
-        
+        header.appendChild(themeToggle);
+
         return header;
     }
 

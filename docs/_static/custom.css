@@ -475,6 +475,8 @@ dl.field-list dd {
     margin: 0;
     flex-grow: 1;
     text-align: center;
+    text-decoration: none;
+    border: none;
 }
 
 .mobile-menu-toggle {
@@ -573,17 +575,28 @@ dl.field-list dd {
 
 /* Responsive improvements */
 @media screen and (max-width: 875px) {
-    /* Position theme toggle in mobile header area */
+    /* Hide floating theme toggle on mobile - it's in the header */
     .theme-toggle-btn {
-        top: 70px;
-        right: 12px;
-        width: 36px;
-        height: 36px;
+        display: none !important;
     }
 
     /* Show mobile header */
     .mobile-header {
         display: flex !important;
+    }
+
+    /* Theme toggle in mobile header */
+    .mobile-header .theme-toggle-btn {
+        display: flex !important;
+        position: static !important;
+        width: 36px;
+        height: 36px;
+        box-shadow: none;
+        background-color: transparent;
+    }
+
+    .mobile-header .theme-toggle-btn:hover {
+        background-color: var(--sidebar-link-hover-bg);
     }
     
     /* Show mobile menu button */
@@ -607,8 +620,9 @@ dl.field-list dd {
         z-index: 1000 !important;
         transition: left 0.3s ease !important;
         box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2) !important;
-        padding: 20px 0 !important;
+        padding: 20px 12px !important;
         margin: 0 !important;
+        background-color: var(--bg-color) !important;
     }
     
     /* Show sidebar when menu is active */
