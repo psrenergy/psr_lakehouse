@@ -1,0 +1,699 @@
+/* Custom styling for PSR Lakehouse documentation */
+
+/* Import Roboto font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+/* CSS Variables for Light and Dark Modes */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --heading-color: #2c3e50;
+    --link-color: #2980b9;
+    --link-hover-color: #1f5c7d;
+    --border-color: #e1e4e8;
+    --code-bg: #f6f8fa;
+    --code-border: #e1e4e8;
+    --code-text: #24292e;
+    --highlight-bg: #f6f8fa;
+    --highlight-border: #e1e4e8;
+    --table-header-bg: #f6f8fa;
+    --table-border: #d0d7de;
+    --note-bg: #e7f2fa;
+    --note-border: #2980b9;
+    --warn-bg: #fff4e6;
+    --warn-border: #f39c12;
+    --sidebar-bg: transparent;
+    --sidebar-text: #555555;
+    --sidebar-heading: #333333;
+    --sidebar-link: #265787;
+    --sidebar-link-hover: #1a3d5c;
+    --sidebar-link-hover-bg: rgba(38, 87, 135, 0.08);
+    --h1-border: #2980b9;
+    --h2-border: #e1e4e8;
+}
+
+[data-theme="dark"] {
+    --bg-color: #1e1e1e;
+    --text-color: #e0e0e0;
+    --heading-color: #64b5f6;
+    --link-color: #64b5f6;
+    --link-hover-color: #90caf9;
+    --border-color: #3e3e3e;
+    --code-bg: #2d2d2d;
+    --code-border: #3e3e3e;
+    --code-text: #e0e0e0;
+    --highlight-bg: #2d2d2d;
+    --highlight-border: #3e3e3e;
+    --table-header-bg: #2d2d2d;
+    --table-border: #3e3e3e;
+    --note-bg: #1a3a52;
+    --note-border: #64b5f6;
+    --warn-bg: #4a3b1f;
+    --warn-border: #f39c12;
+    --sidebar-bg: transparent;
+    --sidebar-text: #b0b0b0;
+    --sidebar-heading: #e0e0e0;
+    --sidebar-link: #64b5f6;
+    --sidebar-link-hover: #90caf9;
+    --sidebar-link-hover-bg: rgba(100, 181, 246, 0.1);
+    --h1-border: #64b5f6;
+    --h2-border: #3e3e3e;
+}
+
+/* Floating Theme Toggle Button (Sun/Moon Icon) */
+.theme-toggle-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1001;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* GitHub container at bottom of sidebar */
+.github-container {
+    padding: 8px;
+    text-align: center;
+}
+
+.github-container a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: var(--sidebar-link-hover-bg);
+    border-radius: 6px;
+    color: var(--sidebar-link) !important;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+}
+
+.github-container a:hover {
+    background-color: var(--border-color);
+}
+
+/* Sidebar wrapper should grow to fill space */
+.sphinxsidebarwrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+/* PSR Logo in Sidebar */
+.psr-logo-container {
+    margin-top: auto;
+    padding: 12px 8px 8px 8px;
+    text-align: center;
+}
+
+.psr-logo {
+    max-width: 45%;
+    height: auto;
+}
+
+.psr-logo:hover {
+    opacity: 1;
+}
+
+/* Apply theme colors */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+
+body, div.body, div.document {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+div.bodywrapper {
+    background-color: var(--bg-color);
+}
+
+.sphinxsidebar {
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
+
+/* Set Roboto as the primary font */
+body, div.body, div.document, div.documentwrapper, div.bodywrapper {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+    font-weight: 500;
+}
+
+p, li, dt, dd, td, th, span {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+}
+
+code, pre, .highlight, tt, kbd, samp {
+    font-family: 'Roboto Mono', 'Consolas', 'Monaco', monospace !important;
+}
+
+/* Better code block styling */
+div.highlight {
+    border-radius: 4px;
+    border: 1px solid var(--highlight-border);
+    margin: 1em 0;
+    background-color: var(--highlight-bg);
+}
+
+div.highlight pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 14px;
+    line-height: 1.45;
+    background-color: var(--highlight-bg);
+    color: var(--text-color);
+}
+
+/* Improve inline code appearance */
+code.literal {
+    background-color: var(--code-bg);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 90%;
+    color: var(--code-text);
+    border: 1px solid var(--code-border);
+}
+
+/* Better admonition boxes */
+.admonition {
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin: 1em 0;
+}
+
+.admonition.note {
+    background-color: var(--note-bg);
+    border-left: 4px solid var(--note-border);
+}
+
+.admonition.warning {
+    background-color: var(--warn-bg);
+    border-left: 4px solid var(--warn-border);
+}
+
+.admonition-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+/* Improve table styling */
+table.docutils {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 1em 0;
+    width: 100%;
+}
+
+table.docutils th {
+    background-color: var(--table-header-bg);
+    border: 1px solid var(--table-border);
+    padding: 8px 12px;
+    font-weight: 600;
+}
+
+table.docutils td {
+    border: 1px solid var(--table-border);
+    padding: 8px 12px;
+}
+
+/* Better section headers */
+h1 {
+    border-bottom: 2px solid var(--h1-border);
+    padding-bottom: 0.3em;
+    margin-top: 0;
+    color: var(--heading-color);
+}
+
+h2 {
+    border-bottom: 1px solid var(--h2-border);
+    padding-bottom: 0.3em;
+    margin-top: 1.5em;
+    color: var(--heading-color);
+}
+
+h3 {
+    margin-top: 1.2em;
+    color: var(--heading-color);
+}
+
+/* Improve link styling */
+a, a.reference.internal, a.reference.external {
+    color: var(--link-color);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--link-color);
+}
+
+a:hover, a.reference.internal:hover, a.reference.external:hover {
+    color: var(--link-hover-color);
+    border-bottom: 1px solid var(--link-hover-color);
+}
+
+/* Better parameter lists */
+dl.field-list {
+    margin: 1em 0;
+}
+
+dl.field-list dt {
+    font-weight: bold;
+    color: var(--heading-color);
+}
+
+dl.field-list dd {
+    margin-left: 2em;
+    margin-bottom: 0.5em;
+}
+
+/* Improve navigation - Blender-style sidebar */
+.sphinxsidebar {
+    font-size: 13px;
+    line-height: 1.5;
+    background-color: var(--sidebar-bg) !important;
+    color: var(--sidebar-text) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.sphinxsidebar h3 {
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0.8em 0 0.3em 0;
+    padding: 0;
+    color: var(--sidebar-heading) !important;
+}
+
+.sphinxsidebar h3:first-child {
+    margin-top: 0;
+}
+
+.sphinxsidebar ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sphinxsidebar ul ul {
+    padding-left: 12px;
+}
+
+.sphinxsidebar li {
+    margin: 0;
+    padding: 0;
+    color: var(--sidebar-text) !important;
+}
+
+.sphinxsidebar a {
+    display: block;
+    padding: 3px 8px;
+    margin: 0;
+    color: var(--sidebar-link) !important;
+    border-bottom: none !important;
+    border-radius: 4px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sphinxsidebar a:hover {
+    color: var(--sidebar-link-hover) !important;
+    background-color: var(--sidebar-link-hover-bg);
+    text-decoration: none;
+}
+
+.sphinxsidebar p {
+    color: var(--sidebar-text) !important;
+    font-size: 12px;
+    margin: 0.5em 0;
+}
+
+.sphinxsidebar p.caption {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sidebar-heading) !important;
+    margin: 1.2em 0 0.5em 0;
+}
+
+/* Styled search box */
+.sphinxsidebar form {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+.search-wrapper {
+    position: relative;
+    margin: 12px 0;
+    width: calc(100% + 14px);
+    margin-left: -7px;
+    padding: 0 5px;
+    box-sizing: border-box;
+}
+
+.search-icon {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sidebar-text);
+    opacity: 0.6;
+    pointer-events: none;
+    line-height: 0;
+}
+
+.search-icon svg {
+    display: block;
+}
+
+.search-input-styled,
+.sphinxsidebar input[type="text"] {
+    width: 100% !important;
+    max-width: none !important;
+    height: 34px !important;
+    padding: 0 10px 0 32px !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+    font-size: 13px !important;
+    line-height: 34px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-input-styled:focus {
+    border-color: var(--sidebar-link) !important;
+    box-shadow: 0 0 0 2px var(--sidebar-link-hover-bg) !important;
+}
+
+.search-input-styled::placeholder {
+    color: var(--sidebar-text);
+    opacity: 0.6;
+}
+
+/* Subtle scrollbar for sidebar */
+.sphinxsidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sphinxsidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sphinxsidebar::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 3px;
+}
+
+.sphinxsidebar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--sidebar-text);
+}
+
+/* Better signature styling */
+.sig-name {
+    font-weight: bold;
+}
+
+.sig-param {
+    font-style: italic;
+}
+
+/* Mobile Menu Hamburger Button */
+.mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: var(--bg-color);
+    border-bottom: 2px solid var(--border-color);
+    z-index: 1002;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-header-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--heading-color);
+    margin: 0;
+    flex-grow: 1;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+}
+
+.mobile-menu-toggle {
+    display: none;
+    background-color: transparent;
+    border: none;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+    background-color: var(--code-bg);
+    border-radius: 8px;
+}
+
+.mobile-menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--text-color);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Mobile overlay */
+.mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-menu-overlay.active {
+    opacity: 1;
+}
+
+/* Ensure sidebar is visible on desktop */
+@media screen and (min-width: 876px) {
+    .sphinxsidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        max-height: 100vh !important;
+        overflow-y: auto !important;
+        width: 240px !important;
+        margin: 0 !important;
+        padding: 16px 12px !important;
+        border-right: 1px solid var(--border-color) !important;
+        background-color: var(--bg-color) !important;
+    }
+
+    div.document {
+        margin-left: 260px !important;
+    }
+
+    div.bodywrapper {
+        margin: 0 !important;
+    }
+
+    div.body {
+        padding: 16px 32px 24px 32px !important;
+        margin: 0 !important;
+        max-width: 900px !important;
+    }
+
+    .mobile-header {
+        display: none !important;
+    }
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 875px) {
+    /* Hide floating theme toggle on mobile - it's in the header */
+    .theme-toggle-btn {
+        display: none !important;
+    }
+
+    /* Show mobile header */
+    .mobile-header {
+        display: flex !important;
+    }
+
+    /* Theme toggle in mobile header */
+    .mobile-header .theme-toggle-btn {
+        display: flex !important;
+        position: static !important;
+        width: 36px;
+        height: 36px;
+        box-shadow: none;
+        background-color: transparent;
+    }
+
+    .mobile-header .theme-toggle-btn:hover {
+        background-color: var(--sidebar-link-hover-bg);
+    }
+    
+    /* Show mobile menu button */
+    .mobile-menu-toggle {
+        display: flex !important;
+    }
+    
+    /* Add padding to body for fixed header */
+    body {
+        padding-top: 60px !important;
+    }
+    
+    /* Hide sidebar by default on mobile */
+    .sphinxsidebar {
+        position: fixed !important;
+        top: 60px !important;
+        left: -100% !important;
+        width: 280px !important;
+        height: calc(100vh - 60px) !important;
+        overflow-y: auto !important;
+        z-index: 1000 !important;
+        transition: left 0.3s ease !important;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2) !important;
+        padding: 20px 12px !important;
+        margin: 0 !important;
+        background-color: var(--bg-color) !important;
+    }
+    
+    /* Show sidebar when menu is active */
+    .sphinxsidebar.mobile-active {
+        left: 0 !important;
+    }
+    
+    /* Show overlay when menu is active */
+    .mobile-menu-overlay.active {
+        display: block !important;
+    }
+    
+    /* Adjust body content */
+    div.bodywrapper {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+    
+    div.body {
+        padding: 20px !important;
+        margin: 0 !important;
+    }
+    
+    /* Make content full width on mobile */
+    div.documentwrapper {
+        width: 100% !important;
+        float: none !important;
+        margin: 0 !important;
+    }
+    
+    div.document {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    
+    /* Adjust related navigation for mobile */
+    .related {
+        padding: 10px 20px !important;
+    }
+    
+    /* Ensure main content is visible and not under sidebar */
+    .bodywrapper {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+/* Responsive improvements for tablets */
+@media screen and (min-width: 876px) and (max-width: 1200px) {
+    div.body {
+        padding: 20px;
+    }
+}
+
+/* Improve return type and parameter documentation */
+.field-list .field-name {
+    font-weight: 600;
+    color: var(--heading-color);
+    white-space: nowrap;
+}
+
+/* Code example headers */
+.literal-block-wrapper {
+    margin: 1em 0;
+}
+
+.code-block-caption {
+    background-color: var(--code-bg);
+    padding: 8px 12px;
+    border: 1px solid var(--code-border);
+    border-bottom: none;
+    font-weight: 600;
+    border-radius: 4px 4px 0 0;
+    color: var(--text-color);
+}

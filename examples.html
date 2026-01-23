@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Advanced Examples &#8212; PSR Lakehouse  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=8e50436d" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=8e6b9907" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/theme-toggle.js?v=c6697deb"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api.html" />
+    <link rel="prev" title="Quick Start Guide" href="quickstart.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">PSR Lakehouse</a></h1>
+
+
+
+<p class="blurb">Python client for PSR data lakehouse API</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation &amp; Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#example-1-power-plant-generation-analysis">Example 1: Power Plant Generation Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-2-joining-multiple-tables">Example 2: Joining Multiple Tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-3-using-the-simplified-interface">Example 3: Using the Simplified Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-4-schema-exploration">Example 4: Schema Exploration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#query-structure-reference">Query Structure Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="quickstart.html" title="previous chapter">Quick Start Guide</a></li>
+      <li>Next: <a href="api.html" title="next chapter">API Reference</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="advanced-examples">
+<h1>Advanced Examples<a class="headerlink" href="#advanced-examples" title="Link to this heading">¶</a></h1>
+<p>This page contains advanced examples based on real-world usage patterns.</p>
+<section id="example-1-power-plant-generation-analysis">
+<h2>Example 1: Power Plant Generation Analysis<a class="headerlink" href="#example-1-power-plant-generation-analysis" title="Link to this heading">¶</a></h2>
+<section id="aggregate-generation-by-plant-type">
+<h3>Aggregate Generation by Plant Type<a class="headerlink" href="#aggregate-generation-by-plant-type" title="Link to this heading">¶</a></h3>
+<p>This example shows how to aggregate hourly generation data by plant type:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
+
+<span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
+    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</section>
+<section id="daily-generation-with-datetime-granularity">
+<h3>Daily Generation with Datetime Granularity<a class="headerlink" href="#daily-generation-with-datetime-granularity" title="Link to this heading">¶</a></h3>
+<p>Aggregate hourly data to daily granularity:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
+    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</section>
+<section id="hourly-data-with-sorting">
+<h3>Hourly Data with Sorting<a class="headerlink" href="#hourly-data-with-sorting" title="Link to this heading">¶</a></h3>
+<p>Fetch hourly generation data with custom ordering:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
+    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;hour&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;desc&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="example-2-joining-multiple-tables">
+<h2>Example 2: Joining Multiple Tables<a class="headerlink" href="#example-2-joining-multiple-tables" title="Link to this heading">¶</a></h2>
+<section id="energy-load-and-inflow-analysis">
+<h3>Energy Load and Inflow Analysis<a class="headerlink" href="#energy-load-and-inflow-analysis" title="Link to this heading">¶</a></h3>
+<p>This example demonstrates joining energy load data with inflow energy data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_energy_load</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
+    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSEnergyLoadDaily.subsystem&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSEnergyLoadDaily.energy_load&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSInflowEnergySubsystem.gross_inflow_energy_mwavg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSInflowEnergySubsystem.subsystem&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem.reference_date&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.subsystem&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem.subsystem&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p>This creates an inner join between the two tables on both reference date and subsystem.</p>
+</section>
+</section>
+<section id="example-3-using-the-simplified-interface">
+<h2>Example 3: Using the Simplified Interface<a class="headerlink" href="#example-3-using-the-simplified-interface" title="Link to this heading">¶</a></h2>
+<section id="alternative-method-for-common-use-cases">
+<h3>Alternative Method for Common Use Cases<a class="headerlink" href="#alternative-method-for-common-use-cases" title="Link to this heading">¶</a></h3>
+<p>For simpler queries, you can use the <code class="docutils literal notranslate"><span class="pre">fetch_dataframe</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
+    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
+    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">,</span> <span class="s2">&quot;generation&quot;</span><span class="p">],</span>
+    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span>
+    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-31&quot;</span><span class="p">,</span>
+    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">],</span>
+    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>This is equivalent to the more verbose <code class="docutils literal notranslate"><span class="pre">fetch_dataframe_from_query</span></code> but simpler for basic use cases.</p>
+</section>
+</section>
+<section id="example-4-schema-exploration">
+<h2>Example 4: Schema Exploration<a class="headerlink" href="#example-4-schema-exploration" title="Link to this heading">¶</a></h2>
+<section id="discovering-available-data">
+<h3>Discovering Available Data<a class="headerlink" href="#discovering-available-data" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
+
+<span class="c1"># List all available tables</span>
+<span class="n">tables</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tables</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available tables: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tables</span><span class="p">[:</span><span class="mi">10</span><span class="p">])</span>  <span class="c1"># Show first 10</span>
+
+<span class="c1"># Examine a specific table&#39;s schema</span>
+<span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;ccee_spot_price&quot;</span>
+<span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+
+<span class="c1"># Display schema information</span>
+<span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_info</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Field: </span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Type: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Nullable: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nullable&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Description: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;enum_values&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Allowed values: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;enum_values&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="query-structure-reference">
+<h2>Query Structure Reference<a class="headerlink" href="#query-structure-reference" title="Link to this heading">¶</a></h2>
+<section id="understanding-the-query-format">
+<h3>Understanding the Query Format<a class="headerlink" href="#understanding-the-query-format" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">fetch_dataframe_from_query</span></code> method accepts a dictionary with the following structure:</p>
+<p><strong>Basic Structure:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;ModelName.column1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ModelName.column2&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>  <span class="c1"># or &quot;&lt;=&quot;, &quot;=&quot;, &quot;!=&quot;, &quot;&gt;&quot;, &quot;&lt;&quot;</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ModelName.column1&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>  <span class="c1"># or &quot;avg&quot;, &quot;min&quot;, &quot;max&quot;</span>
+        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>  <span class="c1"># or &quot;hour&quot;, &quot;week&quot;, &quot;month&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>  <span class="c1"># or &quot;desc&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.key_column&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName.key_column&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>  <span class="c1"># or True for outer join</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All fields are optional except <code class="docutils literal notranslate"><span class="pre">query_data</span></code>. Model names use PascalCase (e.g., <code class="docutils literal notranslate"><span class="pre">ONSPowerPlantHourlyGeneration</span></code>).</p>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2026, PSR.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/examples.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>API Reference &#8212; PSR Lakehouse  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=8e50436d" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=8e6b9907" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/theme-toggle.js?v=c6697deb"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Advanced Examples" href="examples.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">PSR Lakehouse</a></h1>
+
+
+
+<p class="blurb">Python client for PSR data lakehouse API</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation &amp; Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Advanced Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#client-class">Client Class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-fetching-methods">Data Fetching Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#schema-discovery-methods">Schema Discovery Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-conversion">Type Conversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#connection-management">Connection Management</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="examples.html" title="previous chapter">Advanced Examples</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h1>
+<p>This page provides detailed documentation of the PSR Lakehouse Client API.</p>
+<section id="client-class">
+<h2>Client Class<a class="headerlink" href="#client-class" title="Link to this heading">¶</a></h2>
+<p>The main interface for interacting with the PSR Lakehouse API. The client uses a singleton pattern to ensure only one instance exists throughout your application.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
+</pre></div>
+</div>
+<section id="initialization">
+<h3>Initialization<a class="headerlink" href="#initialization" title="Link to this heading">¶</a></h3>
+<p>The client is automatically initialized as a singleton. You can configure it using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">initialize</span>
+
+<span class="n">initialize</span><span class="p">(</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://api.example.com&quot;</span><span class="p">,</span>
+    <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;your-access-key&quot;</span><span class="p">,</span>
+    <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;your-secret-key&quot;</span><span class="p">,</span>
+    <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Or set environment variables before importing:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">LAKEHOUSE_API_URL</span><span class="o">=</span><span class="s2">&quot;https://api.example.com&quot;</span>
+<span class="nv">AWS_ACCESS_KEY_ID</span><span class="o">=</span><span class="s2">&quot;your-access-key&quot;</span>
+<span class="nv">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span><span class="s2">&quot;your-secret-key&quot;</span>
+<span class="nv">AWS_DEFAULT_REGION</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="data-fetching-methods">
+<h2>Data Fetching Methods<a class="headerlink" href="#data-fetching-methods" title="Link to this heading">¶</a></h2>
+<section id="fetch-dataframe">
+<h3>fetch_dataframe()<a class="headerlink" href="#fetch-dataframe" title="Link to this heading">¶</a></h3>
+<p>Fetch data from the API and return as a pandas DataFrame using a simplified interface.</p>
+<p><strong>Signature:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">fetch_dataframe</span><span class="p">(</span>
+    <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">indices_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">data_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">filters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">start_reference_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">end_reference_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">group_by</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">aggregation_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">datetime_granularity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">order_by</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_timezone</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;America/Sao_Paulo&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+</pre></div>
+</div>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">table_name</span></code> (str) - Name of the table to query in snake_case format (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;ccee_spot_price&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">indices_columns</span></code> (list[str], optional) - Columns to use as DataFrame index. If not provided, DataFrame will use default integer index.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_columns</span></code> (list[str], optional) - Data columns to fetch. If not provided along with indices_columns, all columns will be fetched.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filters</span></code> (dict, optional) - Dictionary of column-value pairs for equality filtering (e.g., <code class="docutils literal notranslate"><span class="pre">{&quot;subsystem&quot;:</span> <span class="pre">&quot;SOUTHEAST&quot;}</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start_reference_date</span></code> (str, optional) - Start date filter in ISO format (inclusive), e.g., <code class="docutils literal notranslate"><span class="pre">&quot;2023-05-01&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">end_reference_date</span></code> (str, optional) - End date filter in ISO format (exclusive), e.g., <code class="docutils literal notranslate"><span class="pre">&quot;2023-05-02&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">group_by</span></code> (list[str], optional) - List of columns to group by for aggregation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aggregation_method</span></code> (str, optional) - Aggregation method when using <code class="docutils literal notranslate"><span class="pre">group_by</span></code>. Options: <code class="docutils literal notranslate"><span class="pre">&quot;sum&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;avg&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">datetime_granularity</span></code> (str, optional) - Temporal aggregation level. Options: <code class="docutils literal notranslate"><span class="pre">&quot;hour&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;day&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;week&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;month&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">order_by</span></code> (list[dict], optional) - Sort order as list of dictionaries with <code class="docutils literal notranslate"><span class="pre">column</span></code> and <code class="docutils literal notranslate"><span class="pre">direction</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;asc&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;desc&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_timezone</span></code> (str, optional) - Output timezone for datetime fields. Default: <code class="docutils literal notranslate"><span class="pre">&quot;America/Sao_Paulo&quot;</span></code></p></li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> - Query results as a pandas DataFrame</p></li>
+</ul>
+<p><strong>Raises:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LakehouseError</span></code> - If <code class="docutils literal notranslate"><span class="pre">group_by</span></code> and <code class="docutils literal notranslate"><span class="pre">aggregation_method</span></code> are not provided together, or if an unsupported aggregation method is specified</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic fetch</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
+    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
+    <span class="n">indices_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
+    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
+    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
+    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># With filtering</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
+    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_stored_energy_subsystem&quot;</span><span class="p">,</span>
+    <span class="n">indices_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">],</span>
+    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;verified_stored_energy_percentage&quot;</span><span class="p">],</span>
+    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
+    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
+    <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;subsystem&quot;</span><span class="p">:</span> <span class="s2">&quot;SOUTHEAST&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="c1"># With aggregation</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
+    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
+    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
+    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
+    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>
+    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
+    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># With temporal aggregation</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
+    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
+    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">,</span> <span class="s2">&quot;generation&quot;</span><span class="p">],</span>
+    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span>
+    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-31&quot;</span><span class="p">,</span>
+    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;plant_type&quot;</span><span class="p">],</span>
+    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+    <span class="n">datetime_granularity</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># With ordering</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
+    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
+    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
+    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
+    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>
+    <span class="n">order_by</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;desc&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">,</span> <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span><span class="p">},</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="fetch-dataframe-from-query">
+<h3>fetch_dataframe_from_query()<a class="headerlink" href="#fetch-dataframe-from-query" title="Link to this heading">¶</a></h3>
+<p>Fetch data using a custom JSON query body. This method provides access to advanced features like joins, custom operators, and complex ordering.</p>
+<p><strong>Signature:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">fetch_dataframe_from_query</span><span class="p">(</span>
+    <span class="n">json_body</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+</pre></div>
+</div>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">json_body</span></code> (dict) - JSON request body for the query. See Query Structure below.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">page_size</span></code> (int, optional) - Number of results per page. Default: 1000</p></li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> - Query results as a pandas DataFrame</p></li>
+</ul>
+<p><strong>Query Body Structure:</strong></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">json_body</span></code> parameter accepts a dictionary with the following structure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;ModelName.column1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ModelName.column2&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>  <span class="c1"># Operators: =, !=, &gt;, &lt;, &gt;=, &lt;=</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ModelName.column1&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>  <span class="c1"># Options: sum, avg, min, max</span>
+        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>  <span class="c1"># Options: hour, day, week, month</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>  <span class="c1"># or &quot;desc&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.key_column&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName.key_column&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>  <span class="c1"># or True</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;output_timezone&quot;</span><span class="p">:</span> <span class="s2">&quot;America/Sao_Paulo&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Notes:</strong></p>
+<ul class="simple">
+<li><p>Model names use PascalCase (e.g., <code class="docutils literal notranslate"><span class="pre">ONSPowerPlantHourlyGeneration</span></code>)</p></li>
+<li><p>All fields except <code class="docutils literal notranslate"><span class="pre">query_data</span></code> are optional</p></li>
+<li><p>The method automatically handles pagination and fetches all pages</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
+    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="schema-discovery-methods">
+<h2>Schema Discovery Methods<a class="headerlink" href="#schema-discovery-methods" title="Link to this heading">¶</a></h2>
+<section id="list-tables">
+<h3>list_tables()<a class="headerlink" href="#list-tables" title="Link to this heading">¶</a></h3>
+<p>List all available table names in the API.</p>
+<p><strong>Signature:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">list_tables</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Returns:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">list[str]</span></code> - Sorted list of table names in PascalCase (e.g., <code class="docutils literal notranslate"><span class="pre">[&quot;CCEESpotPrice&quot;,</span> <span class="pre">&quot;ONSEnergyLoadDaily&quot;,</span> <span class="pre">...]</span></code>)</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tables</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tables</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available tables: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">[:</span><span class="mi">10</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="get-schema">
+<h3>get_schema()<a class="headerlink" href="#get-schema" title="Link to this heading">¶</a></h3>
+<p>Get detailed schema information for a specific table.</p>
+<p><strong>Signature:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_schema</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
+</pre></div>
+</div>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">table_name</span></code> (str) - Table name in snake_case or PascalCase (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;ccee_spot_price&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;CCEESpotPrice&quot;</span></code>)</p></li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> - Dictionary mapping field names to their metadata. Each field contains:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> (str) - Field type: <code class="docutils literal notranslate"><span class="pre">string</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">number</span></code>, <code class="docutils literal notranslate"><span class="pre">enum</span></code>, <code class="docutils literal notranslate"><span class="pre">boolean</span></code>, etc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nullable</span></code> (bool) - Whether the field can be null</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">title</span></code> (str, optional) - Human-readable field name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">description</span></code> (str, optional) - Field description</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">format</span></code> (str, optional) - Format specification (e.g., <code class="docutils literal notranslate"><span class="pre">date-time</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">enum_values</span></code> (list[str], optional) - Allowed values for enum fields</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_info</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Type: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Nullable: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;nullable&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Description: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;enum_values&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Allowed values: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;enum_values&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Example Output:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;integer&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Id&#39;</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;reference_date&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;date-time&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Reference Date&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Timestamp of the spot price&#39;</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;subsystem&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;enum&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Subsystem identifier&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;enum_values&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s1">&#39;NORTE&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;NORDESTE&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SUDESTE&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SUL&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;SISTEMA INTERLIGADO NACIONAL&#39;</span>
+        <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;spot_price&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;number&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Spot Price&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Spot price in R$/MWh&#39;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="get-table-columns">
+<h3>get_table_columns()<a class="headerlink" href="#get-table-columns" title="Link to this heading">¶</a></h3>
+<p>Get a list of column names for a given table.</p>
+<p><strong>Signature:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_table_columns</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">table_name</span></code> (str) - Table name in snake_case or PascalCase</p></li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">list[str]</span></code> - List of column names</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">columns</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_table_columns</span><span class="p">(</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns: </span><span class="si">{</span><span class="n">columns</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Output: [&#39;id&#39;, &#39;reference_date&#39;, &#39;subsystem&#39;, &#39;spot_price&#39;, &#39;updated_at&#39;, ...]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="exceptions">
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">¶</a></h2>
+<section id="lakehouseerror">
+<h3>LakehouseError<a class="headerlink" href="#lakehouseerror" title="Link to this heading">¶</a></h3>
+<p>Base exception class for all PSR Lakehouse errors.</p>
+<p><strong>Common Scenarios:</strong></p>
+<ul class="simple">
+<li><p>Invalid aggregation method specified</p></li>
+<li><p>Missing required parameters (e.g., <code class="docutils literal notranslate"><span class="pre">group_by</span></code> without <code class="docutils literal notranslate"><span class="pre">aggregation_method</span></code>)</p></li>
+<li><p>API connection errors</p></li>
+<li><p>Authentication failures</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">LakehouseError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
+        <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
+        <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
+        <span class="c1"># Missing aggregation_method - will raise LakehouseError</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="n">LakehouseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Use Appropriate Method</strong></p>
+<ul class="simple">
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">fetch_dataframe()</span></code> for simple queries</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">fetch_dataframe_from_query()</span></code> for complex queries with joins or advanced filtering</p></li>
+</ul>
+</li>
+<li><p><strong>Schema Discovery</strong></p>
+<ul class="simple">
+<li><p>Always explore schema with <code class="docutils literal notranslate"><span class="pre">get_schema()</span></code> before querying unfamiliar tables</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">list_tables()</span></code> to discover available data sources</p></li>
+</ul>
+</li>
+<li><p><strong>Date Filtering</strong></p>
+<ul class="simple">
+<li><p>Always specify date ranges for large tables to avoid fetching excessive data</p></li>
+<li><p>Use ISO format for dates: <code class="docutils literal notranslate"><span class="pre">&quot;2023-05-01&quot;</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Pagination</strong></p>
+<ul class="simple">
+<li><p>The client automatically handles pagination</p></li>
+<li><p>For very large datasets, consider breaking queries into smaller date ranges</p></li>
+</ul>
+</li>
+<li><p><strong>Error Handling</strong></p>
+<ul class="simple">
+<li><p>Always wrap API calls in try-except blocks</p></li>
+<li><p>Handle <code class="docutils literal notranslate"><span class="pre">LakehouseError</span></code> for application-specific errors</p></li>
+</ul>
+</li>
+<li><p><strong>Performance</strong></p>
+<ul class="simple">
+<li><p>Use aggregation at the API level rather than fetching raw data</p></li>
+<li><p>Specify only the columns you need in <code class="docutils literal notranslate"><span class="pre">data_columns</span></code></p></li>
+<li><p>Use filters to reduce data transfer</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="type-conversion">
+<h2>Type Conversion<a class="headerlink" href="#type-conversion" title="Link to this heading">¶</a></h2>
+<p>The client automatically handles type conversions:</p>
+<ul class="simple">
+<li><p><strong>Datetime columns</strong>: Columns named <code class="docutils literal notranslate"><span class="pre">reference_date</span></code> are automatically converted to <code class="docutils literal notranslate"><span class="pre">pd.Timestamp</span></code></p></li>
+<li><p><strong>Index setting</strong>: If <code class="docutils literal notranslate"><span class="pre">reference_date</span></code> exists, it’s automatically set as the DataFrame index</p></li>
+<li><p><strong>Numeric types</strong>: Numeric fields are preserved as appropriate pandas dtypes</p></li>
+</ul>
+</section>
+<section id="connection-management">
+<h2>Connection Management<a class="headerlink" href="#connection-management" title="Link to this heading">¶</a></h2>
+<p>The HTTP connector uses lazy initialization - AWS credentials are only validated on the first API request. The singleton pattern ensures connection resources are reused throughout your application lifecycle.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2026, PSR.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
