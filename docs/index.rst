@@ -7,7 +7,6 @@ Features
 --------
 
 * 📦 Simple and intuitive API for accessing multiple datasets
-* 🔒 AWS IAM authentication support
 * 🐼 Automatic conversion to pandas DataFrames
 * 🔍 Schema discovery and exploration capabilities
 * 📊 Support for filtering, grouping, and aggregating data
