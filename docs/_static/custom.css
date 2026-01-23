@@ -136,8 +136,6 @@
 .psr-logo {
     max-width: 45%;
     height: auto;
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
 }
 
 .psr-logo:hover {

@@ -1,5 +1,7 @@
 # PSR Lakehouse 🏞️🏡
 
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://psrenergy.github.io/psr_lakehouse/)
+
 A Python client library for accessing PSR's data lakehouse API, providing easy access to Brazilian energy market data including ANEEL, CCEE and ONS datasets.
 
 ## 📦 Installation
