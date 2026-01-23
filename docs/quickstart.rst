@@ -138,15 +138,6 @@ List Available Tables
 
    tables = client.list_tables()
    print(tables)
-   # Output: ['ccee_spot_price', 'ons_energy_load_daily', 'ons_stored_energy_subsystem', ...]
-
-List Available Models
-~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   models = client.list_models()
-   print(models)
    # Output: ['CCEESpotPrice', 'ONSEnergyLoadDaily', 'ONSStoredEnergySubsystem', ...]
 
 Get Table Schema
@@ -189,33 +180,6 @@ Example schema output:
            'description': 'Spot price in R$/MWh'
        }
    }
-
-Common Patterns
----------------
-
-Working with Time Series Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   import pandas as pd
-   import matplotlib.pyplot as plt
-
-   # Fetch time series data
-   df = client.fetch_dataframe(
-       table_name="ons_energy_load_daily",
-       indices_columns=["reference_date"],
-       data_columns=["energy_load"],
-       start_reference_date="2023-01-01",
-       end_reference_date="2023-12-31",
-   )
-
-   # Plot the time series
-   df.plot(figsize=(12, 6))
-   plt.title("Energy Load Over Time")
-   plt.ylabel("Energy Load (MWh)")
-   plt.show()
-
 
 Next Steps
 ----------

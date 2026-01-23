@@ -7,14 +7,6 @@
         return localStorage.getItem('theme') || 'light';
     }
 
-    // Set theme
-    function setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        updateToggleText(theme);
-        updatePSRLogo(theme);
-    }
-
     // Update toggle icon
     function updateToggleIcon(theme) {
         const button = document.querySelector('.theme-toggle-btn');

@@ -39,7 +39,7 @@ print(df)
 
 ## 📚 Documentation
 
-For complete documentation including advanced features, API reference, and examples, visit the [full documentation](docs/).
+For complete documentation including advanced features, API reference, and examples, visit the [full documentation](https://psrenergy.github.io/psr_lakehouse/).
 
 Features include:
 - Data filtering and aggregation
