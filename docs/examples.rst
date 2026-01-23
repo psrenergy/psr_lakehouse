@@ -275,4 +275,4 @@ The ``fetch_dataframe_from_query`` method accepts a dictionary with the followin
    }
 
 .. note::
-   All fields are optional except ``query_data``. Model names use PascalCase (e.g., ``ONSPowerPlantHourlyGeneration``), while table names use snake_case (e.g., ``ons_power_plant_hourly_generation``).
+   All fields are optional except ``query_data``. Model names use PascalCase (e.g., ``ONSPowerPlantHourlyGeneration``).

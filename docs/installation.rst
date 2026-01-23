@@ -31,15 +31,15 @@ The library requires configuration via environment variables:
 
 .. code-block:: bash
 
-   export LAKEHOUSE_API_URL="https://api.example.com"
+   LAKEHOUSE_API_URL="https://api.example.com"
 
 **AWS Credentials** (for IAM authentication):
 
 .. code-block:: bash
 
-   export AWS_ACCESS_KEY_ID="your-access-key"
-   export AWS_SECRET_ACCESS_KEY="your-secret-key"
-   export AWS_DEFAULT_REGION="us-east-1"
+   AWS_ACCESS_KEY_ID="your-access-key"
+   AWS_SECRET_ACCESS_KEY="your-secret-key"
+   AWS_DEFAULT_REGION="us-east-1"
 
 Programmatic Initialization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

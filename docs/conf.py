@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'psr_lakehouse'
+project = 'PSR Lakehouse'
 copyright = '2026, PSR'
 author = 'PSR'
 
@@ -40,7 +40,7 @@ html_static_path = ['_static']
 html_theme_options = {
     'description': 'Python client for PSR data lakehouse API',
     'fixed_sidebar': True,
-    'page_width': '1200px',
+    'page_width': '1400px',
     'sidebar_width': '300px',
     'body_text': '#333333',
     'link': '#2980b9',
@@ -54,9 +54,9 @@ html_theme_options = {
     'note_border': '#2980b9',
     'warn_bg': '#fff4e6',
     'warn_border': '#f39c12',
-     'github_user': 'psrenergy',
+    'github_user': 'psrenergy',
     'github_repo': 'psr_lakehouse',
-    'github_button': True,
+    'github_button': False,
 }
 
 html_sidebars = {

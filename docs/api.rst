@@ -32,10 +32,10 @@ Or set environment variables before importing:
 
 .. code-block:: bash
 
-   export LAKEHOUSE_API_URL="https://api.example.com"
-   export AWS_ACCESS_KEY_ID="your-access-key"
-   export AWS_SECRET_ACCESS_KEY="your-secret-key"
-   export AWS_DEFAULT_REGION="us-east-1"
+   LAKEHOUSE_API_URL="https://api.example.com"
+   AWS_ACCESS_KEY_ID="your-access-key"
+   AWS_SECRET_ACCESS_KEY="your-secret-key"
+   AWS_DEFAULT_REGION="us-east-1"
 
 Data Fetching Methods
 ----------------------

@@ -1,7 +1,7 @@
 PSR Lakehouse Documentation
 ============================
 
-A Python client library for accessing PSR's data lakehouse API, providing easy access to Brazilian energy market data including ANEEL, CCEE (electricity market), and ONS (transmission operator) datasets.
+A Python client library for the PSR Lakehouse API, providing programmatic access to various datasets, including Brazilian energy market entities (ANEEL, CCEE, ONS) and other domain-specific information.
 
 Features
 --------
@@ -17,7 +17,7 @@ Features
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-   
+
    installation
    quickstart
    examples

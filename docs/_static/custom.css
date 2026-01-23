@@ -22,8 +22,12 @@
     --note-border: #2980b9;
     --warn-bg: #fff4e6;
     --warn-border: #f39c12;
-    --sidebar-bg: #f8f8f8;
-    --sidebar-text: #333333;
+    --sidebar-bg: transparent;
+    --sidebar-text: #555555;
+    --sidebar-heading: #333333;
+    --sidebar-link: #265787;
+    --sidebar-link-hover: #1a3d5c;
+    --sidebar-link-hover-bg: rgba(38, 87, 135, 0.08);
     --h1-border: #2980b9;
     --h2-border: #e1e4e8;
 }
@@ -46,63 +50,106 @@
     --note-border: #64b5f6;
     --warn-bg: #4a3b1f;
     --warn-border: #f39c12;
-    --sidebar-bg: #252525;
-    --sidebar-text: #e0e0e0;
+    --sidebar-bg: transparent;
+    --sidebar-text: #b0b0b0;
+    --sidebar-heading: #e0e0e0;
+    --sidebar-link: #64b5f6;
+    --sidebar-link-hover: #90caf9;
+    --sidebar-link-hover-bg: rgba(100, 181, 246, 0.1);
     --h1-border: #64b5f6;
     --h2-border: #3e3e3e;
 }
 
-/* Theme Toggle Switch in Sidebar */
-.theme-toggle-container {
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-    margin-bottom: 15px;
-}
-
-.theme-toggle-label {
+/* Floating Theme Toggle Button (Sun/Moon Icon) */
+.theme-toggle-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1001;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    user-select: none;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.theme-toggle-text {
-    font-size: 14px;
-    color: var(--sidebar-text);
-    font-weight: 500;
+.theme-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.theme-toggle-switch {
-    position: relative;
-    width: 50px;
-    height: 26px;
-    background-color: var(--border-color);
-    border-radius: 13px;
-    transition: background-color 0.3s;
+.theme-toggle-btn:active {
+    transform: scale(0.95);
 }
 
-.theme-toggle-switch::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
+.theme-toggle-btn svg {
     width: 20px;
     height: 20px;
-    background-color: #fff;
-    border-radius: 50%;
-    transition: transform 0.3s;
 }
 
-[data-theme="dark"] .theme-toggle-switch {
-    background-color: #64b5f6;
+/* GitHub container at bottom of sidebar */
+.github-container {
+    padding: 8px;
+    text-align: center;
 }
 
-[data-theme="dark"] .theme-toggle-switch::after {
-    transform: translateX(24px);
+.github-container a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: var(--sidebar-link-hover-bg);
+    border-radius: 6px;
+    color: var(--sidebar-link) !important;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+}
+
+.github-container a:hover {
+    background-color: var(--border-color);
+}
+
+/* Sidebar wrapper should grow to fill space */
+.sphinxsidebarwrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+/* PSR Logo in Sidebar */
+.psr-logo-container {
+    margin-top: auto;
+    padding: 12px 8px 8px 8px;
+    text-align: center;
+}
+
+.psr-logo {
+    max-width: 45%;
+    height: auto;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.psr-logo:hover {
+    opacity: 1;
 }
 
 /* Apply theme colors */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+
 body, div.body, div.document {
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -251,39 +298,149 @@ dl.field-list dd {
     margin-bottom: 0.5em;
 }
 
-/* Improve navigation */
+/* Improve navigation - Blender-style sidebar */
 .sphinxsidebar {
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.5;
     background-color: var(--sidebar-bg) !important;
     color: var(--sidebar-text) !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
 
 .sphinxsidebar h3 {
-    font-size: 1.2em;
-    margin-top: 1em;
-    color: var(--heading-color) !important;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0.8em 0 0.3em 0;
+    padding: 0;
+    color: var(--sidebar-heading) !important;
+}
+
+.sphinxsidebar h3:first-child {
+    margin-top: 0;
 }
 
 .sphinxsidebar ul {
-    margin: 10px 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sphinxsidebar ul ul {
+    padding-left: 12px;
+}
+
+.sphinxsidebar li {
+    margin: 0;
+    padding: 0;
+    color: var(--sidebar-text) !important;
 }
 
 .sphinxsidebar a {
-    color: var(--link-color) !important;
+    display: block;
+    padding: 3px 8px;
+    margin: 0;
+    color: var(--sidebar-link) !important;
     border-bottom: none !important;
+    border-radius: 4px;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .sphinxsidebar a:hover {
-    color: var(--link-hover-color) !important;
-    text-decoration: underline;
+    color: var(--sidebar-link-hover) !important;
+    background-color: var(--sidebar-link-hover-bg);
+    text-decoration: none;
 }
 
 .sphinxsidebar p {
     color: var(--sidebar-text) !important;
+    font-size: 12px;
+    margin: 0.5em 0;
 }
 
-.sphinxsidebar li {
-    color: var(--sidebar-text) !important;
+.sphinxsidebar p.caption {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sidebar-heading) !important;
+    margin: 1.2em 0 0.5em 0;
+}
+
+/* Styled search box */
+.sphinxsidebar form {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+.search-wrapper {
+    position: relative;
+    margin: 12px 0;
+    width: calc(100% + 14px);
+    margin-left: -7px;
+    padding: 0 5px;
+    box-sizing: border-box;
+}
+
+.search-icon {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sidebar-text);
+    opacity: 0.6;
+    pointer-events: none;
+    line-height: 0;
+}
+
+.search-icon svg {
+    display: block;
+}
+
+.search-input-styled,
+.sphinxsidebar input[type="text"] {
+    width: 100% !important;
+    max-width: none !important;
+    height: 34px !important;
+    padding: 0 10px 0 32px !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif !important;
+    font-size: 13px !important;
+    line-height: 34px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-input-styled:focus {
+    border-color: var(--sidebar-link) !important;
+    box-shadow: 0 0 0 2px var(--sidebar-link-hover-bg) !important;
+}
+
+.search-input-styled::placeholder {
+    color: var(--sidebar-text);
+    opacity: 0.6;
+}
+
+/* Subtle scrollbar for sidebar */
+.sphinxsidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sphinxsidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sphinxsidebar::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 3px;
+}
+
+.sphinxsidebar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--sidebar-text);
 }
 
 /* Better signature styling */
@@ -295,10 +452,215 @@ dl.field-list dd {
     font-style: italic;
 }
 
+/* Mobile Menu Hamburger Button */
+.mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: var(--bg-color);
+    border-bottom: 2px solid var(--border-color);
+    z-index: 1002;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-header-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--heading-color);
+    margin: 0;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.mobile-menu-toggle {
+    display: none;
+    background-color: transparent;
+    border: none;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+    background-color: var(--code-bg);
+    border-radius: 8px;
+}
+
+.mobile-menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--text-color);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
+}
+
+/* Mobile overlay */
+.mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-menu-overlay.active {
+    opacity: 1;
+}
+
+/* Ensure sidebar is visible on desktop */
+@media screen and (min-width: 876px) {
+    .sphinxsidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        max-height: 100vh !important;
+        overflow-y: auto !important;
+        width: 240px !important;
+        margin: 0 !important;
+        padding: 16px 12px !important;
+        border-right: 1px solid var(--border-color) !important;
+        background-color: var(--bg-color) !important;
+    }
+
+    div.document {
+        margin-left: 260px !important;
+    }
+
+    div.bodywrapper {
+        margin: 0 !important;
+    }
+
+    div.body {
+        padding: 16px 32px 24px 32px !important;
+        margin: 0 !important;
+        max-width: 900px !important;
+    }
+
+    .mobile-header {
+        display: none !important;
+    }
+}
+
 /* Responsive improvements */
 @media screen and (max-width: 875px) {
+    /* Position theme toggle in mobile header area */
+    .theme-toggle-btn {
+        top: 70px;
+        right: 12px;
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Show mobile header */
+    .mobile-header {
+        display: flex !important;
+    }
+    
+    /* Show mobile menu button */
+    .mobile-menu-toggle {
+        display: flex !important;
+    }
+    
+    /* Add padding to body for fixed header */
+    body {
+        padding-top: 60px !important;
+    }
+    
+    /* Hide sidebar by default on mobile */
+    .sphinxsidebar {
+        position: fixed !important;
+        top: 60px !important;
+        left: -100% !important;
+        width: 280px !important;
+        height: calc(100vh - 60px) !important;
+        overflow-y: auto !important;
+        z-index: 1000 !important;
+        transition: left 0.3s ease !important;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2) !important;
+        padding: 20px 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Show sidebar when menu is active */
+    .sphinxsidebar.mobile-active {
+        left: 0 !important;
+    }
+    
+    /* Show overlay when menu is active */
+    .mobile-menu-overlay.active {
+        display: block !important;
+    }
+    
+    /* Adjust body content */
+    div.bodywrapper {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+    
     div.body {
-        padding: 0 20px;
+        padding: 20px !important;
+        margin: 0 !important;
+    }
+    
+    /* Make content full width on mobile */
+    div.documentwrapper {
+        width: 100% !important;
+        float: none !important;
+        margin: 0 !important;
+    }
+    
+    div.document {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    
+    /* Adjust related navigation for mobile */
+    .related {
+        padding: 10px 20px !important;
+    }
+    
+    /* Ensure main content is visible and not under sidebar */
+    .bodywrapper {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+/* Responsive improvements for tablets */
+@media screen and (min-width: 876px) and (max-width: 1200px) {
+    div.body {
+        padding: 20px;
     }
 }
 
