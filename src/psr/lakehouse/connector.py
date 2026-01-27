@@ -101,7 +101,7 @@ class Connector:
                 json=json_body,
                 params=params,
                 auth=self._auth,
-                timeout=60,
+                timeout=300,
             )
             response.raise_for_status()
             return response.json()
