@@ -1,92 +1,191 @@
 <!DOCTYPE html>
-
-<html lang="en" data-content_root="./">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <title>Advanced Examples &#8212; PSR Lakehouse  documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
-    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=8e50436d" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=8e6b9907" />
-    <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=fd6eb6e6"></script>
-    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-    <script src="_static/theme-toggle.js?v=c6697deb"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API Reference" href="api.html" />
-    <link rel="prev" title="Quick Start Guide" href="quickstart.html" />
-   
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-
-  
-  
-
-  </head><body>
-  <div class="document">
-    
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">PSR Lakehouse</a></h1>
-
-
-
-<p class="blurb">Python client for PSR data lakehouse API</p>
-
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<html lang="en" data-accent-color="indigo" data-content_root="./">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Advanced Examples - PSR Lakehouse 🏞️🏡 documentation</title><link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="API Reference" href="api.html" /><link rel="prev" title="Quick Start Guide" href="quickstart.html" /><script>
+    function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
+    setColorMode(localStorage._theme||"auto");
+  </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e1a1ceaf" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=44020203" />
+    <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sy-f-text: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+  --sy-f-heading: "Inter", var(--sy-f-sys), var(--sy-f-cjk), sans-serif;
+}
+</style>
+    <meta property="og:type" content="website"/><meta property="og:title" content="Advanced Examples"/>
+    <meta name="twitter:card" content="summary"/>
+  </head>
+<body><div class="sy-head">
+  <div class="sy-head-blur"></div>
+  <div class="sy-head-inner sy-container mx-auto">
+    <a class="sy-head-brand" href="index.html">
+      
+      
+      <strong>PSR Lakehouse 🏞️🏡</strong>
+    </a>
+    <div class="sy-head-nav" id="head-nav">
+      <nav class="sy-head-links"></nav>
+      <div class="sy-head-extra flex items-center print:hidden"><form class="searchbox flex items-center" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search" />
+  <kbd>/</kbd>
+</form><div class="sy-head-socials">
+  <a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div></div>
+    </div>
+    <div class="sy-head-actions flex items-center shrink-0 print:hidden"><button class="js-theme theme-switch flex items-center"
+data-aria-auto="Switch to light color mode"
+data-aria-light="Switch to dark color mode"
+data-aria-dark="Switch to auto color mode">
+<i class="i-lucide theme-icon"></i>
+</button><button class="md:hidden flex items-center js-menu" aria-label="Menu" type="button" aria-controls="head-nav" aria-expanded="false">
+        <div class="hamburger">
+          <span class="hamburger_1"></span>
+          <span class="hamburger_2"></span>
+          <span class="hamburger_3"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="sy-page sy-container flex mx-auto">
+  <aside id="lside" class="sy-lside md:w-72 md:shrink-0 print:hidden">
+    <div class="sy-lside-inner md:sticky">
+      <div class="sy-scrollbar p-6">
+        <div class="globaltoc" data-expand-depth="0"><p class="caption" role="heading" aria-level="3"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation &amp; Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#example-1-power-plant-generation-analysis">Example 1: Power Plant Generation Analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#example-2-joining-multiple-tables">Example 2: Joining Multiple Tables</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#example-3-using-the-simplified-interface">Example 3: Using the Simplified Interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#example-4-schema-exploration">Example 4: Schema Exploration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#query-structure-reference">Query Structure Reference</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
 </ul>
 
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="quickstart.html" title="previous chapter">Quick Start Guide</a></li>
-      <li>Next: <a href="api.html" title="next chapter">API Reference</a></li>
-  </ul></li>
-</ul>
-</div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
       </div>
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          
-
-          <div class="body" role="main">
-            
-  <section id="advanced-examples">
+    </div>
+  </aside>
+  <div class="lside-overlay js-menu" role="button" aria-label="Close left sidebar" aria-controls="lside" aria-expanded="false"></div>
+  <aside id="rside" class="sy-rside pb-3 w-64 shrink-0 order-last">
+    <button class="rside-close js-menu xl:hidden" aria-label="Close Table of Contents" type="button" aria-controls="rside" aria-expanded="false">
+      <i class="i-lucide close"></i>
+    </button>
+    <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
+<li><a class="reference internal" href="#example-1-power-plant-generation-analysis">Example 1: Power Plant Generation Analysis</a><ul>
+<li><a class="reference internal" href="#aggregate-generation-by-plant-type">Aggregate Generation by Plant Type</a></li>
+<li><a class="reference internal" href="#daily-generation-with-datetime-granularity">Daily Generation with Datetime Granularity</a></li>
+<li><a class="reference internal" href="#hourly-data-with-sorting">Hourly Data with Sorting</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-2-joining-multiple-tables">Example 2: Joining Multiple Tables</a><ul>
+<li><a class="reference internal" href="#energy-load-and-inflow-analysis">Energy Load and Inflow Analysis</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-3-using-the-simplified-interface">Example 3: Using the Simplified Interface</a><ul>
+<li><a class="reference internal" href="#alternative-method-for-common-use-cases">Alternative Method for Common Use Cases</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-4-schema-exploration">Example 4: Schema Exploration</a><ul>
+<li><a class="reference internal" href="#discovering-available-data">Discovering Available Data</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#query-structure-reference">Query Structure Reference</a><ul>
+<li><a class="reference internal" href="#understanding-the-query-format">Understanding the Query Format</a></li>
+</ul>
+</li>
+</ul>
+</div><a class="js-repo-stats repo-stats flex items-center" href="https://github.com/psrenergy/psr_lakehouse"
+  data-type="github" data-user="psrenergy" data-repo="psr_lakehouse">
+  <span class="w-8 flex items-center justify-around shrink-0 text-3xl">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </span>
+  <span class="flex-grow px-2 break-all">
+    
+    
+      <span>psr_lakehouse</span>
+    
+    <span class="flex text-sm repo-stats-count">
+      <span class="flex items-center pr-3">
+        <iconify-icon icon="lucide:star"></iconify-icon>
+        <strong class="js-repo-stars ml-1">0</strong>
+      </span>
+      <span class="flex items-center">
+        <iconify-icon icon="lucide:git-fork"></iconify-icon>
+        <strong class="js-repo-forks ml-1">0</strong>
+      </span>
+    </span>
+  </span>
+</a><div class="edit-this-page">
+  <a href="https://github.com/psrenergy/psr_lakehouse/blob/main/docs/examples.rst">Edit this page</a>
+</div><div id="ethical-ad-placement" data-ea-publisher="readthedocs"></div></div>
+  </aside>
+  <div class="rside-overlay js-menu" role="button" aria-label="Close Table of Contents" aria-controls="rside" aria-expanded="false"></div>
+  <main class="sy-main w-full max-sm:max-w-full print:pt-6">
+<div class="sy-breadcrumbs" role="navigation">
+  <div class="sy-breadcrumbs-inner flex items-center">
+    <div class="md:hidden mr-3">
+      <button class="js-menu" aria-label="Menu" type="button" aria-controls="lside" aria-expanded="false">
+        <i class="i-lucide menu"></i>
+      </button>
+    </div>
+    <ol class="flex-1" itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <a itemprop="item" href="index.html"><span itemprop="name">PSR Lakehouse 🏞️🏡</span></a>
+        <span>/</span>
+        <meta itemprop="position" content="1" />
+      </li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        <strong itemprop="name">Advanced Examples</strong>
+        <meta itemprop="position" content="2" />
+      </li></ol>
+    <div class="xl:hidden ml-1">
+      <button class="js-menu" aria-label="Show table of contents" type="button" aria-controls="rside"
+        aria-expanded="false">
+        <i class="i-lucide outdent"></i>
+      </button>
+    </div>
+  </div>
+</div><div class="flex flex-col break-words justify-between">
+      <div class="relative min-w-0 max-w-6xl px-6 pb-6 pt-8 xl:px-12">
+  <div class="copy-page-wrapper relative pb-4 lg:absolute lg:top-8 lg:right-6 xl:right-12">
+  <div id="copy-page-trigger">
+    <button
+      type="button"
+      class="js-copy px-3 py-1 inline-flex items-center gap-1"
+      data-url="https://raw.githubusercontent.com/psrenergy/psr_lakehouse/refs/heads/main/docs/examples.rst.txt"
+    >
+      <i class="i-lucide" data-icon="copy"></i>
+      <span>Copy page</span>
+    </button>
+    <button class="js-menu px-2 py-1" type="button" aria-label="More actions"
+      aria-haspopup="menu" aria-expanded="false" aria-controls="copy-page-content">
+      <i class="i-lucide chevron-down"></i>
+    </button>
+  </div>
+  <div id="copy-page-content" role="menu" aria-orientation="vertical" aria-hidden="true">
+    <div role="presentation">
+      <div class="flex flex-col" role="group">
+        <button class="js-copy" type="button" role="menuitem"
+          data-url="https://raw.githubusercontent.com/psrenergy/psr_lakehouse/refs/heads/main/docs/examples.rst.txt">
+          <span class="iconify-icon">
+            <i class="i-lucide" data-icon="copy"></i>
+          </span>
+          <span>Copy page</span>
+        </button>
+        <a role="menuitem" href="https://raw.githubusercontent.com/psrenergy/psr_lakehouse/refs/heads/main/docs/examples.rst.txt" target="_blank" rel="nofollow"><iconify-icon icon="bi:code-slash"></iconify-icon>
+            <span>View Source</span></a><a role="menuitem" href="https://chatgpt.com/?hints=search&q=Read%20https%3A//raw.githubusercontent.com/psrenergy/psr_lakehouse/refs/heads/main/docs/examples.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:openai"></iconify-icon>
+          <span>Open in ChatGPT</span>
+        </a><a role="menuitem" href="https://claude.ai/new?q=Read%20https%3A//raw.githubusercontent.com/psrenergy/psr_lakehouse/refs/heads/main/docs/examples.rst.txt%20so%20I%20can%20ask%20questions%20about%20it." target="_blank" rel="nofollow">
+          <iconify-icon icon="bi:claude"></iconify-icon>
+          <span>Open in Claude</span>
+        </a></div>
+    </div>
+  </div>
+</div><article class="yue" role="main">
+          <section id="advanced-examples">
 <h1>Advanced Examples<a class="headerlink" href="#advanced-examples" title="Link to this heading">¶</a></h1>
 <p>This page contains advanced examples based on real-world usage patterns.</p>
 <section id="example-1-power-plant-generation-analysis">
@@ -94,109 +193,109 @@
 <section id="aggregate-generation-by-plant-type">
 <h3>Aggregate Generation by Plant Type<a class="headerlink" href="#aggregate-generation-by-plant-type" title="Link to this heading">¶</a></h3>
 <p>This example shows how to aggregate hourly generation data by plant type:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
-
-<span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
-    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
-        <span class="p">],</span>
-        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">})</span>
-</pre></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
+</span><span data-line="4">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="5">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
+</span><span data-line="6">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+</span><span data-line="7">    <span class="p">],</span>
+</span><span data-line="8">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="9">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="10">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+</span><span data-line="11">        <span class="p">],</span>
+</span><span data-line="12">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span>
+</span><span data-line="13">    <span class="p">},</span>
+</span><span data-line="14">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="15">        <span class="p">{</span>
+</span><span data-line="16">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="17">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
+</span><span data-line="18">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+</span><span data-line="19">        <span class="p">},</span>
+</span><span data-line="20">        <span class="p">{</span>
+</span><span data-line="21">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="22">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
+</span><span data-line="23">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+</span><span data-line="24">        <span class="p">}</span>
+</span><span data-line="25">    <span class="p">]</span>
+</span><span data-line="26"><span class="p">})</span>
+</span></pre></div>
 </div>
 </section>
 <section id="daily-generation-with-datetime-granularity">
 <h3>Daily Generation with Datetime Granularity<a class="headerlink" href="#daily-generation-with-datetime-granularity" title="Link to this heading">¶</a></h3>
 <p>Aggregate hourly data to daily granularity:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
-    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
-        <span class="p">],</span>
-        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">})</span>
-</pre></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
+</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
+</span><span data-line="5">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+</span><span data-line="6">    <span class="p">],</span>
+</span><span data-line="7">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="8">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="9">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="10">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+</span><span data-line="11">        <span class="p">],</span>
+</span><span data-line="12">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+</span><span data-line="13">        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>
+</span><span data-line="14">    <span class="p">},</span>
+</span><span data-line="15">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="16">        <span class="p">{</span>
+</span><span data-line="17">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="18">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
+</span><span data-line="19">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+</span><span data-line="20">        <span class="p">},</span>
+</span><span data-line="21">        <span class="p">{</span>
+</span><span data-line="22">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="23">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
+</span><span data-line="24">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+</span><span data-line="25">        <span class="p">}</span>
+</span><span data-line="26">    <span class="p">]</span>
+</span><span data-line="27"><span class="p">})</span>
+</span></pre></div>
 </div>
 </section>
 <section id="hourly-data-with-sorting">
 <h3>Hourly Data with Sorting<a class="headerlink" href="#hourly-data-with-sorting" title="Link to this heading">¶</a></h3>
 <p>Fetch hourly generation data with custom ordering:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
-    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
-        <span class="p">],</span>
-        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;hour&quot;</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;desc&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>
-        <span class="p">}</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">})</span>
-</pre></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
+</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
+</span><span data-line="5">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+</span><span data-line="6">    <span class="p">],</span>
+</span><span data-line="7">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="8">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="9">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="10">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+</span><span data-line="11">        <span class="p">],</span>
+</span><span data-line="12">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+</span><span data-line="13">        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;hour&quot;</span>
+</span><span data-line="14">    <span class="p">},</span>
+</span><span data-line="15">    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="16">        <span class="p">{</span>
+</span><span data-line="17">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="18">            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;desc&quot;</span>
+</span><span data-line="19">        <span class="p">},</span>
+</span><span data-line="20">        <span class="p">{</span>
+</span><span data-line="21">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
+</span><span data-line="22">            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>
+</span><span data-line="23">        <span class="p">}</span>
+</span><span data-line="24">    <span class="p">],</span>
+</span><span data-line="25">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="26">        <span class="p">{</span>
+</span><span data-line="27">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="28">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
+</span><span data-line="29">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+</span><span data-line="30">        <span class="p">},</span>
+</span><span data-line="31">        <span class="p">{</span>
+</span><span data-line="32">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="33">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
+</span><span data-line="34">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+</span><span data-line="35">        <span class="p">}</span>
+</span><span data-line="36">    <span class="p">]</span>
+</span><span data-line="37"><span class="p">})</span>
+</span></pre></div>
 </div>
 </section>
 </section>
@@ -205,46 +304,46 @@
 <section id="energy-load-and-inflow-analysis">
 <h3>Energy Load and Inflow Analysis<a class="headerlink" href="#energy-load-and-inflow-analysis" title="Link to this heading">¶</a></h3>
 <p>This example demonstrates joining energy load data with inflow energy data:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_energy_load</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
-    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ONSEnergyLoadDaily.subsystem&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ONSEnergyLoadDaily.energy_load&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ONSInflowEnergySubsystem.gross_inflow_energy_mwavg&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ONSInflowEnergySubsystem.subsystem&quot;</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem.reference_date&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
-                <span class="p">},</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.subsystem&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem.subsystem&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
-                <span class="p">}</span>
-            <span class="p">],</span>
-            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>
-        <span class="p">}</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">})</span>
-</pre></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_energy_load</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
+</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">&quot;ONSEnergyLoadDaily.subsystem&quot;</span><span class="p">,</span>
+</span><span data-line="5">        <span class="s2">&quot;ONSEnergyLoadDaily.energy_load&quot;</span><span class="p">,</span>
+</span><span data-line="6">        <span class="s2">&quot;ONSInflowEnergySubsystem.gross_inflow_energy_mwavg&quot;</span><span class="p">,</span>
+</span><span data-line="7">        <span class="s2">&quot;ONSInflowEnergySubsystem.subsystem&quot;</span>
+</span><span data-line="8">    <span class="p">],</span>
+</span><span data-line="9">    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="10">        <span class="p">{</span>
+</span><span data-line="11">            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem&quot;</span><span class="p">,</span>
+</span><span data-line="12">            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="13">                <span class="p">{</span>
+</span><span data-line="14">                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="15">                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="16">                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+</span><span data-line="17">                <span class="p">},</span>
+</span><span data-line="18">                <span class="p">{</span>
+</span><span data-line="19">                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.subsystem&quot;</span><span class="p">,</span>
+</span><span data-line="20">                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem.subsystem&quot;</span><span class="p">,</span>
+</span><span data-line="21">                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+</span><span data-line="22">                <span class="p">}</span>
+</span><span data-line="23">            <span class="p">],</span>
+</span><span data-line="24">            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>
+</span><span data-line="25">        <span class="p">}</span>
+</span><span data-line="26">    <span class="p">],</span>
+</span><span data-line="27">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="28">        <span class="p">{</span>
+</span><span data-line="29">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="30">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
+</span><span data-line="31">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+</span><span data-line="32">        <span class="p">},</span>
+</span><span data-line="33">        <span class="p">{</span>
+</span><span data-line="34">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
+</span><span data-line="35">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
+</span><span data-line="36">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+</span><span data-line="37">        <span class="p">}</span>
+</span><span data-line="38">    <span class="p">]</span>
+</span><span data-line="39"><span class="p">})</span>
+</span></pre></div>
 </div>
 <p>This creates an inner join between the two tables on both reference date and subsystem.</p>
 </section>
@@ -254,15 +353,15 @@
 <section id="alternative-method-for-common-use-cases">
 <h3>Alternative Method for Common Use Cases<a class="headerlink" href="#alternative-method-for-common-use-cases" title="Link to this heading">¶</a></h3>
 <p>For simpler queries, you can use the <code class="docutils literal notranslate"><span class="pre">fetch_dataframe</span></code> method:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
-    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">,</span> <span class="s2">&quot;generation&quot;</span><span class="p">],</span>
-    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span>
-    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-31&quot;</span><span class="p">,</span>
-    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">],</span>
-    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span>
-<span class="p">)</span>
-</pre></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
+</span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">,</span> <span class="s2">&quot;generation&quot;</span><span class="p">],</span>
+</span><span data-line="4">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span>
+</span><span data-line="5">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-31&quot;</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">],</span>
+</span><span data-line="7">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span>
+</span><span data-line="8"><span class="p">)</span>
+</span></pre></div>
 </div>
 <p>This is equivalent to the more verbose <code class="docutils literal notranslate"><span class="pre">fetch_dataframe_from_query</span></code> but simpler for basic use cases.</p>
 </section>
@@ -271,29 +370,29 @@
 <h2>Example 4: Schema Exploration<a class="headerlink" href="#example-4-schema-exploration" title="Link to this heading">¶</a></h2>
 <section id="discovering-available-data">
 <h3>Discovering Available Data<a class="headerlink" href="#discovering-available-data" title="Link to this heading">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
-
-<span class="c1"># List all available tables</span>
-<span class="n">tables</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tables</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available tables: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">tables</span><span class="p">[:</span><span class="mi">10</span><span class="p">])</span>  <span class="c1"># Show first 10</span>
-
-<span class="c1"># Examine a specific table&#39;s schema</span>
-<span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;ccee_spot_price&quot;</span>
-<span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
-
-<span class="c1"># Display schema information</span>
-<span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_info</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Field: </span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Type: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Nullable: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nullable&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Description: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s1">&#39;enum_values&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Allowed values: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;enum_values&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="c1"># List all available tables</span>
+</span><span data-line="4"><span class="n">tables</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tables</span><span class="p">()</span>
+</span><span data-line="5"><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available tables: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="6"><span class="nb">print</span><span class="p">(</span><span class="n">tables</span><span class="p">[:</span><span class="mi">10</span><span class="p">])</span>  <span class="c1"># Show first 10</span>
+</span><span data-line="7">
+</span><span data-line="8"><span class="c1"># Examine a specific table&#39;s schema</span>
+</span><span data-line="9"><span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;ccee_spot_price&quot;</span>
+</span><span data-line="10"><span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
+</span><span data-line="11">
+</span><span data-line="12"><span class="c1"># Display schema information</span>
+</span><span data-line="13"><span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_info</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span data-line="14">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Field: </span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="15">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Type: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="16">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Nullable: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nullable&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="17">
+</span><span data-line="18">    <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+</span><span data-line="19">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Description: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="20">
+</span><span data-line="21">    <span class="k">if</span> <span class="s1">&#39;enum_values&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+</span><span data-line="22">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Allowed values: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;enum_values&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></pre></div>
 </div>
 </section>
 </section>
@@ -303,44 +402,44 @@
 <h3>Understanding the Query Format<a class="headerlink" href="#understanding-the-query-format" title="Link to this heading">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">fetch_dataframe_from_query</span></code> method accepts a dictionary with the following structure:</p>
 <p><strong>Basic Structure:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="s2">&quot;ModelName.column1&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ModelName.column2&quot;</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>  <span class="c1"># or &quot;&lt;=&quot;, &quot;=&quot;, &quot;!=&quot;, &quot;&gt;&quot;, &quot;&lt;&quot;</span>
-            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span>
-        <span class="p">}</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ModelName.column1&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>  <span class="c1"># or &quot;avg&quot;, &quot;min&quot;, &quot;max&quot;</span>
-        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>  <span class="c1"># or &quot;hour&quot;, &quot;week&quot;, &quot;month&quot;</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>  <span class="c1"># or &quot;desc&quot;</span>
-        <span class="p">}</span>
-    <span class="p">],</span>
-    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
-        <span class="p">{</span>
-            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.key_column&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName.key_column&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
-                <span class="p">}</span>
-            <span class="p">],</span>
-            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>  <span class="c1"># or True for outer join</span>
-        <span class="p">}</span>
-    <span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p">{</span>
+</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">&quot;ModelName.column1&quot;</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">&quot;ModelName.column2&quot;</span>
+</span><span data-line="5">    <span class="p">],</span>
+</span><span data-line="6">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="7">        <span class="p">{</span>
+</span><span data-line="8">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
+</span><span data-line="9">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>  <span class="c1"># or &quot;&lt;=&quot;, &quot;=&quot;, &quot;!=&quot;, &quot;&gt;&quot;, &quot;&lt;&quot;</span>
+</span><span data-line="10">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span>
+</span><span data-line="11">        <span class="p">}</span>
+</span><span data-line="12">    <span class="p">],</span>
+</span><span data-line="13">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="14">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ModelName.column1&quot;</span><span class="p">],</span>
+</span><span data-line="15">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>  <span class="c1"># or &quot;avg&quot;, &quot;min&quot;, &quot;max&quot;</span>
+</span><span data-line="16">        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>  <span class="c1"># or &quot;hour&quot;, &quot;week&quot;, &quot;month&quot;</span>
+</span><span data-line="17">    <span class="p">},</span>
+</span><span data-line="18">    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="19">        <span class="p">{</span>
+</span><span data-line="20">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
+</span><span data-line="21">            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>  <span class="c1"># or &quot;desc&quot;</span>
+</span><span data-line="22">        <span class="p">}</span>
+</span><span data-line="23">    <span class="p">],</span>
+</span><span data-line="24">    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="25">        <span class="p">{</span>
+</span><span data-line="26">            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName&quot;</span><span class="p">,</span>
+</span><span data-line="27">            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="28">                <span class="p">{</span>
+</span><span data-line="29">                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.key_column&quot;</span><span class="p">,</span>
+</span><span data-line="30">                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName.key_column&quot;</span><span class="p">,</span>
+</span><span data-line="31">                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+</span><span data-line="32">                <span class="p">}</span>
+</span><span data-line="33">            <span class="p">],</span>
+</span><span data-line="34">            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>  <span class="c1"># or True for outer join</span>
+</span><span data-line="35">        <span class="p">}</span>
+</span><span data-line="36">    <span class="p">]</span>
+</span><span data-line="37"><span class="p">}</span>
+</span></pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -350,27 +449,51 @@
 </section>
 </section>
 
-
-          </div>
-          
-        </div>
+        </article><button class="back-to-top" type="button">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+    <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+  </svg>
+  <span>Back to top</span>
+</button><div class="navigation flex print:hidden"><div class="navigation-prev">
+    <a href="quickstart.html">
+      <i class="i-lucide chevron-left"></i>
+      <div class="page-info">
+        <span>Previous</span><div class="title">Quick Start Guide</div></div>
+    </a>
+  </div><div class="navigation-next">
+    <a href="api.html">
+      <div class="page-info">
+        <span>Next</span>
+        <div class="title">API Reference</div>
       </div>
-    <div class="clearer"></div>
-  </div>
-    <div class="footer">
-      &#169;2026, PSR.
-      
-      |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
-      
-      |
-      <a href="_sources/examples.rst.txt"
-          rel="nofollow">Page source</a>
+      <i class="i-lucide chevron-right"></i>
+    </a>
+  </div></div></div>
     </div>
-
+  </main>
+</div>
+<footer class="sy-foot">
+  <div class="sy-foot-inner sy-container mx-auto">
+    <div class="sy-foot-reserved md:flex justify-between items-center">
+      <div class="sy-foot-copyright"><p>2026, PSR</p>
+  
+  <p>
+    Made with
     
-
+    <a href="https://www.sphinx-doc.org/">Sphinx</a> and
     
-  </body>
+    <a href="https://shibuya.lepture.com">Shibuya theme</a>.
+  </p>
+</div>
+      <div class="sy-foot-socials">
+<a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
+  <iconify-icon icon="simple-icons:github"></iconify-icon>
+</a></div>
+    </div>
+  </div>
+</footer>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/shibuya.js?v=cac61aee"></script></body>
 </html>
