@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'PSR Lakehouse'
+project = 'PSR Lakehouse 🏞️🏡'
 copyright = '2026, PSR'
 author = 'PSR'
 
@@ -20,60 +20,20 @@ extensions = [
     'sphinx.ext.intersphinx',  # Link to other projects' documentation
 ]
 
-templates_path = ['_templates']
+# templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-# Intersphinx mapping
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'pandas': ('https://pandas.pydata.org/docs/', None),
-}
 
-
-
-# -- Options for HTML output -------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-
-html_theme = 'alabaster'
+html_theme = 'shibuya'
 html_static_path = ['_static']
-
 html_theme_options = {
-    'description': 'Python client for PSR data lakehouse API',
-    'fixed_sidebar': True,
-    'page_width': '1400px',
-    'sidebar_width': '300px',
-    'body_text': '#333333',
-    'link': '#2980b9',
-    'link_hover': '#1f5c7d',
-    'sidebar_link': '#2980b9',
-    'sidebar_link_underscore': '#2980b9',
-    'gray_1': '#f8f8f8',
-    'gray_2': '#e8e8e8',
-    'gray_3': '#d8d8d8',
-    'note_bg': '#e7f2fa',
-    'note_border': '#2980b9',
-    'warn_bg': '#fff4e6',
-    'warn_border': '#f39c12',
-    'github_user': 'psrenergy',
-    'github_repo': 'psr_lakehouse',
-    'github_button': False,
+  "accent_color": "indigo",
+  "github_url": "https://github.com/psrenergy/psr_lakehouse",
 }
 
-html_sidebars = {
-    '**': [
-        'about.html',
-        'navigation.html',
-        'relations.html',
-        'searchbox.html',
-    ]
+
+html_context = {
+    "source_type": "github",
+    "source_user": "psrenergy",
+    "source_repo": "psr_lakehouse",
 }
-
-# Add custom CSS
-html_css_files = [
-    'custom.css',
-]
-
-# Add custom JavaScript
-html_js_files = [
-    'theme-toggle.js',
-]
