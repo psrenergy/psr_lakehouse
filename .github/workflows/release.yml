@@ -8,19 +8,29 @@ jobs:
   pypi:
     name: Publish to PyPI
     runs-on: ubuntu-latest
-    # Environment and permissions trusted publishing.
-    environment:
-      # Create this environment in the GitHub repository under Settings -> Environments
-      name: release
     permissions:
-      id-token: write
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+
+      - name: Verify version matches tag
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TOML_VERSION=$(grep '^version' pyproject.toml | sed 's/.*"\(.*\)".*/\1/')
+          if [ "$TAG_VERSION" != "$TOML_VERSION" ]; then
+            echo "Error: Tag version ($TAG_VERSION) does not match pyproject.toml version ($TOML_VERSION)"
+            exit 1
+          fi
+          echo "Version validated: $TAG_VERSION"
+
       - run: uv build
-      # # Check that basic features work and we didn't miss to include crucial files
-      # - name: Smoke test (wheel)
-      #   run: uv run --isolated --no-project -p 3.13 --with dist/*.whl tests/smoke_test.py
-      # - name: Smoke test (source distribution)
-      #   run: uv run --isolated --no-project -p 3.13 --with dist/*.tar.gz tests/smoke_test.py
-      - run: uv publish #--trusted-publishing always
+
+      - run: uv publish
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.UV_PUBLISH_TOKEN }}
+
+      - name: Create GitHub Release
+        run: gh release create ${{ github.ref_name }} dist/* --title "${{ github.ref_name }}" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
