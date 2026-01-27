@@ -17,6 +17,7 @@ jobs:
         run: |
           uv sync
           uv pip install sphinx
+          uv pip install shibuya
 
       - name: Build docs
         run: uv run sphinx-build -b html docs docs/_build/html
