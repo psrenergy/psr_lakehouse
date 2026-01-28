@@ -1,5 +1,10 @@
 name: Release
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v1.2.3)'
+        required: false
   push:
     tags:
       # Publish on any tag starting with a `v`, e.g. v1.2.3
@@ -16,21 +21,48 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
 
-      - name: Verify version matches tag
+      - name: Determine and validate tag
+        id: tag
         run: |
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
           TOML_VERSION=$(grep '^version' pyproject.toml | sed 's/.*"\(.*\)".*/\1/')
+
+          # Determine tag: input > ref_name > pyproject.toml
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          elif [[ "${{ github.ref_name }}" == v* ]]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="v${TOML_VERSION}"
+          fi
+
+          TAG_VERSION="${TAG#v}"
           if [ "$TAG_VERSION" != "$TOML_VERSION" ]; then
             echo "Error: Tag version ($TAG_VERSION) does not match pyproject.toml version ($TOML_VERSION)"
             exit 1
           fi
-          echo "Version validated: $TAG_VERSION"
+
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Version validated: $TAG"
+
+      - name: Create tag if needed
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag "$TAG"
+            git push origin "$TAG"
+            echo "Created and pushed tag $TAG"
+          fi
 
       - run: uv build
 
       - run: uv publish
 
       - name: Create GitHub Release
-        run: gh release create ${{ github.ref_name }} dist/* --title "${{ github.ref_name }}" --generate-notes
+        run: gh release create ${{ steps.tag.outputs.tag }} dist/* --title "${{ steps.tag.outputs.tag }}" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
