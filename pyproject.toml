@@ -2,7 +2,7 @@
 name = "psr-lakehouse"
 version = "0.2.2"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "boto3>=1.39.3",
     "pandas>=2.3.0",
