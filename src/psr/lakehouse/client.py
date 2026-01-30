@@ -233,18 +233,35 @@ class Client:
         """Fetch OpenAPI schema from the API."""
         return connector.get("/openapi.json")["components"]["schemas"]
 
-    def _get_enum_values(self, enum_reference: dict) -> list[str]:
+    def _get_enum_values(self, enum_reference: dict, defs: dict | None = None) -> list[str]:
         """Get enum values from OpenAPI schema."""
+        ref = enum_reference["$ref"]
+
+        # Handle local $defs references (e.g., #/$defs/Subsystem)
+        defs_match = re.findall(r"^#/\$defs/(.+)$", ref)
+        if defs_match and defs:
+            enum_name = defs_match[0]
+            if enum_name in defs and "enum" in defs[enum_name]:
+                return defs[enum_name]["enum"]
+            return []
+
+        # Handle component schema references (e.g., #/components/schemas/Subsystem)
+        schemas_match = re.findall(r"^#/components/schemas/(.+)$", ref)
+        if not schemas_match:
+            return []
         schemas = self._fetch_openapi_schema()
-        reference_match = r"^#/components/schemas/(\w+)$"
-        enum_name = re.findall(reference_match, enum_reference["$ref"])[0]
+        enum_name = schemas_match[0]
+        if enum_name not in schemas or "enum" not in schemas[enum_name]:
+            return []
         return schemas[enum_name]["enum"]
 
     def get_schema(self, table_name: str) -> dict:
         """Get clean schema for a given table."""
         table_name = get_model_name(table_name)
         schemas = self._fetch_openapi_schema()
-        properties = schemas[table_name]["properties"]
+        model_schema = schemas[table_name]
+        properties = model_schema["properties"]
+        defs = model_schema.get("$defs", {})
 
         # Build clean schema
         clean_schema = {}
@@ -269,11 +286,16 @@ class Client:
             # Handle enum values
             enum_values = None
             if "$ref" in value:
-                enum_values = self._get_enum_values(value)
+                enum_values = self._get_enum_values(value, defs)
             elif "anyOf" in value:
                 for item in value["anyOf"]:
                     if "$ref" in item:
-                        enum_values = self._get_enum_values(item)
+                        enum_values = self._get_enum_values(item, defs)
+                        break
+            elif "allOf" in value:
+                for item in value["allOf"]:
+                    if "$ref" in item:
+                        enum_values = self._get_enum_values(item, defs)
                         break
 
             if enum_values:
