@@ -6,7 +6,7 @@ lint:
 	uv run ruff format .	
 
 test:
-	uv run pytest -v -s
+	uv run pytest tests/unit/ -v -s
 
 publish:
 	uv sync

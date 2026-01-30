@@ -1,6 +1,6 @@
 [project]
 name = "psr-lakehouse"
-version = "0.2.3"
+version = "0.2.4"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -22,6 +22,11 @@ dev = [
     "pytest>=8.4.1",
     "responses>=0.25.0",
     "ruff>=0.12.2",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: integration tests that hit the real API",
 ]
 
 [tool.hatch.build.targets.wheel]
