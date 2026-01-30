@@ -14,7 +14,6 @@ MODEL_NAME = get_model_name(TABLE_NAME)
 
 class TestSchemaDiscovery:
     def test_list_tables(self):
-        # breakpoint()
         tables = client.list_tables()
         assert isinstance(tables, list)
         assert len(tables) > 0
