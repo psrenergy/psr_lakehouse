@@ -104,7 +104,7 @@ class Client:
 
         return joins
 
-    def _fetch_all_pages(self, json_body: dict, page_size: int = 1000) -> list[dict]:
+    def _fetch_all_pages(self, json_body: dict, page_size: int = 1000, timeout: int = 600) -> list[dict]:
         """Fetch all pages of results."""
         all_data = []
         page = 1
@@ -114,6 +114,7 @@ class Client:
                 "/query/",
                 json_body,
                 params={"page": page, "page_size": page_size},
+                timeout=timeout,
             )
             all_data.extend(response["data"])
 
@@ -137,6 +138,8 @@ class Client:
         aggregation_method: str | None = None,
         joins: list[dict] | None = None,
         output_timezone: str = "America/Sao_Paulo",
+        page_size: int = 1000,
+        timeout: int = 600,
     ) -> pd.DataFrame:
         """
         Fetch data from the API and return as a pandas DataFrame.
@@ -149,7 +152,14 @@ class Client:
             start_reference_date: Optional start date filter (inclusive)
             end_reference_date: Optional end date filter (exclusive)
             group_by: Optional list of columns to group by
+            datetime_granularity: Optional datetime granularity for grouping (e.g., "day", "week", "month") - only applicable if group_by is set
+            order_by: Optional list of dicts with "column" and "direction" keys for ordering results (e.g., [{"column": "reference_date", "direction": "desc"}])
             aggregation_method: Aggregation method (sum, avg, min, max) - required if group_by is set
+            joins: Optional list of dicts with "table", "on", and "type" keys for joining other tables
+            output_timezone: Timezone for datetime output (default: "America/Sao_Paulo
+            page_size: Number of records per page for API pagination (default: 1000)
+            timeout: Timeout in seconds for API requests (default: 600)
+
 
         Returns:
             pandas DataFrame with the query results
@@ -201,19 +211,23 @@ class Client:
         if joins_clause:
             json_body["joins"] = joins_clause
 
-        return self.fetch_dataframe_from_query(json_body)
+        return self.fetch_dataframe_from_query(json_body, page_size=page_size, timeout=timeout)
 
-    def fetch_dataframe_from_query(self, json_body: dict, page_size: int = 1000) -> pd.DataFrame:
+    def fetch_dataframe_from_query(
+        self, json_body: dict, page_size: int = 1000, timeout: int | None = 600
+    ) -> pd.DataFrame:
         """
         Fetch data from the API using a custom query JSON body and return as a pandas DataFrame.
 
         Args:
             json_body: JSON request body for the query
+            page_size: Number of records per page for API pagination (default: 1000)
+            timeout: Timeout in seconds for API requests (default: 600)
 
         Returns:
             pandas DataFrame with the query results
         """
-        data = self._fetch_all_pages(json_body, page_size=page_size)
+        data = self._fetch_all_pages(json_body, page_size=page_size, timeout=timeout)
         df = pd.DataFrame(data)
 
         if df.empty:

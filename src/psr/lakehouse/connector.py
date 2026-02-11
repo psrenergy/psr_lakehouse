@@ -75,7 +75,7 @@ class Connector:
 
         self._is_initialized = True
 
-    def post(self, endpoint: str, json_body: dict, params: dict | None = None) -> dict:
+    def post(self, endpoint: str, json_body: dict, params: dict | None = None, timeout: int = 600) -> dict:
         """
         Make a POST request to the API.
 
@@ -83,6 +83,7 @@ class Connector:
             endpoint: API endpoint path (e.g., "/query/")
             json_body: JSON request body
             params: Optional query parameters
+            timeout: Request timeout in seconds (default: 600)
 
         Returns:
             JSON response as dictionary
@@ -101,7 +102,7 @@ class Connector:
                 json=json_body,
                 params=params,
                 auth=self._auth,
-                timeout=300,
+                timeout=timeout,
             )
             response.raise_for_status()
             return response.json()
