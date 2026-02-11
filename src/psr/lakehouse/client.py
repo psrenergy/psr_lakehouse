@@ -153,13 +153,13 @@ class Client:
             end_reference_date: Optional end date filter (exclusive)
             group_by: Optional list of columns to group by
             datetime_granularity: Optional datetime granularity for grouping (e.g., "day", "week", "month") - only applicable if group_by is set
-            order_by: Optional list of dicts with "column" and "direction" keys for
+            order_by: Optional list of dicts with "column" and "direction" keys for ordering results (e.g., [{"column": "reference_date", "direction": "desc"}])
             aggregation_method: Aggregation method (sum, avg, min, max) - required if group_by is set
             joins: Optional list of dicts with "table", "on", and "type" keys for joining other tables
             output_timezone: Timezone for datetime output (default: "America/Sao_Paulo
             page_size: Number of records per page for API pagination (default: 1000)
             timeout: Timeout in seconds for API requests (default: 600)
-            
+
 
         Returns:
             pandas DataFrame with the query results
@@ -213,7 +213,9 @@ class Client:
 
         return self.fetch_dataframe_from_query(json_body, page_size=page_size, timeout=timeout)
 
-    def fetch_dataframe_from_query(self, json_body: dict, page_size: int = 1000, timeout: int | None = 600) -> pd.DataFrame:
+    def fetch_dataframe_from_query(
+        self, json_body: dict, page_size: int = 1000, timeout: int | None = 600
+    ) -> pd.DataFrame:
         """
         Fetch data from the API using a custom query JSON body and return as a pandas DataFrame.
 
@@ -225,7 +227,7 @@ class Client:
         Returns:
             pandas DataFrame with the query results
         """
-        data = self._fetch_all_pages(json_body, page_size=page_size,timeout=timeout)
+        data = self._fetch_all_pages(json_body, page_size=page_size, timeout=timeout)
         df = pd.DataFrame(data)
 
         if df.empty:
