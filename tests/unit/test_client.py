@@ -182,6 +182,54 @@ class TestFetchDataframe:
         assert len(responses.calls) == 2
 
     @responses.activate
+    def test_fetch_dataframe_page_size_forwarded(self):
+        """Test that custom page_size is sent as a query parameter to /query/."""
+        psr.lakehouse.connector._is_initialized = False
+
+        mock_data = [
+            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "spot_price": 69.04},
+        ]
+
+        responses.add(
+            responses.POST,
+            "https://test-api.example.com/query/",
+            json=make_query_response(mock_data, page_size=500),
+            status=200,
+        )
+
+        psr.lakehouse.client.fetch_dataframe(
+            table_name="ccee_spot_price",
+            indices_columns=["reference_date"],
+            data_columns=["spot_price"],
+            page_size=500,
+        )
+
+        assert len(responses.calls) == 1
+        request_url = responses.calls[0].request.url
+        assert "page_size=500" in request_url
+        assert "page=1" in request_url
+
+    def test_fetch_dataframe_timeout_forwarded(self):
+        """Test that custom timeout is forwarded to connector.post()."""
+        from unittest.mock import patch
+
+        mock_response = make_query_response(
+            [{"reference_date": "2023-05-01T00:00:00-03:00", "spot_price": 69.04}],
+        )
+
+        with patch.object(psr.lakehouse.connector, "post", return_value=mock_response) as mock_post:
+            psr.lakehouse.client.fetch_dataframe(
+                table_name="ccee_spot_price",
+                indices_columns=["reference_date"],
+                data_columns=["spot_price"],
+                timeout=120,
+            )
+
+            mock_post.assert_called_once()
+            _, kwargs = mock_post.call_args
+            assert kwargs["timeout"] == 120
+
+    @responses.activate
     def test_fetch_dataframe_with_aggregation(self):
         """Test data fetching with group_by and aggregation."""
         psr.lakehouse.connector._is_initialized = False
