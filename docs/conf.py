@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "PSR Lakehouse 🏞️🏡"
+project = "PSR Lakehouse"
 copyright = "2026, PSR"
 author = "PSR"
 
@@ -26,10 +26,15 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "shibuya"
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]
+html_favicon = "_static/img/lakehouse.svg"
 html_theme_options = {
     "accent_color": "indigo",
     "github_url": "https://github.com/psrenergy/psr_lakehouse",
+    "light_logo": "_static/img/lakehouse_horizontal_light.svg",
+    "dark_logo": "_static/img/lakehouse_horizontal_dark.png",
 }
+# html_logo = "_static/img/lakehouse_horizontal_light.svg"
 
 
 html_context = {

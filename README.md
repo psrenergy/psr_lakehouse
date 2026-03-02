@@ -1,6 +1,21 @@
-# PSR Lakehouse 🏞️🏡
+<div align="center">
+
+<picture>
+
+  <source media="(prefers-color-scheme: light)" srcset="./docs/_static/img/lakehouse_vertical_light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/_static/img/lakehouse_vertical_dark.png">
+  <img height="200" alt="QARBoM.jl logo">
+  
+</picture>
+<br>
 
 ![Tests](https://github.com/psrenergy/psr_lakehouse/actions/workflows/ci.yml/badge.svg)  ![PyPI - Version](https://img.shields.io/pypi/v/psr-lakehouse?color=3dd13f) [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://psrenergy.github.io/psr_lakehouse/)
+
+
+</div>
+
+# PSR Lakehouse 🏞️🏡
+
 
 A Python client library for accessing PSR's data lakehouse API, providing easy access to Brazilian energy market data including ANEEL, CCEE and ONS datasets.
 

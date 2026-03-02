@@ -1,0 +1,11 @@
+.sy-head-brand img {
+    height: 42px !important;
+}
+
+html:not([data-theme="dark"]) .only-dark {
+    display: none !important;
+}
+
+html[data-theme="dark"] .only-light {
+    display: none !important;
+}
