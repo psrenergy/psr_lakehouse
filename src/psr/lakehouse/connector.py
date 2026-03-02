@@ -107,14 +107,9 @@ class Connector:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as e:
-            error_detail = ""
-            try:
-                error_detail = e.response.json()
-            except Exception:
-                error_detail = e.response.text
-            raise LakehouseError(f"API request failed: {e}. Details: {error_detail}") from e
+            raise LakehouseError(self._format_http_error(e, url)) from e
         except requests.exceptions.RequestException as e:
-            raise LakehouseError(f"API request failed: {e}") from e
+            raise LakehouseError(f"Request to {url} failed: {e}") from e
 
     def get(self, endpoint: str, params: dict | None = None) -> dict:
         """
@@ -145,14 +140,26 @@ class Connector:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.HTTPError as e:
-            error_detail = ""
-            try:
-                error_detail = e.response.json()
-            except Exception:
-                error_detail = e.response.text
-            raise LakehouseError(f"API request failed: {e}. Details: {error_detail}") from e
+            raise LakehouseError(self._format_http_error(e, url)) from e
         except requests.exceptions.RequestException as e:
-            raise LakehouseError(f"API request failed: {e}") from e
+            raise LakehouseError(f"Request to {url} failed: {e}") from e
+
+    @staticmethod
+    def _format_http_error(error: requests.exceptions.HTTPError, url: str) -> str:
+        """Format an HTTP error into a concise, readable message."""
+        status_code = error.response.status_code
+        reason = error.response.reason
+
+        # Try to extract a JSON error detail from the response
+        try:
+            detail = error.response.json()
+            if isinstance(detail, dict) and "detail" in detail:
+                detail = detail["detail"]
+            return f"HTTP {status_code} {reason} for {url}: {detail}"
+        except Exception:
+            pass
+
+        return f"HTTP {status_code} {reason} for {url}"
 
 
 connector = Connector()

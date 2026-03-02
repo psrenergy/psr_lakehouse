@@ -175,7 +175,7 @@ class TestConnectorRequests:
             status=400,
         )
 
-        with pytest.raises(LakehouseError, match="API request failed"):
+        with pytest.raises(LakehouseError, match="HTTP"):
             connector.post("/query/", {"query_data": ["InvalidModel.column"]})
 
     @responses.activate
@@ -192,7 +192,7 @@ class TestConnectorRequests:
             status=404,
         )
 
-        with pytest.raises(LakehouseError, match="API request failed"):
+        with pytest.raises(LakehouseError, match="HTTP"):
             connector.get("/query/schema/InvalidModel")
 
     @responses.activate
