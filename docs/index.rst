@@ -1,14 +1,5 @@
-.. container:: hero-logo only-light
-
-   .. image:: _static/img/lakehouse_horizontal_light.png
-      :alt: PSR Lakehouse Logo
-      :width: 100%
-
-.. container:: hero-logo only-dark
-
-   .. image:: _static/img/lakehouse_horizontal_dark.png
-      :alt: PSR Lakehouse Logo
-      :width: 100%
+Lakehouse
+=================
 
 A Python client library for the PSR Lakehouse API, providing programmatic access to various datasets, including Brazilian energy sector entities (ANEEL, CCEE, ONS) and other domain-specific information.
 
