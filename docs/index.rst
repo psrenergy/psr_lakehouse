@@ -1,9 +1,14 @@
-.. raw:: html
+.. container:: hero-logo only-light
 
-   <div class="hero-logo" style="text-align: center; margin-bottom: 1rem;">
-     <img class="only-light" src="_static/img/lakehouse_horizontal_light.svg" alt="PSR Lakehouse Logo" style="width: 100%; max-width: 100%;" />
-     <img class="only-dark" src="_static/img/lakehouse_horizontal_dark.png" alt="PSR Lakehouse Logo" style="width: 100%; max-width: 100%;" />
-   </div>
+   .. image:: _static/img/lakehouse_horizontal_light.png
+      :alt: PSR Lakehouse Logo
+      :width: 100%
+
+.. container:: hero-logo only-dark
+
+   .. image:: _static/img/lakehouse_horizontal_dark.png
+      :alt: PSR Lakehouse Logo
+      :width: 100%
 
 A Python client library for the PSR Lakehouse API, providing programmatic access to various datasets, including Brazilian energy sector entities (ANEEL, CCEE, ONS) and other domain-specific information.
 
