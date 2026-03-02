@@ -31,10 +31,9 @@ html_favicon = "_static/img/lakehouse.svg"
 html_theme_options = {
     "accent_color": "indigo",
     "github_url": "https://github.com/psrenergy/psr_lakehouse",
-    "light_logo": "_static/img/lakehouse_horizontal_light.svg",
+    "light_logo": "_static/img/lakehouse_horizontal_light.png",
     "dark_logo": "_static/img/lakehouse_horizontal_dark.png",
 }
-# html_logo = "_static/img/lakehouse_horizontal_light.svg"
 
 
 html_context = {
