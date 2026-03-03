@@ -15,9 +15,4 @@ def init_connector():
     if not api_url:
         pytest.skip("LAKEHOUSE_API_URL not set — skipping integration tests")
 
-    initialize(
-        base_url=api_url,
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-        region="us-east-1",
-    )
+    initialize(base_url=api_url)

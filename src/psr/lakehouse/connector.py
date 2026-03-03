@@ -1,8 +1,6 @@
 import os
 
-import boto3
 import requests
-from requests_aws4auth import AWS4Auth
 
 from psr.lakehouse.exceptions import LakehouseError
 
@@ -10,10 +8,8 @@ from psr.lakehouse.exceptions import LakehouseError
 class Connector:
     _instance = None
 
-    _region_name = "us-east-1"
     _is_initialized: bool = False
     _base_url: str
-    _auth: AWS4Auth | None
 
     def __new__(cls):
         if cls._instance is None:
@@ -23,18 +19,12 @@ class Connector:
     def initialize(
         self,
         base_url: str | None = None,
-        aws_access_key_id: str | None = None,
-        aws_secret_access_key: str | None = None,
-        region: str | None = None,
     ):
         """
-        Initialize the connector with API URL and AWS credentials.
+        Initialize the connector with API URL.
 
         Args:
             base_url: API base URL. Defaults to LAKEHOUSE_API_URL environment variable.
-            aws_access_key_id: AWS access key. Defaults to AWS_ACCESS_KEY_ID env var or boto3 session.
-            aws_secret_access_key: AWS secret key. Defaults to AWS_SECRET_ACCESS_KEY env var or boto3 session.
-            region: AWS region. Defaults to us-east-1.
         """
         # Get base URL from parameter or environment variable
         self._base_url = base_url or os.getenv("LAKEHOUSE_API_URL")
@@ -44,34 +34,12 @@ class Connector:
             )
         self._base_url = self._base_url.rstrip("/")
 
-        # Get region
-        self._region_name = region or os.getenv("AWS_REGION", "us-east-1")
-
-        # Get AWS credentials
-        access_key = aws_access_key_id or os.getenv("AWS_ACCESS_KEY_ID")
-        secret_key = aws_secret_access_key or os.getenv("AWS_SECRET_ACCESS_KEY")
-
-        # If credentials not provided explicitly, try to get from boto3 session
-        if not access_key or not secret_key:
-            try:
-                session = boto3.Session()
-                credentials = session.get_credentials()
-                if credentials:
-                    access_key = credentials.access_key
-                    secret_key = credentials.secret_key
-            except Exception:
-                pass
-
-        # Set up AWS IAM authentication if credentials are available
-        if access_key and secret_key:
-            self._auth = AWS4Auth(
-                access_key,
-                secret_key,
-                self._region_name,
-                "execute-api",  # Service name for API Gateway
-            )
-        else:
-            self._auth = None
+        try:
+            response = requests.get(f"{self._base_url}/health-check", timeout=10)
+            if not response.json():
+                raise LakehouseError("Health check failed: API returned a non-truthy response.")
+        except requests.exceptions.RequestException as e:
+            raise LakehouseError(f"Health check failed: Unable to connect to API at {self._base_url}. {e}") from e
 
         self._is_initialized = True
 
@@ -101,7 +69,6 @@ class Connector:
                 url,
                 json=json_body,
                 params=params,
-                auth=self._auth,
                 timeout=timeout,
             )
             response.raise_for_status()
@@ -139,7 +106,6 @@ class Connector:
             response = requests.get(
                 url,
                 params=params,
-                auth=self._auth,
                 timeout=60,
             )
             response.raise_for_status()
