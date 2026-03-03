@@ -38,8 +38,16 @@ class TestFetchDataframe:
         """Test basic data fetching."""
 
         mock_data = [
-            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "spot_price": 69.04},
-            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "SOUTH", "spot_price": 70.00},
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "NORTH",
+                "CCEESpotPrice.spot_price": 69.04,
+            },
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "SOUTH",
+                "CCEESpotPrice.spot_price": 70.00,
+            },
         ]
 
         responses.add(
@@ -51,24 +59,25 @@ class TestFetchDataframe:
 
         df = psr.lakehouse.client.fetch_dataframe(
             table_name="ccee_spot_price",
-            indices_columns=["reference_date", "subsystem"],
-            data_columns=["spot_price"],
+            data_columns=["reference_date", "subsystem", "spot_price"],
             start_reference_date="2023-05-01",
             end_reference_date="2023-05-02",
         )
 
         assert len(df) == 2
-        assert "spot_price" in df.columns
-        assert "subsystem" in df.columns
-        # Original implementation only sets reference_date as index
-        assert df.index.name == "reference_date"
+        assert "CCEESpotPrice.spot_price" in df.columns
+        assert "CCEESpotPrice.subsystem" in df.columns
 
     @responses.activate
     def test_fetch_dataframe_with_filters(self):
         """Test data fetching with filters."""
 
         mock_data = [
-            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "SOUTHEAST", "spot_price": 69.04},
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "SOUTHEAST",
+                "CCEESpotPrice.spot_price": 69.04,
+            },
         ]
 
         responses.add(
@@ -80,15 +89,13 @@ class TestFetchDataframe:
 
         df = psr.lakehouse.client.fetch_dataframe(
             table_name="ccee_spot_price",
-            indices_columns=["reference_date", "subsystem"],
-            data_columns=["spot_price"],
+            data_columns=["reference_date", "subsystem", "spot_price"],
             filters={"subsystem": "SOUTHEAST"},
         )
 
         assert len(df) == 1
-        # Subsystem is a regular column, not part of the index in original implementation
-        assert "subsystem" in df.columns
-        assert df["subsystem"].iloc[0] == "SOUTHEAST"
+        assert "CCEESpotPrice.subsystem" in df.columns
+        assert df["CCEESpotPrice.subsystem"].iloc[0] == "SOUTHEAST"
 
     @responses.activate
     def test_fetch_dataframe_empty_result(self):
@@ -103,8 +110,7 @@ class TestFetchDataframe:
 
         df = psr.lakehouse.client.fetch_dataframe(
             table_name="ccee_spot_price",
-            indices_columns=["reference_date", "subsystem"],
-            data_columns=["spot_price"],
+            data_columns=["reference_date", "subsystem", "spot_price"],
             start_reference_date="2099-01-01",
             end_reference_date="2099-01-02",
         )
@@ -116,9 +122,21 @@ class TestFetchDataframe:
         """Test automatic pagination handling."""
 
         # First page
-        page1_data = [{"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "value": 1}]
+        page1_data = [
+            {
+                "ONSEnergyLoadDaily.reference_date": "2023-05-01T00:00:00-03:00",
+                "ONSEnergyLoadDaily.subsystem": "NORTH",
+                "ONSEnergyLoadDaily.value": 1,
+            }
+        ]
         # Second page
-        page2_data = [{"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "SOUTH", "value": 2}]
+        page2_data = [
+            {
+                "ONSEnergyLoadDaily.reference_date": "2023-05-01T00:00:00-03:00",
+                "ONSEnergyLoadDaily.subsystem": "SOUTH",
+                "ONSEnergyLoadDaily.value": 2,
+            }
+        ]
 
         responses.add(
             responses.POST,
@@ -170,8 +188,7 @@ class TestFetchDataframe:
 
         df = psr.lakehouse.client.fetch_dataframe(
             table_name="ons_energy_load_daily",
-            indices_columns=["reference_date", "subsystem"],
-            data_columns=["value"],
+            data_columns=["reference_date", "subsystem", "value"],
         )
 
         assert len(df) == 2
@@ -182,7 +199,11 @@ class TestFetchDataframe:
         """Test that custom page_size is sent as a query parameter to /query/."""
 
         mock_data = [
-            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "spot_price": 69.04},
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "NORTH",
+                "CCEESpotPrice.spot_price": 69.04,
+            },
         ]
 
         responses.add(
@@ -194,8 +215,7 @@ class TestFetchDataframe:
 
         psr.lakehouse.client.fetch_dataframe(
             table_name="ccee_spot_price",
-            indices_columns=["reference_date"],
-            data_columns=["spot_price"],
+            data_columns=["reference_date", "spot_price"],
             page_size=500,
         )
 
@@ -209,14 +229,13 @@ class TestFetchDataframe:
         from unittest.mock import patch
 
         mock_response = make_query_response(
-            [{"reference_date": "2023-05-01T00:00:00-03:00", "spot_price": 69.04}],
+            [{"CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00", "CCEESpotPrice.spot_price": 69.04}],
         )
 
         with patch.object(psr.lakehouse.connector, "post", return_value=mock_response) as mock_post:
             psr.lakehouse.client.fetch_dataframe(
                 table_name="ccee_spot_price",
-                indices_columns=["reference_date"],
-                data_columns=["spot_price"],
+                data_columns=["reference_date", "spot_price"],
                 timeout=120,
             )
 
@@ -229,8 +248,8 @@ class TestFetchDataframe:
         """Test data fetching with group_by and aggregation."""
 
         mock_data = [
-            {"subsystem": "NORTH", "reference_date": "2023-05-01T00:00:00-03:00", "spot_price": 65.0},
-            {"subsystem": "SOUTH", "reference_date": "2023-05-01T00:00:00-03:00", "spot_price": 70.0},
+            {"CCEESpotPrice.subsystem": "NORTH", "CCEESpotPrice.spot_price": 65.0},
+            {"CCEESpotPrice.subsystem": "SOUTH", "CCEESpotPrice.spot_price": 70.0},
         ]
 
         responses.add(
@@ -242,7 +261,6 @@ class TestFetchDataframe:
 
         df = psr.lakehouse.client.fetch_dataframe(
             table_name="ccee_spot_price",
-            indices_columns=["reference_date", "subsystem"],
             data_columns=["spot_price"],
             group_by=["subsystem"],
             aggregation_method="avg",
@@ -255,7 +273,6 @@ class TestFetchDataframe:
         with pytest.raises(LakehouseError, match="Both 'group_by' and 'aggregation_method' must be provided together"):
             psr.lakehouse.client.fetch_dataframe(
                 table_name="ccee_spot_price",
-                indices_columns=["reference_date", "subsystem"],
                 data_columns=["spot_price"],
                 group_by=["subsystem"],
             )
@@ -265,7 +282,6 @@ class TestFetchDataframe:
         with pytest.raises(LakehouseError, match="Both 'group_by' and 'aggregation_method' must be provided together"):
             psr.lakehouse.client.fetch_dataframe(
                 table_name="ccee_spot_price",
-                indices_columns=["reference_date", "subsystem"],
                 data_columns=["spot_price"],
                 aggregation_method="avg",
             )
@@ -275,8 +291,16 @@ class TestFetchDataframe:
         """Test that fetch_dataframe produces same result as fetch_dataframe_from_query for basic query."""
 
         mock_data = [
-            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "spot_price": 69.04},
-            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "SOUTH", "spot_price": 70.00},
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "NORTH",
+                "CCEESpotPrice.spot_price": 69.04,
+            },
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "SOUTH",
+                "CCEESpotPrice.spot_price": 70.00,
+            },
         ]
 
         # Setup mock for both calls
@@ -296,8 +320,7 @@ class TestFetchDataframe:
         # High-level query
         df_high = psr.lakehouse.client.fetch_dataframe(
             table_name="ccee_spot_price",
-            indices_columns=["reference_date"],
-            data_columns=["subsystem", "spot_price"],
+            data_columns=["reference_date", "subsystem", "spot_price"],
             start_reference_date="2023-05-01",
             end_reference_date="2023-05-02",
         )
@@ -321,14 +344,18 @@ class TestFetchDataframe:
         # Compare results
         assert len(df_high) == len(df_low)
         assert list(df_high.columns) == list(df_low.columns)
-        pd.testing.assert_frame_equal(df_high.sort_index(), df_low.sort_index())
+        pd.testing.assert_frame_equal(df_high, df_low)
 
     @responses.activate
     def test_high_level_vs_low_level_with_filters(self):
         """Test that fetch_dataframe with filters produces same result as fetch_dataframe_from_query."""
 
         mock_data = [
-            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "SOUTHEAST", "spot_price": 69.04},
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "SOUTHEAST",
+                "CCEESpotPrice.spot_price": 69.04,
+            },
         ]
 
         responses.add(
@@ -347,8 +374,7 @@ class TestFetchDataframe:
         # High-level query with filters
         df_high = psr.lakehouse.client.fetch_dataframe(
             table_name="ccee_spot_price",
-            indices_columns=["reference_date"],
-            data_columns=["subsystem", "spot_price"],
+            data_columns=["reference_date", "subsystem", "spot_price"],
             filters={"subsystem": "SOUTHEAST"},
             start_reference_date="2023-05-01",
             end_reference_date="2023-05-02",
@@ -373,15 +399,15 @@ class TestFetchDataframe:
 
         # Compare results
         assert len(df_high) == len(df_low)
-        pd.testing.assert_frame_equal(df_high.sort_index(), df_low.sort_index())
+        pd.testing.assert_frame_equal(df_high, df_low)
 
     @responses.activate
     def test_high_level_vs_low_level_with_aggregation(self):
         """Test that fetch_dataframe with aggregation produces same result as fetch_dataframe_from_query."""
 
         mock_data = [
-            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "spot_price": 65.0},
-            {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "SOUTH", "spot_price": 70.0},
+            {"CCEESpotPrice.subsystem": "NORTH", "CCEESpotPrice.spot_price": 65.0},
+            {"CCEESpotPrice.subsystem": "SOUTH", "CCEESpotPrice.spot_price": 70.0},
         ]
 
         responses.add(
@@ -428,16 +454,28 @@ class TestFetchDataframe:
 
         # Compare results
         assert len(df_high) == len(df_low)
-        pd.testing.assert_frame_equal(df_high.sort_index(), df_low.sort_index())
+        pd.testing.assert_frame_equal(df_high, df_low)
 
     @responses.activate
     def test_high_level_vs_low_level_with_order_by(self):
         """Test that fetch_dataframe with order_by produces same result as fetch_dataframe_from_query."""
 
         mock_data = [
-            {"reference_date": "2023-05-02T00:00:00-03:00", "plant_type": "WIND", "generation": 45000.0},
-            {"reference_date": "2023-05-02T00:00:00-03:00", "plant_type": "HYDRO", "generation": 125000.0},
-            {"reference_date": "2023-05-01T00:00:00-03:00", "plant_type": "WIND", "generation": 42000.0},
+            {
+                "ONSPowerPlantHourlyGeneration.reference_date": "2023-05-02T00:00:00-03:00",
+                "ONSPowerPlantHourlyGeneration.plant_type": "WIND",
+                "ONSPowerPlantHourlyGeneration.generation": 45000.0,
+            },
+            {
+                "ONSPowerPlantHourlyGeneration.reference_date": "2023-05-02T00:00:00-03:00",
+                "ONSPowerPlantHourlyGeneration.plant_type": "HYDRO",
+                "ONSPowerPlantHourlyGeneration.generation": 125000.0,
+            },
+            {
+                "ONSPowerPlantHourlyGeneration.reference_date": "2023-05-01T00:00:00-03:00",
+                "ONSPowerPlantHourlyGeneration.plant_type": "WIND",
+                "ONSPowerPlantHourlyGeneration.generation": 42000.0,
+            },
         ]
 
         responses.add(
@@ -499,7 +537,6 @@ class TestFetchDataframe:
         with pytest.raises(LakehouseError, match="Unsupported aggregation method"):
             psr.lakehouse.client.fetch_dataframe(
                 table_name="ccee_spot_price",
-                indices_columns=["reference_date", "subsystem"],
                 data_columns=["spot_price"],
                 group_by=["subsystem"],
                 aggregation_method="invalid",
@@ -512,22 +549,22 @@ class TestFetchDataframe:
         # Mock data that would be returned from a join query
         mock_data = [
             {
-                "reference_date": "2025-01-05T00:00:00-03:00",
-                "subsystem": "SOUTHEAST",
-                "energy_load": 45000.5,
-                "gross_inflow_energy_mwavg": 12000.3,
+                "ONSEnergyLoadDaily.reference_date": "2025-01-05T00:00:00-03:00",
+                "ONSEnergyLoadDaily.subsystem": "SOUTHEAST",
+                "ONSEnergyLoadDaily.energy_load": 45000.5,
+                "ONSInflowEnergySubsystem.gross_inflow_energy_mwavg": 12000.3,
             },
             {
-                "reference_date": "2025-01-04T00:00:00-03:00",
-                "subsystem": "SOUTH",
-                "energy_load": 32000.2,
-                "gross_inflow_energy_mwavg": 8500.1,
+                "ONSEnergyLoadDaily.reference_date": "2025-01-04T00:00:00-03:00",
+                "ONSEnergyLoadDaily.subsystem": "SOUTH",
+                "ONSEnergyLoadDaily.energy_load": 32000.2,
+                "ONSInflowEnergySubsystem.gross_inflow_energy_mwavg": 8500.1,
             },
             {
-                "reference_date": "2025-01-04T00:00:00-03:00",
-                "subsystem": "SOUTHEAST",
-                "energy_load": 44500.8,
-                "gross_inflow_energy_mwavg": 11800.7,
+                "ONSEnergyLoadDaily.reference_date": "2025-01-04T00:00:00-03:00",
+                "ONSEnergyLoadDaily.subsystem": "SOUTHEAST",
+                "ONSEnergyLoadDaily.energy_load": 44500.8,
+                "ONSInflowEnergySubsystem.gross_inflow_energy_mwavg": 11800.7,
             },
         ]
 
@@ -600,14 +637,14 @@ class TestFetchDataframe:
 
         # Verify results
         assert len(df) == 3
-        assert "energy_load" in df.columns
-        assert "gross_inflow_energy_mwavg" in df.columns
-        assert "subsystem" in df.columns
+        assert "ONSEnergyLoadDaily.energy_load" in df.columns
+        assert "ONSInflowEnergySubsystem.gross_inflow_energy_mwavg" in df.columns
+        assert "ONSEnergyLoadDaily.subsystem" in df.columns
 
         # Verify data is ordered correctly (desc by date, asc by subsystem)
-        assert df.iloc[0]["subsystem"] == "SOUTHEAST"
-        assert df.iloc[1]["subsystem"] == "SOUTH"
-        assert df.iloc[2]["subsystem"] == "SOUTHEAST"
+        assert df.iloc[0]["ONSEnergyLoadDaily.subsystem"] == "SOUTHEAST"
+        assert df.iloc[1]["ONSEnergyLoadDaily.subsystem"] == "SOUTH"
+        assert df.iloc[2]["ONSEnergyLoadDaily.subsystem"] == "SOUTHEAST"
 
         # Verify the API was called with the correct query
         assert len(responses.calls) == 1
@@ -622,24 +659,24 @@ class TestFetchDataframe:
         # Mock data aggregated by day
         mock_data = [
             {
-                "reference_date": "2025-01-05T00:00:00-03:00",
-                "plant_type": "HYDRO",
-                "generation": 125000.5,
+                "ONSPowerPlantHourlyGeneration.reference_date": "2025-01-05T00:00:00-03:00",
+                "ONSPowerPlantHourlyGeneration.plant_type": "HYDRO",
+                "ONSPowerPlantHourlyGeneration.generation": 125000.5,
             },
             {
-                "reference_date": "2025-01-05T00:00:00-03:00",
-                "plant_type": "WIND",
-                "generation": 45000.2,
+                "ONSPowerPlantHourlyGeneration.reference_date": "2025-01-05T00:00:00-03:00",
+                "ONSPowerPlantHourlyGeneration.plant_type": "WIND",
+                "ONSPowerPlantHourlyGeneration.generation": 45000.2,
             },
             {
-                "reference_date": "2025-01-04T00:00:00-03:00",
-                "plant_type": "HYDRO",
-                "generation": 120000.8,
+                "ONSPowerPlantHourlyGeneration.reference_date": "2025-01-04T00:00:00-03:00",
+                "ONSPowerPlantHourlyGeneration.plant_type": "HYDRO",
+                "ONSPowerPlantHourlyGeneration.generation": 120000.8,
             },
             {
-                "reference_date": "2025-01-04T00:00:00-03:00",
-                "plant_type": "WIND",
-                "generation": 42000.3,
+                "ONSPowerPlantHourlyGeneration.reference_date": "2025-01-04T00:00:00-03:00",
+                "ONSPowerPlantHourlyGeneration.plant_type": "WIND",
+                "ONSPowerPlantHourlyGeneration.generation": 42000.3,
             },
         ]
 
@@ -666,14 +703,14 @@ class TestFetchDataframe:
 
         # Verify results
         assert len(df) == 4
-        assert "generation" in df.columns
-        assert "plant_type" in df.columns
+        assert "ONSPowerPlantHourlyGeneration.generation" in df.columns
+        assert "ONSPowerPlantHourlyGeneration.plant_type" in df.columns
 
         # Verify data is ordered correctly (desc by date, asc by plant_type)
-        assert df.iloc[0]["plant_type"] == "HYDRO"
-        assert df.iloc[1]["plant_type"] == "WIND"
-        assert df.iloc[2]["plant_type"] == "HYDRO"
-        assert df.iloc[3]["plant_type"] == "WIND"
+        assert df.iloc[0]["ONSPowerPlantHourlyGeneration.plant_type"] == "HYDRO"
+        assert df.iloc[1]["ONSPowerPlantHourlyGeneration.plant_type"] == "WIND"
+        assert df.iloc[2]["ONSPowerPlantHourlyGeneration.plant_type"] == "HYDRO"
+        assert df.iloc[3]["ONSPowerPlantHourlyGeneration.plant_type"] == "WIND"
 
         # Verify the API was called with correct parameters
         assert len(responses.calls) == 1
@@ -715,22 +752,25 @@ class TestFetchDataframe:
         # Mock data from joined tables
         mock_data = [
             {
-                "reference_date": "2025-01-15T00:00:00-03:00",
-                "subsystem": "SOUTHEAST",
-                "energy_load": 45000.5,
-                "gross_inflow_energy_mwavg": 12000.3,
+                "ONSEnergyLoadDaily.reference_date": "2025-01-15T00:00:00-03:00",
+                "ONSEnergyLoadDaily.subsystem": "SOUTHEAST",
+                "ONSEnergyLoadDaily.energy_load": 45000.5,
+                "ONSInflowEnergySubsystem.gross_inflow_energy_mwavg": 12000.3,
+                "ONSInflowEnergySubsystem.subsystem": "SOUTHEAST",
             },
             {
-                "reference_date": "2025-01-10T00:00:00-03:00",
-                "subsystem": "SOUTH",
-                "energy_load": 32000.2,
-                "gross_inflow_energy_mwavg": 8500.1,
+                "ONSEnergyLoadDaily.reference_date": "2025-01-10T00:00:00-03:00",
+                "ONSEnergyLoadDaily.subsystem": "SOUTH",
+                "ONSEnergyLoadDaily.energy_load": 32000.2,
+                "ONSInflowEnergySubsystem.gross_inflow_energy_mwavg": 8500.1,
+                "ONSInflowEnergySubsystem.subsystem": "SOUTH",
             },
             {
-                "reference_date": "2025-01-05T00:00:00-03:00",
-                "subsystem": "NORTHEAST",
-                "energy_load": 28000.8,
-                "gross_inflow_energy_mwavg": 7200.5,
+                "ONSEnergyLoadDaily.reference_date": "2025-01-05T00:00:00-03:00",
+                "ONSEnergyLoadDaily.subsystem": "NORTHEAST",
+                "ONSEnergyLoadDaily.energy_load": 28000.8,
+                "ONSInflowEnergySubsystem.gross_inflow_energy_mwavg": 7200.5,
+                "ONSInflowEnergySubsystem.subsystem": "NORTHEAST",
             },
         ]
 
@@ -786,14 +826,14 @@ class TestFetchDataframe:
 
         # Verify results
         assert len(df) == 3
-        assert "energy_load" in df.columns
-        assert "gross_inflow_energy_mwavg" in df.columns
-        assert "subsystem" in df.columns
+        assert "ONSEnergyLoadDaily.energy_load" in df.columns
+        assert "ONSInflowEnergySubsystem.gross_inflow_energy_mwavg" in df.columns
+        assert "ONSEnergyLoadDaily.subsystem" in df.columns
 
         # Verify data values
-        assert df.iloc[0]["subsystem"] == "SOUTHEAST"
-        assert df.iloc[0]["energy_load"] == 45000.5
-        assert df.iloc[0]["gross_inflow_energy_mwavg"] == 12000.3
+        assert df.iloc[0]["ONSEnergyLoadDaily.subsystem"] == "SOUTHEAST"
+        assert df.iloc[0]["ONSEnergyLoadDaily.energy_load"] == 45000.5
+        assert df.iloc[0]["ONSInflowEnergySubsystem.gross_inflow_energy_mwavg"] == 12000.3
 
         # Verify the API was called correctly
         assert len(responses.calls) == 1

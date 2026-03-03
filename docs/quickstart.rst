@@ -16,14 +16,13 @@ Import and Fetch Data
    # Fetch CCEE spot price data
    df = client.fetch_dataframe(
        table_name="ccee_spot_price",
-       indices_columns=["reference_date", "subsystem"],
-       data_columns=["spot_price"],
+       data_columns=["reference_date", "subsystem", "spot_price"],
        start_reference_date="2023-05-01",
        end_reference_date="2023-05-02",
    )
    print(df)
 
-The result is a pandas DataFrame with a MultiIndex based on ``indices_columns``.
+The result is a pandas DataFrame with the query results.
 
 Filtering Data
 --------------
@@ -38,8 +37,7 @@ Use the ``filters`` parameter to filter by exact column values:
    # Filter by subsystem
    df = client.fetch_dataframe(
        table_name="ons_stored_energy_subsystem",
-       indices_columns=["reference_date", "subsystem"],
-       data_columns=["max_stored_energy", "verified_stored_energy_percentage"],
+       data_columns=["reference_date", "subsystem", "max_stored_energy", "verified_stored_energy_percentage"],
        start_reference_date="2023-05-01",
        end_reference_date="2023-05-02",
        filters={"subsystem": "SOUTHEAST"},
@@ -54,8 +52,7 @@ Use ``start_reference_date`` and ``end_reference_date`` to filter data by date:
 
    df = client.fetch_dataframe(
        table_name="ccee_spot_price",
-       indices_columns=["reference_date"],
-       data_columns=["spot_price"],
+       data_columns=["reference_date", "spot_price"],
        start_reference_date="2023-01-01",  # inclusive
        end_reference_date="2023-02-01",     # exclusive
    )
@@ -73,7 +70,6 @@ Use ``group_by`` and ``aggregation_method`` to aggregate data:
    # Group by subsystem and calculate average spot price
    df = client.fetch_dataframe(
        table_name="ccee_spot_price",
-       indices_columns=["reference_date", "subsystem"],
        data_columns=["spot_price"],
        start_reference_date="2023-01-01",
        end_reference_date="2023-02-01",

@@ -45,7 +45,6 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
 
    def fetch_dataframe(
        table_name: str,
-       indices_columns: list[str] | None = None,
        data_columns: list[str] | None = None,
        filters: dict | None = None,
        start_reference_date: str | None = None,
@@ -60,8 +59,7 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
 **Parameters:**
 
 * ``table_name`` (str) - Name of the table to query in snake_case format (e.g., ``"ccee_spot_price"``)
-* ``indices_columns`` (list[str], optional) - Columns to use as DataFrame index. If not provided, DataFrame will use default integer index.
-* ``data_columns`` (list[str], optional) - Data columns to fetch. If not provided along with indices_columns, all columns will be fetched.
+* ``data_columns`` (list[str], optional) - Columns to fetch. If not provided, all columns will be fetched.
 * ``filters`` (dict, optional) - Dictionary of column-value pairs for equality filtering (e.g., ``{"subsystem": "SOUTHEAST"}``)
 * ``start_reference_date`` (str, optional) - Start date filter in ISO format (inclusive), e.g., ``"2023-05-01"``
 * ``end_reference_date`` (str, optional) - End date filter in ISO format (inclusive), e.g., ``"2023-05-02"``
@@ -86,8 +84,7 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
    # Basic fetch
    df = client.fetch_dataframe(
        table_name="ccee_spot_price",
-       indices_columns=["reference_date", "subsystem"],
-       data_columns=["spot_price"],
+       data_columns=["reference_date", "subsystem", "spot_price"],
        start_reference_date="2023-05-01",
        end_reference_date="2023-05-02",
    )
@@ -95,8 +92,7 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
    # With filtering
    df = client.fetch_dataframe(
        table_name="ons_stored_energy_subsystem",
-       indices_columns=["reference_date"],
-       data_columns=["verified_stored_energy_percentage"],
+       data_columns=["reference_date", "verified_stored_energy_percentage"],
        start_reference_date="2023-05-01",
        end_reference_date="2023-05-02",
        filters={"subsystem": "SOUTHEAST"},
