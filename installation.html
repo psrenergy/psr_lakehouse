@@ -83,7 +83,6 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#programmatic-initialization">Programmatic Initialization</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#authentication">Authentication</a></li>
 <li><a class="reference internal" href="#development-setup">Development Setup</a></li>
 </ul>
 </div><a class="js-repo-stats repo-stats flex items-center" href="https://github.com/psrenergy/psr_lakehouse"
@@ -188,8 +187,6 @@ data-aria-dark="Switch to auto color mode">
 <li><p>Python 3.13+</p></li>
 <li><p>pandas</p></li>
 <li><p>requests</p></li>
-<li><p>boto3</p></li>
-<li><p>requests-aws4auth</p></li>
 </ul>
 </section>
 <section id="configuration">
@@ -201,12 +198,6 @@ data-aria-dark="Switch to auto color mode">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nv">LAKEHOUSE_API_URL</span><span class="o">=</span><span class="s2">&quot;https://api.example.com&quot;</span>
 </span></pre></div>
 </div>
-<p><strong>AWS Credentials</strong> (for IAM authentication):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nv">AWS_ACCESS_KEY_ID</span><span class="o">=</span><span class="s2">&quot;your-access-key&quot;</span>
-</span><span data-line="2"><span class="nv">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span><span class="s2">&quot;your-secret-key&quot;</span>
-</span><span data-line="3"><span class="nv">AWS_DEFAULT_REGION</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span>
-</span></pre></div>
-</div>
 </section>
 <section id="programmatic-initialization">
 <h3>Programmatic Initialization<a class="headerlink" href="#programmatic-initialization" title="Link to this heading">¶</a></h3>
@@ -215,26 +206,14 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="2">
 </span><span data-line="3"><span class="n">initialize</span><span class="p">(</span>
 </span><span data-line="4">    <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://api.example.com&quot;</span><span class="p">,</span>
-</span><span data-line="5">    <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;your-access-key&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;your-secret-key&quot;</span><span class="p">,</span>
-</span><span data-line="7">    <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
-</span><span data-line="8"><span class="p">)</span>
+</span><span data-line="5"><span class="p">)</span>
 </span></pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The connector uses lazy initialization - credentials are only validated when making the first API request.</p>
+<p>The connector validates connectivity during initialization by performing a health check against the API.</p>
 </div>
 </section>
-</section>
-<section id="authentication">
-<h2>Authentication<a class="headerlink" href="#authentication" title="Link to this heading">¶</a></h2>
-<p>PSR Lakehouse uses AWS Signature Version 4 (SigV4) for authenticating requests to AWS API Gateway endpoints. The library automatically handles:</p>
-<ul class="simple">
-<li><p>AWS credential resolution from environment or programmatic configuration</p></li>
-<li><p>Request signing using AWS4Auth</p></li>
-<li><p>Credential caching via singleton pattern</p></li>
-</ul>
 </section>
 <section id="development-setup">
 <h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">¶</a></h2>

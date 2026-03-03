@@ -202,17 +202,11 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="2">
 </span><span data-line="3"><span class="n">initialize</span><span class="p">(</span>
 </span><span data-line="4">    <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://api.example.com&quot;</span><span class="p">,</span>
-</span><span data-line="5">    <span class="n">aws_access_key_id</span><span class="o">=</span><span class="s2">&quot;your-access-key&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="s2">&quot;your-secret-key&quot;</span><span class="p">,</span>
-</span><span data-line="7">    <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
-</span><span data-line="8"><span class="p">)</span>
+</span><span data-line="5"><span class="p">)</span>
 </span></pre></div>
 </div>
 <p>Or set environment variables before importing:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nv">LAKEHOUSE_API_URL</span><span class="o">=</span><span class="s2">&quot;https://api.example.com&quot;</span>
-</span><span data-line="2"><span class="nv">AWS_ACCESS_KEY_ID</span><span class="o">=</span><span class="s2">&quot;your-access-key&quot;</span>
-</span><span data-line="3"><span class="nv">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span><span class="s2">&quot;your-secret-key&quot;</span>
-</span><span data-line="4"><span class="nv">AWS_DEFAULT_REGION</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span>
 </span></pre></div>
 </div>
 </section>
@@ -608,7 +602,7 @@ data-aria-dark="Switch to auto color mode">
 </section>
 <section id="connection-management">
 <h2>Connection Management<a class="headerlink" href="#connection-management" title="Link to this heading">¶</a></h2>
-<p>The HTTP connector uses lazy initialization - AWS credentials are only validated on the first API request. The singleton pattern ensures connection resources are reused throughout your application lifecycle.</p>
+<p>The HTTP connector validates connectivity during initialization by performing a health check against the API. The singleton pattern ensures connection resources are reused throughout your application lifecycle.</p>
 </section>
 </section>
 

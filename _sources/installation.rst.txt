@@ -16,8 +16,6 @@ Requirements
 * Python 3.13+
 * pandas
 * requests
-* boto3
-* requests-aws4auth
 
 Configuration
 -------------
@@ -33,14 +31,6 @@ The library requires configuration via environment variables:
 
    LAKEHOUSE_API_URL="https://api.example.com"
 
-**AWS Credentials** (for IAM authentication):
-
-.. code-block:: bash
-
-   AWS_ACCESS_KEY_ID="your-access-key"
-   AWS_SECRET_ACCESS_KEY="your-secret-key"
-   AWS_DEFAULT_REGION="us-east-1"
-
 Programmatic Initialization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -52,22 +42,10 @@ Alternatively, you can configure the client programmatically:
 
    initialize(
        base_url="https://api.example.com",
-       aws_access_key_id="your-access-key",
-       aws_secret_access_key="your-secret-key",
-       region="us-east-1",
    )
 
 .. note::
-   The connector uses lazy initialization - credentials are only validated when making the first API request.
-
-Authentication
---------------
-
-PSR Lakehouse uses AWS Signature Version 4 (SigV4) for authenticating requests to AWS API Gateway endpoints. The library automatically handles:
-
-* AWS credential resolution from environment or programmatic configuration
-* Request signing using AWS4Auth
-* Credential caching via singleton pattern
+   The connector validates connectivity during initialization by performing a health check against the API.
 
 Development Setup
 -----------------
