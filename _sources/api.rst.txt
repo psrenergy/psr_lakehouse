@@ -70,7 +70,7 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
 * ``data_columns`` (list[str], optional) - Data columns to fetch. If not provided along with indices_columns, all columns will be fetched.
 * ``filters`` (dict, optional) - Dictionary of column-value pairs for equality filtering (e.g., ``{"subsystem": "SOUTHEAST"}``)
 * ``start_reference_date`` (str, optional) - Start date filter in ISO format (inclusive), e.g., ``"2023-05-01"``
-* ``end_reference_date`` (str, optional) - End date filter in ISO format (exclusive), e.g., ``"2023-05-02"``
+* ``end_reference_date`` (str, optional) - End date filter in ISO format (inclusive), e.g., ``"2023-05-02"``
 * ``group_by`` (list[str], optional) - List of columns to group by for aggregation
 * ``aggregation_method`` (str, optional) - Aggregation method when using ``group_by``. Options: ``"sum"``, ``"avg"``, ``"min"``, ``"max"``
 * ``datetime_granularity`` (str, optional) - Temporal aggregation level. Options: ``"hour"``, ``"day"``, ``"week"``, ``"month"``
