@@ -36,7 +36,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_fetch_dataframe_basic(self):
         """Test basic data fetching."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_data = [
             {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "spot_price": 69.04},
@@ -67,7 +66,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_fetch_dataframe_with_filters(self):
         """Test data fetching with filters."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_data = [
             {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "SOUTHEAST", "spot_price": 69.04},
@@ -95,7 +93,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_fetch_dataframe_empty_result(self):
         """Test handling of empty results."""
-        psr.lakehouse.connector._is_initialized = False
 
         responses.add(
             responses.POST,
@@ -117,7 +114,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_fetch_dataframe_pagination(self):
         """Test automatic pagination handling."""
-        psr.lakehouse.connector._is_initialized = False
 
         # First page
         page1_data = [{"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "value": 1}]
@@ -184,7 +180,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_fetch_dataframe_page_size_forwarded(self):
         """Test that custom page_size is sent as a query parameter to /query/."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_data = [
             {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "spot_price": 69.04},
@@ -232,7 +227,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_fetch_dataframe_with_aggregation(self):
         """Test data fetching with group_by and aggregation."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_data = [
             {"subsystem": "NORTH", "reference_date": "2023-05-01T00:00:00-03:00", "spot_price": 65.0},
@@ -279,7 +273,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_high_level_vs_low_level_basic_query(self):
         """Test that fetch_dataframe produces same result as fetch_dataframe_from_query for basic query."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_data = [
             {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "spot_price": 69.04},
@@ -333,7 +326,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_high_level_vs_low_level_with_filters(self):
         """Test that fetch_dataframe with filters produces same result as fetch_dataframe_from_query."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_data = [
             {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "SOUTHEAST", "spot_price": 69.04},
@@ -386,7 +378,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_high_level_vs_low_level_with_aggregation(self):
         """Test that fetch_dataframe with aggregation produces same result as fetch_dataframe_from_query."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_data = [
             {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "spot_price": 65.0},
@@ -442,7 +433,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_high_level_vs_low_level_with_order_by(self):
         """Test that fetch_dataframe with order_by produces same result as fetch_dataframe_from_query."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_data = [
             {"reference_date": "2023-05-02T00:00:00-03:00", "plant_type": "WIND", "generation": 45000.0},
@@ -518,7 +508,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_fetch_dataframe_from_query_with_complex_query(self):
         """Test fetch_dataframe_from_query with complex query including joins, group_by, order_by, and filters."""
-        psr.lakehouse.connector._is_initialized = False
 
         # Mock data that would be returned from a join query
         mock_data = [
@@ -629,7 +618,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_fetch_dataframe_with_all_features(self):
         """Test fetch_dataframe with group_by, datetime_granularity, order_by, and filters."""
-        psr.lakehouse.connector._is_initialized = False
 
         # Mock data aggregated by day
         mock_data = [
@@ -723,7 +711,6 @@ class TestFetchDataframe:
     @responses.activate
     def test_fetch_dataframe_from_query_with_joins(self):
         """Test fetch_dataframe_from_query with joins between two tables."""
-        psr.lakehouse.connector._is_initialized = False
 
         # Mock data from joined tables
         mock_data = [
@@ -857,7 +844,6 @@ class TestSchemaEndpoints:
     @responses.activate
     def test_get_schema(self):
         """Test getting schema for a specific table using OpenAPI format."""
-        psr.lakehouse.connector._is_initialized = False
 
         # Mock OpenAPI schema response
         mock_openapi = {
@@ -906,7 +892,6 @@ class TestSchemaEndpoints:
     @responses.activate
     def test_get_model_schema(self):
         """Test getting schema for a specific model (using get_schema)."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_openapi = {
             "components": {
@@ -940,7 +925,6 @@ class TestSchemaEndpoints:
     @responses.activate
     def test_list_models(self):
         """Test listing all model names (same as list_tables in current implementation)."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_openapi = {
             "components": {
@@ -990,7 +974,6 @@ class TestSchemaEndpoints:
     @responses.activate
     def test_list_tables(self):
         """Test listing all table names (same as list_models)."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_openapi = {
             "components": {
@@ -1028,7 +1011,6 @@ class TestSchemaEndpoints:
     @responses.activate
     def test_get_table_columns(self):
         """Test getting column names for a table as a list."""
-        psr.lakehouse.connector._is_initialized = False
 
         mock_openapi = {
             "components": {

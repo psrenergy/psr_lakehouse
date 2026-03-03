@@ -31,19 +31,14 @@ PSR Lakehouse is a Python client library for accessing Brazilian energy market d
 **Singleton Pattern**: Both `Client` and `Connector` classes use singleton pattern to ensure single instances throughout the application.
 
 **HTTP Layer**:
-- `connector.py` - HTTP client with AWS IAM authentication (AWS4Auth)
+- `connector.py` - HTTP client with health check validation on initialization
 - `client.py` - High-level data access methods that build JSON query requests
 - Uses `requests` for HTTP and `pandas` for data manipulation
+- API URL from environment variable: `LAKEHOUSE_API_URL`
 
 **Metadata**:
 - `metadata.py` - Contains `get_model_name()` function to convert table names to API model names
 - Handles uppercase prefixes (ONS, CCEE) in model name conversion
-
-**AWS Integration**:
-- Uses `requests-aws4auth` for API Gateway IAM authentication
-- Uses `boto3` for AWS credential resolution
-- Credentials from environment variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
-- API URL from environment variable: `LAKEHOUSE_API_URL`
 
 ### Key Patterns
 
@@ -65,7 +60,7 @@ PSR Lakehouse is a Python client library for accessing Brazilian energy market d
 - **Python Version**: Requires Python 3.13+
 - **Package Manager**: Uses `uv` instead of pip/poetry
 - **Code Style**: Configured via `ruff.toml` - 120 character line length, double quotes, Python 3.13 target
-- **Dependencies**: Core deps include boto3, pandas, requests, requests-aws4auth
+- **Dependencies**: Core deps include pandas, requests
 
 ## Testing
 

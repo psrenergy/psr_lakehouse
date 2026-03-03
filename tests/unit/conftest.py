@@ -12,9 +12,8 @@ def setup_unit_test():
     original_url = os.environ.get("LAKEHOUSE_API_URL")
     os.environ["LAKEHOUSE_API_URL"] = "https://test-api.example.com"
 
-    connector._is_initialized = False
-    connector._base_url = None
-    connector._auth = None
+    connector._is_initialized = True
+    connector._base_url = "https://test-api.example.com"
 
     yield
 

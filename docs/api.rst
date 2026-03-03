@@ -23,9 +23,6 @@ The client is automatically initialized as a singleton. You can configure it usi
    
    initialize(
        base_url="https://api.example.com",
-       aws_access_key_id="your-access-key",
-       aws_secret_access_key="your-secret-key",
-       region="us-east-1",
    )
 
 Or set environment variables before importing:
@@ -33,9 +30,6 @@ Or set environment variables before importing:
 .. code-block:: bash
 
    LAKEHOUSE_API_URL="https://api.example.com"
-   AWS_ACCESS_KEY_ID="your-access-key"
-   AWS_SECRET_ACCESS_KEY="your-secret-key"
-   AWS_DEFAULT_REGION="us-east-1"
 
 Data Fetching Methods
 ----------------------
@@ -452,4 +446,4 @@ The client automatically handles type conversions:
 Connection Management
 ---------------------
 
-The HTTP connector uses lazy initialization - AWS credentials are only validated on the first API request. The singleton pattern ensures connection resources are reused throughout your application lifecycle.
+The HTTP connector validates connectivity during initialization by performing a health check against the API. The singleton pattern ensures connection resources are reused throughout your application lifecycle.
