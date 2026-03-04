@@ -918,7 +918,6 @@ class TestFetchPartialDataOnTimeout:
                 warnings.simplefilter("always")
                 df = psr.lakehouse.client.fetch_dataframe(
                     table_name="ons_energy_load_daily",
-                    indices_columns=["reference_date", "subsystem"],
                     data_columns=["value"],
                 )
 
@@ -936,7 +935,6 @@ class TestFetchPartialDataOnTimeout:
             with pytest.raises(LakehouseError, match="Request timed out"):
                 psr.lakehouse.client.fetch_dataframe(
                     table_name="ons_energy_load_daily",
-                    indices_columns=["reference_date", "subsystem"],
                     data_columns=["value"],
                 )
 
