@@ -4,7 +4,7 @@
 
   <source media="(prefers-color-scheme: light)" srcset="./docs/_static/img/lakehouse_vertical_light.png">
   <source media="(prefers-color-scheme: dark)" srcset="./docs/_static/img/lakehouse_vertical_dark.png">
-  <img height="200" alt="QARBoM.jl logo">
+  <img height="200" alt="Lakehouse logo">
   
 </picture>
 <br>
