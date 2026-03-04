@@ -200,15 +200,14 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="3"><span class="c1"># Fetch CCEE spot price data</span>
 </span><span data-line="4"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
 </span><span data-line="5">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">indices_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
-</span><span data-line="7">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
-</span><span data-line="8">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
-</span><span data-line="9">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
-</span><span data-line="10"><span class="p">)</span>
-</span><span data-line="11"><span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</span><span data-line="6">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">,</span> <span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
+</span><span data-line="7">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
+</span><span data-line="8">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
+</span><span data-line="9"><span class="p">)</span>
+</span><span data-line="10"><span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 </span></pre></div>
 </div>
-<p>The result is a pandas DataFrame with a MultiIndex based on <code class="docutils literal notranslate"><span class="pre">indices_columns</span></code>.</p>
+<p>The result is a pandas DataFrame with the query results.</p>
 </section>
 </section>
 <section id="filtering-data">
@@ -219,12 +218,11 @@ data-aria-dark="Switch to auto color mode">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Filter by subsystem</span>
 </span><span data-line="2"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
 </span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_stored_energy_subsystem&quot;</span><span class="p">,</span>
-</span><span data-line="4">    <span class="n">indices_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
-</span><span data-line="5">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;max_stored_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;verified_stored_energy_percentage&quot;</span><span class="p">],</span>
-</span><span data-line="6">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
-</span><span data-line="7">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
-</span><span data-line="8">    <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;subsystem&quot;</span><span class="p">:</span> <span class="s2">&quot;SOUTHEAST&quot;</span><span class="p">},</span>
-</span><span data-line="9"><span class="p">)</span>
+</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">,</span> <span class="s2">&quot;max_stored_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;verified_stored_energy_percentage&quot;</span><span class="p">],</span>
+</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
+</span><span data-line="7">    <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;subsystem&quot;</span><span class="p">:</span> <span class="s2">&quot;SOUTHEAST&quot;</span><span class="p">},</span>
+</span><span data-line="8"><span class="p">)</span>
 </span></pre></div>
 </div>
 </section>
@@ -233,11 +231,10 @@ data-aria-dark="Switch to auto color mode">
 <p>Use <code class="docutils literal notranslate"><span class="pre">start_reference_date</span></code> and <code class="docutils literal notranslate"><span class="pre">end_reference_date</span></code> to filter data by date:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
 </span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="3">    <span class="n">indices_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">],</span>
-</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
-</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>  <span class="c1"># inclusive</span>
-</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>     <span class="c1"># exclusive</span>
-</span><span data-line="7"><span class="p">)</span>
+</span><span data-line="3">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
+</span><span data-line="4">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>  <span class="c1"># inclusive</span>
+</span><span data-line="5">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>     <span class="c1"># exclusive</span>
+</span><span data-line="6"><span class="p">)</span>
 </span></pre></div>
 </div>
 </section>
@@ -250,13 +247,12 @@ data-aria-dark="Switch to auto color mode">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Group by subsystem and calculate average spot price</span>
 </span><span data-line="2"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
 </span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="4">    <span class="n">indices_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
-</span><span data-line="5">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
-</span><span data-line="6">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
-</span><span data-line="7">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>
-</span><span data-line="8">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
-</span><span data-line="9">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span>
-</span><span data-line="10"><span class="p">)</span>
+</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
+</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>
+</span><span data-line="7">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
+</span><span data-line="8">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span>
+</span><span data-line="9"><span class="p">)</span>
 </span></pre></div>
 </div>
 <p>Available aggregation methods:</p>
