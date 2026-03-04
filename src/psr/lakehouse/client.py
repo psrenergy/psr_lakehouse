@@ -1,5 +1,6 @@
 import re
 import warnings
+from datetime import datetime, timedelta
 
 import pandas as pd
 
@@ -51,11 +52,12 @@ class Client:
             )
 
         if end_reference_date:
+            next_day = datetime.strptime(end_reference_date, "%Y-%m-%d") + timedelta(days=1)
             query_filters.append(
                 {
                     "column": f"{model_name}.reference_date",
-                    "value": end_reference_date,
-                    "operator": "<=",
+                    "value": next_day.strftime("%Y-%m-%d"),
+                    "operator": "<",
                 }
             )
 
