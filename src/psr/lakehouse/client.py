@@ -1,4 +1,5 @@
 import re
+import warnings
 
 import pandas as pd
 
@@ -110,12 +111,21 @@ class Client:
         page = 1
 
         while True:
-            response = connector.post(
-                "/query/",
-                json_body,
-                params={"page": page, "page_size": page_size},
-                timeout=timeout,
-            )
+            try:
+                response = connector.post(
+                    "/query/",
+                    json_body,
+                    params={"page": page, "page_size": page_size},
+                    timeout=timeout,
+                )
+            except LakehouseError:
+                if all_data:
+                    warnings.warn(
+                        f"Request failed on page {page}. Returning partial data ({page - 1} page(s) fetched).",
+                        stacklevel=2,
+                    )
+                    break
+                raise
             all_data.extend(response["data"])
 
             if not response["pagination"]["has_next"]:
