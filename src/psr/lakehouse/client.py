@@ -137,7 +137,6 @@ class Client:
     def fetch_dataframe(
         self,
         table_name: str,
-        indices_columns: list[str] | None = None,
         data_columns: list[str] | None = None,
         filters: dict | None = None,
         start_reference_date: str | None = None,
@@ -156,8 +155,7 @@ class Client:
 
         Args:
             table_name: Name of the table to query (e.g., "ccee_spot_price")
-            indices_columns: Optional columns to use as DataFrame index. If not provided, DataFrame will use default integer index.
-            data_columns: Optional data columns to fetch. If not provided along with indices_columns, all columns will be fetched.
+            data_columns: Optional columns to fetch. If not provided, all columns will be fetched.
             filters: Optional dict of column: value filters (equality)
             start_reference_date: Optional start date filter (inclusive)
             end_reference_date: Optional end date filter (exclusive)
@@ -166,10 +164,9 @@ class Client:
             order_by: Optional list of dicts with "column" and "direction" keys for ordering results (e.g., [{"column": "reference_date", "direction": "desc"}])
             aggregation_method: Aggregation method (sum, avg, min, max) - required if group_by is set
             joins: Optional list of dicts with "table", "on", and "type" keys for joining other tables
-            output_timezone: Timezone for datetime output (default: "America/Sao_Paulo
+            output_timezone: Timezone for datetime output (default: "America/Sao_Paulo")
             page_size: Number of records per page for API pagination (default: 1000)
             timeout: Timeout in seconds for API requests (default: 600)
-
 
         Returns:
             pandas DataFrame with the query results
@@ -186,13 +183,11 @@ class Client:
         # Convert table name to model name
         model_name = get_model_name(table_name)
 
-        final_indices = group_by if group_by else indices_columns
-
         # Combine all columns, ensuring no duplicates
-        if final_indices and data_columns:
-            all_columns = list(dict.fromkeys(final_indices + data_columns))
-        elif final_indices:
-            all_columns = final_indices
+        if group_by and data_columns:
+            all_columns = list(dict.fromkeys(group_by + data_columns))
+        elif group_by:
+            all_columns = group_by
         elif data_columns:
             all_columns = data_columns
         else:
@@ -240,16 +235,9 @@ class Client:
         data = self._fetch_all_pages(json_body, page_size=page_size, timeout=timeout)
         df = pd.DataFrame(data)
 
-        if df.empty:
-            return df
-
-        # Convert datetime columns
-        if "reference_date" in df.columns:
-            df["reference_date"] = pd.to_datetime(df["reference_date"])
-
-        # Set index if reference_date exists
-        if "reference_date" in df.columns:
-            df = df.set_index("reference_date")
+        date_cols = [col for col in df.columns if col.endswith("reference_date")]
+        if date_cols:
+            df[date_cols] = df[date_cols].apply(pd.to_datetime)
 
         return df
 
