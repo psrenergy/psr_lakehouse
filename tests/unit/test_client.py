@@ -1,3 +1,5 @@
+import warnings
+
 import pandas as pd
 import pytest
 import responses
@@ -838,6 +840,65 @@ class TestFetchDataframe:
             f["column"] == "ONSEnergyLoadDaily.reference_date" and f["operator"] == "<=" and f["value"] == "2025-01-31"
             for f in request_body["query_filters"]
         )
+
+
+class TestFetchPartialDataOnTimeout:
+    def test_timeout_on_page_2_returns_partial_data_with_warning(self):
+        """Test that a timeout on page 2 returns data from page 1 with a warning."""
+        from unittest.mock import patch
+
+        page1_response = {
+            "data": [
+                {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "value": 1},
+            ],
+            "pagination": {
+                "page": 1,
+                "page_size": 1,
+                "total_count": 3,
+                "total_pages": 3,
+                "has_next": True,
+                "has_prev": False,
+            },
+            "query_info": {
+                "sql": "SELECT ...",
+                "columns_selected": 3,
+                "has_filters": False,
+                "has_joins": False,
+                "has_group_by": False,
+            },
+        }
+
+        def mock_post(url, json_body, params=None, timeout=None):
+            if params and params.get("page") == 1:
+                return page1_response
+            raise LakehouseError("Request timed out")
+
+        with patch.object(psr.lakehouse.connector, "post", side_effect=mock_post):
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                df = psr.lakehouse.client.fetch_dataframe(
+                    table_name="ons_energy_load_daily",
+                    indices_columns=["reference_date", "subsystem"],
+                    data_columns=["value"],
+                )
+
+                assert len(df) == 1
+                assert df.iloc[0]["value"] == 1
+                assert len(w) == 1
+                assert "page 2" in str(w[0].message)
+                assert "1 page(s) fetched" in str(w[0].message)
+
+    def test_timeout_on_page_1_raises_error(self):
+        """Test that a timeout on the first page still raises LakehouseError."""
+        from unittest.mock import patch
+
+        with patch.object(psr.lakehouse.connector, "post", side_effect=LakehouseError("Request timed out")):
+            with pytest.raises(LakehouseError, match="Request timed out"):
+                psr.lakehouse.client.fetch_dataframe(
+                    table_name="ons_energy_load_daily",
+                    indices_columns=["reference_date", "subsystem"],
+                    data_columns=["value"],
+                )
 
 
 class TestSchemaEndpoints:
