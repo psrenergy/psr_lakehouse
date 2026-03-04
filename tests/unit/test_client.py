@@ -745,7 +745,7 @@ class TestFetchDataframe:
         date_filters = [f for f in request_body["query_filters"] if "reference_date" in f["column"]]
         assert len(date_filters) == 2
         assert any(f["operator"] == ">=" and f["value"] == "2025-01-01" for f in date_filters)
-        assert any(f["operator"] == "<=" and f["value"] == "2025-01-31" for f in date_filters)
+        assert any(f["operator"] == "<" and f["value"] == "2025-02-01" for f in date_filters)
 
     @responses.activate
     def test_fetch_dataframe_from_query_with_joins(self):
