@@ -2,9 +2,9 @@
 
 <picture>
 
-  <source media="(prefers-color-scheme: light)" srcset="./docs/_static/img/lakehouse_vertical_light.png">
-  <source media="(prefers-color-scheme: dark)" srcset="./docs/_static/img/lakehouse_vertical_dark.png">
-  <img height="200" alt="Lakehouse logo">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/psrenergy/psr_lakehouse/master/docs/_static/img/lakehouse_vertical_light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/psrenergy/psr_lakehouse/master/docs/_static/img/lakehouse_vertical_dark.png">
+  <img height="200" alt="Lakehouse logo" src="https://raw.githubusercontent.com/psrenergy/psr_lakehouse/master/docs/_static/img/lakehouse_vertical_light.png">
   
 </picture>
 <br>
