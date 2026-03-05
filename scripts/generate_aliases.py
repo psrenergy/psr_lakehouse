@@ -33,10 +33,8 @@ def generate_method(table_name: str, schema: dict) -> str:
 
 
 def generate_register_function(method_names: list[str]) -> str:
-    """Generate the register_aliases() function."""
     lines = [
         "def register_aliases():",
-        '    """Attach all table alias methods to the Client class."""',
         "    from psr.lakehouse.client import Client",
         "",
     ]
