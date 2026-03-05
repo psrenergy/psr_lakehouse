@@ -10,8 +10,8 @@ test:
 
 generate-aliases:
 	uv run python scripts/generate_aliases.py
-	uv run ruff check src/psr/lakehouse/alias.py --fix
-	uv run ruff format src/psr/lakehouse/alias.py
+	uv run ruff check src/psr/lakehouse/aliases.py --fix
+	uv run ruff format src/psr/lakehouse/aliases.py
 
 publish:
 	uv sync

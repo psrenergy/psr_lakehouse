@@ -1,4 +1,4 @@
-"""Auto-generated table alias methods for the PSR Lakehouse Client.
+"""Auto-generated table aliases methods for the PSR Lakehouse Client.
 
 DO NOT EDIT — regenerate with: make generate-aliases
 """

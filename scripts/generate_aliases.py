@@ -10,7 +10,7 @@ from psr.lakehouse import client
 
 dotenv.load_dotenv()
 
-OUTPUT_PATH = Path(__file__).resolve().parent.parent / "src" / "psr" / "lakehouse" / "alias.py"
+OUTPUT_PATH = Path(__file__).resolve().parent.parent / "src" / "psr" / "lakehouse" / "aliases.py"
 
 INTERNAL_COLUMNS = {"id", "updated_at", "deleted_at"}
 
@@ -67,7 +67,7 @@ def main():
 
     # Assemble output file
     header = textwrap.dedent("""\
-    \"\"\"Auto-generated table alias methods for the PSR Lakehouse Client.
+    \"\"\"Auto-generated table aliases methods for the PSR Lakehouse Client.
 
     DO NOT EDIT — regenerate with: make generate-aliases
     \"\"\"
@@ -82,7 +82,7 @@ def main():
     output += "\n" + generate_register_function(method_names)
 
     OUTPUT_PATH.write_text(output, encoding="utf-8")
-    print(f"\nGenerated {len(method_names)} alias methods -> {OUTPUT_PATH}")
+    print(f"\nGenerated {len(method_names)} aliases methods -> {OUTPUT_PATH}")
 
 
 if __name__ == "__main__":
