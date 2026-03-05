@@ -50,26 +50,34 @@ def format_column_doc(col_name: str, col_info: dict) -> str:
     return "".join(parts)
 
 
+INTERNAL_COLUMNS = {"id", "updated_at", "deleted_at"}
+
+
 def generate_method(table_name: str, schema: dict) -> str:
     """Generate source code for a single alias method."""
+    # Collect user-facing columns (exclude internal fields)
+    columns = [col for col in schema if col not in INTERNAL_COLUMNS]
+
     # Build column documentation
     column_lines = []
-    for col_name, col_info in schema.items():
-        if col_name in ("id", "updated_at", "deleted_at"):
-            continue
-        column_lines.append(format_column_doc(col_name, col_info))
+    for col_name in columns:
+        column_lines.append(format_column_doc(col_name, schema[col_name]))
     columns_doc = "\n".join(f"        {line}" for line in column_lines)
+
+    # Format the columns list for the generated source
+    columns_repr = repr(columns)
 
     method = textwrap.dedent(f"""\
     def {table_name}(self, **kwargs) -> "pd.DataFrame":
         \"\"\"Fetch data from the **{table_name}** table.
 
         Accepts the same keyword arguments as ``fetch_dataframe``
-        (e.g. data_columns, filters, start_reference_date, …).
+        (e.g. filters, start_reference_date, end_reference_date, …).
 
         Available columns:
 {columns_doc}
         \"\"\"
+        kwargs.setdefault("data_columns", {columns_repr})
         return self.fetch_dataframe(table_name="{table_name}", **kwargs)
     """)
     return method
