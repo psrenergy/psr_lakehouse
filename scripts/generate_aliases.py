@@ -14,6 +14,8 @@ OUTPUT_PATH = Path(__file__).resolve().parent.parent / "src" / "psr" / "lakehous
 
 INTERNAL_COLUMNS = {"id", "updated_at", "deleted_at"}
 
+SKIP_TABLES = {"ceg", "ceg_data", "generator", "generator_generator_unit", "generator_unit"}
+
 
 def to_snake(s: str) -> str:
     s = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", s)
@@ -52,8 +54,12 @@ def main():
     method_names = []
 
     for model_name in model_names:
-        table_name = to_snake(model_name)
         schema = client.get_schema(model_name)
+
+        table_name = to_snake(model_name)
+        if table_name in SKIP_TABLES:
+            print(f"  Skipping {table_name}")
+            continue
 
         print(f"  {table_name} ({len(schema)} columns)")
         methods.append(generate_method(table_name, schema))
