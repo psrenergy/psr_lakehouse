@@ -15,7 +15,7 @@ def aneel_distributed_generation_projects(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **aneel_distributed_generation_projects** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **aneel_upload_date** *string (date)* — Date when the dataset was generated (DatGeracaoConjuntoDados)
@@ -52,6 +52,44 @@ def aneel_distributed_generation_projects(self, **kwargs) -> "pd.DataFrame":
     - **modality_type** *enum* — Simplified categorization of project modality (DscModalidadeHabilitado) ['LOCAL', 'REMOTE_SELF_CONSUMPTION', 'SHARED_GENERATION']
     - **average_capacity_per_credit_unit_kw** *number* — Average installed capacity per credit-receiving unit (installed_capacity_kw / credit_receiving_units_count)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "aneel_upload_date",
+            "aneel_upload_period",
+            "distributor_cnpj",
+            "distributor_code",
+            "distributor_name",
+            "consumer_class_code",
+            "consumer_class_description",
+            "tariff_subgroup",
+            "state_ibge_code",
+            "state_code",
+            "region_code",
+            "region",
+            "municipality_ibge_code",
+            "municipality_name",
+            "postal_code",
+            "consumer_type",
+            "owner_cpf_cnpj",
+            "owner_name",
+            "project_code",
+            "project_updated_at",
+            "project_modality_description",
+            "credit_receiving_units_count",
+            "generation_type_code",
+            "generation_source_description",
+            "project_type",
+            "installed_capacity_kw",
+            "project_latitude",
+            "project_longitude",
+            "substation_name",
+            "substation_longitude",
+            "substation_latitude",
+            "modality_type",
+            "average_capacity_per_credit_unit_kw",
+        ],
+    )
     return self.fetch_dataframe(table_name="aneel_distributed_generation_projects", **kwargs)
 
 
@@ -59,13 +97,14 @@ def ccee_spot_price(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ccee_spot_price** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **spot_price** *number* — Spot price in R$/MWh
     - **reference_date** *string (date-time)* — Timestamp of the spot price
     - **subsystem** *enum* — Subsystem of the spot price ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
     """
+    kwargs.setdefault("data_columns", ["spot_price", "reference_date", "subsystem"])
     return self.fetch_dataframe(table_name="ccee_spot_price", **kwargs)
 
 
@@ -73,13 +112,14 @@ def ccee_spot_price_average_monthly(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ccee_spot_price_average_monthly** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **average_spot_price** *number* — Average spot price in R$/MWh
     - **reference_date** *string (date)* — Reference month of the average spot price
     - **subsystem** *enum* — Subsystem of the average spot price ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
     """
+    kwargs.setdefault("data_columns", ["average_spot_price", "reference_date", "subsystem"])
     return self.fetch_dataframe(table_name="ccee_spot_price_average_monthly", **kwargs)
 
 
@@ -87,7 +127,7 @@ def ccee_spot_price_historical_weekly(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ccee_spot_price_historical_weekly** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **spot_price** *number* — Spot price in R$/MWh (PLD_HORA)
@@ -95,63 +135,15 @@ def ccee_spot_price_historical_weekly(self, **kwargs) -> "pd.DataFrame":
     - **subsystem** *enum* — Subsystem of the spot price (submercado) ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
     - **load_block** *enum* — Load block of the spot price (bloco de carga) ['Off-Peak', 'Intermediate', 'Peak']
     """
+    kwargs.setdefault("data_columns", ["spot_price", "reference_date", "subsystem", "load_block"])
     return self.fetch_dataframe(table_name="ccee_spot_price_historical_weekly", **kwargs)
-
-
-def c_e_g(self, **kwargs) -> "pd.DataFrame":
-    """Fetch data from the **c_e_g** table.
-
-    Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
-
-    Available columns:
-    - **value** *string* — CEG value
-    """
-    return self.fetch_dataframe(table_name="c_e_g", **kwargs)
-
-
-def c_e_g_data(self, **kwargs) -> "pd.DataFrame":
-    """Fetch data from the **c_e_g_data** table.
-
-    Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
-
-    Available columns:
-    - **ceg_id** *integer* — Foreign key to the ONS CEG
-    - **state_code** *enum* — State ID of the CEG (id_estado) ['AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR', 'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO']
-    - **technology** *string* — Technology of the CEG (nom_tecnologia)
-    - **fuel_type** *string* — Fuel type of the CEG (nom_combustivel)
-    - **version** *integer* — Version of the CEG record
-    - **source** *string* — Source of the CEG data
-    """
-    return self.fetch_dataframe(table_name="c_e_g_data", **kwargs)
-
-
-def e_p_e_energy_consumption_monthly(self, **kwargs) -> "pd.DataFrame":
-    """Fetch data from the **e_p_e_energy_consumption_monthly** table.
-
-    Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
-
-    Available columns:
-    - **reference_date** *string (date)* — Reference date of the consumption record (Data)
-    - **state_code** *enum* — Brazilian state code (UF) ['AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR', 'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO']
-    - **region** *enum* — Geographic region of Brazil (Regiao) ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'CENTRO-OESTE']
-    - **subsystem** *enum* — Subsystem or Isolated Systems (Sistema) ['SISTEMAS ISOLADOS', 'SUDESTE / CENTRO - OESTE', 'NORDESTE', 'NORTE INTERLIGADO', 'SUL']
-    - **consumer_class** *enum* — Consumer class (Classe) ['Residencial', 'Industrial', 'Comercial', 'Rural', 'Outros']
-    - **consumer_type** *enum* — Consumer type: Captive or Free (TipoConsumidor) ['Cativo', 'Livre']
-    - **consumption_mwh** *number* — Energy consumption in MWh (Consumo)
-    - **consumers** *integer* — Number of consumer units (Consumidores)
-    - **data_version_date** *string* — Data version/update date (DataVersao)
-    """
-    return self.fetch_dataframe(table_name="e_p_e_energy_consumption_monthly", **kwargs)
 
 
 def generator_generator_unit(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **generator_generator_unit** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **generator_id** *integer* — Foreign key to the ONS Generator Set
@@ -159,6 +151,7 @@ def generator_generator_unit(self, **kwargs) -> "pd.DataFrame":
     - **relation_start_date** *string* — Start date of the relation between generator set and generator_unit
     - **relation_end_date** *string* — End date of the relation between generator set and generator_unit
     """
+    kwargs.setdefault("data_columns", ["generator_id", "unit_id", "relation_start_date", "relation_end_date"])
     return self.fetch_dataframe(table_name="generator_generator_unit", **kwargs)
 
 
@@ -166,13 +159,14 @@ def generator_unit(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **generator_unit** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **ons_id** *string* — ONS identifier of the generator unit (id_usina)
     - **equipment_code** *string* — Equipment code of the generator set (cod_equipamento)
     - **ceg_id** *integer* — Foreign key to the ONS CEG
     """
+    kwargs.setdefault("data_columns", ["ons_id", "equipment_code", "ceg_id"])
     return self.fetch_dataframe(table_name="generator_unit", **kwargs)
 
 
@@ -180,7 +174,7 @@ def ons_commercial_generation_international_export(self, **kwargs) -> "pd.DataFr
     """Fetch data from the **ons_commercial_generation_international_export** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Reference date for the data (din_instante).
@@ -190,6 +184,17 @@ def ons_commercial_generation_international_export(self, **kwargs) -> "pd.DataFr
     - **export_uruguay_total** *number* — Total export to Uruguay at conversors Rivero and Melo in MWavg (val_exportacao_uy)
     - **export_thermal** *number* — Thermal generation export in MWavg (val_gerexptermica)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "export_argentina_hydro",
+            "export_argentina_total",
+            "export_uruguay_hydro",
+            "export_uruguay_total",
+            "export_thermal",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_commercial_generation_international_export", **kwargs)
 
 
@@ -197,7 +202,7 @@ def ons_controlled_power_flow_program_daily(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_controlled_power_flow_program_daily** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **subsystem** *enum* — Subsystem (nom_subsistema) ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'RORAIMA']
@@ -208,6 +213,10 @@ def ons_controlled_power_flow_program_daily(self, **kwargs) -> "pd.DataFrame":
     - **terminal_type** *integer* — Type of terminal (tip_terminal)
     - **load_value** *number* — Scheduled load value in MWavg (val_carga)
     """
+    kwargs.setdefault(
+        "data_columns",
+        ["subsystem", "reference_date", "level", "element_name", "element_description", "terminal_type", "load_value"],
+    )
     return self.fetch_dataframe(table_name="ons_controlled_power_flow_program_daily", **kwargs)
 
 
@@ -215,7 +224,7 @@ def ons_energy_balance_subsystem(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_energy_balance_subsystem** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **subsystem** *enum* — Subsystem (nom_subsistema) ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
@@ -227,6 +236,19 @@ def ons_energy_balance_subsystem(self, **kwargs) -> "pd.DataFrame":
     - **load** *number* — Verified load in MWavg (val_carga)
     - **net_interchange** *number* — Verified net interchange in MWavg (val_intercambio)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "subsystem",
+            "reference_date",
+            "generation_hydraulic",
+            "generation_thermal",
+            "generation_wind",
+            "generation_solar",
+            "load",
+            "net_interchange",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_energy_balance_subsystem", **kwargs)
 
 
@@ -234,7 +256,7 @@ def ons_energy_import_commercial_block(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_energy_import_commercial_block** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Reference timestamp for the energy import (din_instante).
@@ -246,6 +268,19 @@ def ons_energy_import_commercial_block(self, **kwargs) -> "pd.DataFrame":
     - **verified_import** *number* — Verified energy import in MWh (val_importacaoverificada).
     - **price** *number* — Price of the imported energy in R$/MWh (val_preco).
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "origin_country",
+            "agent_name",
+            "block_name",
+            "programmed_import",
+            "dispatched_import",
+            "verified_import",
+            "price",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_energy_import_commercial_block", **kwargs)
 
 
@@ -253,7 +288,7 @@ def ons_energy_import_price_bids(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_energy_import_price_bids** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **start_date** *string (date-time)* — Start date for the data (dat_iniciovalidade).
@@ -263,6 +298,7 @@ def ons_energy_import_price_bids(self, **kwargs) -> "pd.DataFrame":
     - **block_name** *string* — Block name (nom_bloco).
     - **price** *number* — Price of the energy in R$/MWh (val_preco).
     """
+    kwargs.setdefault("data_columns", ["start_date", "end_date", "origin_country", "agent_name", "block_name", "price"])
     return self.fetch_dataframe(table_name="ons_energy_import_price_bids", **kwargs)
 
 
@@ -270,13 +306,14 @@ def ons_energy_load_daily(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_energy_load_daily** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date)* — Date of the energy load record
     - **subsystem** *enum* — Subsystem of the stored energy ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
     - **energy_load** *number* — Daily energy load in the subsystem in MWavg (val_cargaenergiamwmed)
     """
+    kwargs.setdefault("data_columns", ["reference_date", "subsystem", "energy_load"])
     return self.fetch_dataframe(table_name="ons_energy_load_daily", **kwargs)
 
 
@@ -284,13 +321,14 @@ def ons_energy_load_monthly(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_energy_load_monthly** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date)* — Date of the energy load record
     - **subsystem** *enum* — Subsystem of the stored energy ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
     - **energy_load** *number* — Monthly energy load in the subsystem in MWavg (val_cargaenergiamwmed)
     """
+    kwargs.setdefault("data_columns", ["reference_date", "subsystem", "energy_load"])
     return self.fetch_dataframe(table_name="ons_energy_load_monthly", **kwargs)
 
 
@@ -298,7 +336,7 @@ def ons_energy_load_verified(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_energy_load_verified** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **load_area_code** *enum* — Load area code (cod_areacarga) ['SECO', 'S', 'NE', 'N', 'PESE', 'PES', 'PENE', 'PEN', 'RJ', 'SP', 'MG', 'ES', 'MT', 'MS', 'DF', 'GO', 'AC', 'RO', 'PR', 'SC', 'RS', 'BASE', 'BAOE', 'ALPE', 'PBRN', 'CE', 'PI', 'TON', 'PA', 'MA', 'AP', 'AM', 'RR']
@@ -312,6 +350,21 @@ def ons_energy_load_verified(self, **kwargs) -> "pd.DataFrame":
     - **supervised_load** *number* — Load supervised by ONS (generation type I, IIA, IIB, IIC and interchanges) in MWmed integrated at the end of the half-hour interval (val_cargasupervisionada)
     - **unsupervised_load** *number* — Load not supervised by ONS, from CCEE billing measurement system (generation type III) in MWmed integrated at the end of the half-hour interval (val_carganaosupervisionada)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "load_area_code",
+            "date_of_reference",
+            "reference_date",
+            "global_load",
+            "global_load_net_mmgd",
+            "mmgd_load",
+            "global_load_consistent",
+            "consistency_value",
+            "supervised_load",
+            "unsupervised_load",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_energy_load_verified", **kwargs)
 
 
@@ -319,13 +372,14 @@ def ons_exchange_international(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_exchange_international** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **destination_country** *enum* — Destination country of energy exchange (nom_paisdestino) ['ARGENTINA', 'URUGUAI']
     - **reference_date** *string (date-time)* — Reference date and time of the energy exchange measurement (din_instante)
     - **exchange** *number* — Verified exchange in hourly basis in MWavg (val_intercambiomwmed). Positive values indicate export, negative values indicate import
     """
+    kwargs.setdefault("data_columns", ["destination_country", "reference_date", "exchange"])
     return self.fetch_dataframe(table_name="ons_exchange_international", **kwargs)
 
 
@@ -333,7 +387,7 @@ def ons_exchange_modality(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_exchange_modality** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **converter** *string* — Converter name (nom_conversora).
@@ -344,6 +398,18 @@ def ons_exchange_modality(self, **kwargs) -> "pd.DataFrame":
     - **val_test** *number* — Value of exported energy in test modality in MWmed (val_modalidadeteste).
     - **val_exceptional** *number* — Value of exported energy in exceptional modality in MWmed (val_modalidadeexcepcional).
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "converter",
+            "reference_date",
+            "val_contract",
+            "val_emergency",
+            "val_opportunity",
+            "val_test",
+            "val_exceptional",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_exchange_modality", **kwargs)
 
 
@@ -351,7 +417,7 @@ def ons_exchange_subsystem(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_exchange_subsystem** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **subsystem_from** *enum* — Subsystem from (nom_subsistema_origem) ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
@@ -359,6 +425,7 @@ def ons_exchange_subsystem(self, **kwargs) -> "pd.DataFrame":
     - **reference_date** *string (date-time)* — Reference date and time of the energy exchange measurement (din_instante)
     - **exchange** *number* — Verified exchange in hourly basis in MWmed (val_intercambiomwmed). Positive values indicate export, negative values indicate import
     """
+    kwargs.setdefault("data_columns", ["subsystem_from", "subsystem_to", "reference_date", "exchange"])
     return self.fetch_dataframe(table_name="ons_exchange_subsystem", **kwargs)
 
 
@@ -366,7 +433,7 @@ def ons_generator_data(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_generator_data** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **generator_id** *integer* — Foreign key to the ONS Generator Set
@@ -381,6 +448,22 @@ def ons_generator_data(self, **kwargs) -> "pd.DataFrame":
     - **plant_type** *enum* — Type of the plant (nom_tipousina) ['HIDROELÉTRICA', 'TÉRMICA', 'EOLIELÉTRICA', 'FOTOVOLTAICA', 'NUCLEAR', 'BOMBEAMENTO']
     - **fuel_type** *string* — Fuel type of the generator set (nom_combustivel)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "generator_id",
+            "ons_set_id",
+            "plant_set_id",
+            "name",
+            "state_code",
+            "subsystem",
+            "operation_mode",
+            "proprietary_agent",
+            "operator_agent",
+            "plant_type",
+            "fuel_type",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_generator_data", **kwargs)
 
 
@@ -388,7 +471,7 @@ def ons_generator_unit_data(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_generator_unit_data** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **name** *string* — Name of the generator unit (nom_usina)
@@ -405,6 +488,24 @@ def ons_generator_unit_data(self, **kwargs) -> "pd.DataFrame":
     - **nominal_capacity** *number* — Nominal capacity of the generator set in MW (val_potenciaefetiva)
     - **is_active** *boolean* — Indicates if the generator unit is currently active on ONS records
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "name",
+            "unit_id",
+            "aneel_status",
+            "operation_center_code",
+            "authorized_capacity",
+            "connection_point",
+            "generator_unit_name",
+            "generator_unit_number",
+            "commissioning_date",
+            "operation_date",
+            "decommissioning_date",
+            "nominal_capacity",
+            "is_active",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_generator_unit_data", **kwargs)
 
 
@@ -412,7 +513,7 @@ def ons_hydrological_reservoir_data_daily(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_hydrological_reservoir_data_daily** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Reference date for the data (din_instante).
@@ -440,6 +541,35 @@ def ons_hydrological_reservoir_data_daily(self, **kwargs) -> "pd.DataFrame":
     - **flow_rate_consumptive_use** *number* — Consumptive use flow rate (m3/s) (val_vazaousoconsuntivo)
     - **flow_rate_gross_incremental** *number* — Gross incremental flow rate (m3/s) (val_vazaoincrementalbruta)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "subsystem",
+            "reservoir_type",
+            "basin_name",
+            "equivalent_reservoir_name",
+            "reservoir_id",
+            "reservoir_name",
+            "reservoir_cascade_order",
+            "plant_code",
+            "upstream_level",
+            "downstream_level",
+            "usable_storage_volume_percentage",
+            "inflow_rate",
+            "flow_rate_turbined",
+            "flow_rate_spilled",
+            "flow_rate_other_structures",
+            "total_outflow_rate",
+            "flow_rate_transferred",
+            "flow_rate_natural",
+            "flow_rate_artificial",
+            "flow_rate_incremental",
+            "flow_rate_net_evaporation",
+            "flow_rate_consumptive_use",
+            "flow_rate_gross_incremental",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_hydrological_reservoir_data_daily", **kwargs)
 
 
@@ -447,7 +577,7 @@ def ons_hydrological_reservoir_data_hourly(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_hydrological_reservoir_data_hourly** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Reference date for the data (din_instante).
@@ -468,6 +598,28 @@ def ons_hydrological_reservoir_data_hourly(self, **kwargs) -> "pd.DataFrame":
     - **flow_rate_transferred** *number* — Transferred flow rate to and from another reservoir (m3/s) (val_vazaotransferida)
     - **flow_rate_non_turbinable_spill** *number* — Non-turbinable spill flow rate (m3/s) (val_vazaovertidanaoturbinavel)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "subsystem",
+            "reservoir_type",
+            "basin_name",
+            "reservoir_id",
+            "reservoir_name",
+            "plant_code",
+            "upstream_level",
+            "downstream_level",
+            "usable_storage_volume_percentage",
+            "inflow_rate",
+            "flow_rate_turbined",
+            "flow_rate_spilled",
+            "flow_rate_other_structures",
+            "total_outflow_rate",
+            "flow_rate_transferred",
+            "flow_rate_non_turbinable_spill",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_hydrological_reservoir_data_hourly", **kwargs)
 
 
@@ -475,7 +627,7 @@ def ons_inflow_energy_basin(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_inflow_energy_basin** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **basin_name** *string* — Name of the basin (nom_bacia)
@@ -485,6 +637,17 @@ def ons_inflow_energy_basin(self, **kwargs) -> "pd.DataFrame":
     - **storable_inflow_energy_mwavg** *number* — Storable inflow energy in MWavg (ena_armazenavel_bacia_mwmed)
     - **storable_inflow_energy_percentage_mlt** *number* — Storable inflow energy as percentage of Long-term Average (MLT) (ena_armazenavel_bacia_percentualmlt)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "basin_name",
+            "reference_date",
+            "gross_inflow_energy_mwavg",
+            "gross_inflow_energy_percentage_mlt",
+            "storable_inflow_energy_mwavg",
+            "storable_inflow_energy_percentage_mlt",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_inflow_energy_basin", **kwargs)
 
 
@@ -492,7 +655,7 @@ def ons_inflow_energy_equivalent_reservoir(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_inflow_energy_equivalent_reservoir** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **ree_name** *string* — Name of the REE (Equivalent Energy Reservoir) (nom_reservatorioee)
@@ -502,6 +665,17 @@ def ons_inflow_energy_equivalent_reservoir(self, **kwargs) -> "pd.DataFrame":
     - **storable_inflow_energy_mwavg** *number* — Storable inflow energy in average MW (ena_armazenavel_ree_mwmed)
     - **storable_inflow_energy_percentage_mlt** *number* — Storable inflow energy as percentage of Long-term average (MLT) (ena_armazenavel_ree_percentualmlt)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "ree_name",
+            "reference_date",
+            "gross_inflow_energy_mwavg",
+            "gross_inflow_energy_percentage_mlt",
+            "storable_inflow_energy_mwavg",
+            "storable_inflow_energy_percentage_mlt",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_inflow_energy_equivalent_reservoir", **kwargs)
 
 
@@ -509,7 +683,7 @@ def ons_inflow_energy_reservoir(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_inflow_energy_reservoir** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reservoir_name** *string* — Name of the reservoir (nom_reservatorio)
@@ -526,6 +700,24 @@ def ons_inflow_energy_reservoir(self, **kwargs) -> "pd.DataFrame":
     - **gross_head** *number* — Gross inflow energy by head (ena_queda_bruta)
     - **mlt_inflow_energy** *number* — Long-term average(MLT) inflow energy (mlt_ena)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reservoir_name",
+            "planning_code",
+            "reservoir_type",
+            "basin_name",
+            "equivalent_reservoir",
+            "subsystem",
+            "reference_date",
+            "gross_inflow_energy_mwavg",
+            "gross_inflow_energy_percentage_mlt",
+            "storable_inflow_energy_mwavg",
+            "storable_inflow_energy_percentage_mlt",
+            "gross_head",
+            "mlt_inflow_energy",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_inflow_energy_reservoir", **kwargs)
 
 
@@ -533,7 +725,7 @@ def ons_inflow_energy_subsystem(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_inflow_energy_subsystem** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **subsystem** *enum* — Subsystem (nom_subsistema) ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
@@ -543,6 +735,17 @@ def ons_inflow_energy_subsystem(self, **kwargs) -> "pd.DataFrame":
     - **storable_inflow_energy_mwavg** *number* — Storable inflow energy in average MW (ena_armazenavel_regiao_mwmed)
     - **storable_inflow_energy_percentage_mlt** *number* — Storable inflow energy as percentage of MLT (ena_armazenavel_regiao_percentualmlt)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "subsystem",
+            "reference_date",
+            "gross_inflow_energy_mwavg",
+            "gross_inflow_energy_percentage_mlt",
+            "storable_inflow_energy_mwavg",
+            "storable_inflow_energy_percentage_mlt",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_inflow_energy_subsystem", **kwargs)
 
 
@@ -550,13 +753,14 @@ def ons_load_curve(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_load_curve** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **subsystem** *enum* — Subsystem (nom_subsistema) ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
     - **reference_date** *string (date-time)* — Reference date (din_instante)
     - **energy_load** *number* — Energy load in MWavg (val_cargaenergiahomwmed)
     """
+    kwargs.setdefault("data_columns", ["subsystem", "reference_date", "energy_load"])
     return self.fetch_dataframe(table_name="ons_load_curve", **kwargs)
 
 
@@ -564,13 +768,14 @@ def ons_load_marginal_cost_semi_hourly(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_load_marginal_cost_semi_hourly** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **subsystem** *enum* — Subsystem (nom_subsistema) ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
     - **reference_date** *string (date-time)* — Reference date (din_instante)
     - **marginal_cost** *number* — Load marginal cost (CMO) in R$/MWh (val_cmo)
     """
+    kwargs.setdefault("data_columns", ["subsystem", "reference_date", "marginal_cost"])
     return self.fetch_dataframe(table_name="ons_load_marginal_cost_semi_hourly", **kwargs)
 
 
@@ -578,7 +783,7 @@ def ons_load_marginal_cost_weekly(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_load_marginal_cost_weekly** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **average** *number* — Average load marginal cost in the subsystem in R$/MW
@@ -588,6 +793,10 @@ def ons_load_marginal_cost_weekly(self, **kwargs) -> "pd.DataFrame":
     - **reference_date** *string (date)* — Timestamp of the stored energy
     - **subsystem** *enum* — Subsystem of the stored energy ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
     """
+    kwargs.setdefault(
+        "data_columns",
+        ["average", "light_load_segment", "medium_load_segment", "heavy_load_segment", "reference_date", "subsystem"],
+    )
     return self.fetch_dataframe(table_name="ons_load_marginal_cost_weekly", **kwargs)
 
 
@@ -595,7 +804,7 @@ def ons_power_plant_availability(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_power_plant_availability** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Timestamp of the stored energy
@@ -610,6 +819,22 @@ def ons_power_plant_availability(self, **kwargs) -> "pd.DataFrame":
     - **operational_availability** *number* — Operational availability of the plant, in MW (val_dispoperacional)
     - **synchronized_availability** *number* — Operational availability of the plant, considering only generating units synchronized to the National Integrated System (SIN), in MW (val_dispsincronizada)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "subsystem",
+            "state_code",
+            "plant_type",
+            "fuel_type",
+            "generator_name",
+            "ons_id",
+            "ceg",
+            "installed_capacity",
+            "operational_availability",
+            "synchronized_availability",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_power_plant_availability", **kwargs)
 
 
@@ -617,7 +842,7 @@ def ons_power_plant_hourly_generation(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_power_plant_hourly_generation** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Timestamp of the stored energy
@@ -631,6 +856,21 @@ def ons_power_plant_hourly_generation(self, **kwargs) -> "pd.DataFrame":
     - **ceg** *string* — ONS CEG ID of the generator set (ceg)
     - **generation** *number* — Hourly generation in MWavg (val_geracao)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "subsystem",
+            "state_code",
+            "operation_mode",
+            "plant_type",
+            "fuel_type",
+            "generator_name",
+            "ons_id",
+            "ceg",
+            "generation",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_power_plant_hourly_generation", **kwargs)
 
 
@@ -638,7 +878,7 @@ def ons_solar_curtailment(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_solar_curtailment** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Timestamp of the stored energy
@@ -658,6 +898,27 @@ def ons_solar_curtailment(self, **kwargs) -> "pd.DataFrame":
     - **physical_curtailment** *number* — Physical curtailment in MWh
     - **unconstrained_generation** *number* — Unconstrained generation in MWh (generation + physical_curtailment)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "subsystem",
+            "state_code",
+            "generator_name",
+            "ons_id",
+            "ceg",
+            "generation",
+            "limited_generation",
+            "generation_availability",
+            "generation_reference",
+            "generation_final_reference",
+            "reason_code",
+            "source_code",
+            "description",
+            "physical_curtailment",
+            "unconstrained_generation",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_solar_curtailment", **kwargs)
 
 
@@ -665,7 +926,7 @@ def ons_solar_curtailment_detailed(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_solar_curtailment_detailed** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Reference date for the data (din_instante).
@@ -681,6 +942,23 @@ def ons_solar_curtailment_detailed(self, **kwargs) -> "pd.DataFrame":
     - **estimated_generation** *number* — Estimated average power generation in MWavg , calculated from the verified solar irradiance data and the solar power curve, or based on historical verified generation if the curve is unavailable (val_geracaoestimada).
     - **verified_generation** *number* — Measured average power generation of the plant in MWavg (val_geracaoverificada).
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "subsystem",
+            "state_code",
+            "operation_mode",
+            "plant_set",
+            "generator_name",
+            "ons_id",
+            "ceg",
+            "verified_solar_irradiance",
+            "invalid_irradiance_data",
+            "estimated_generation",
+            "verified_generation",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_solar_curtailment_detailed", **kwargs)
 
 
@@ -688,7 +966,7 @@ def ons_spilled_turbinable_energy(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_spilled_turbinable_energy** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Reference date for the data (din_instante).
@@ -709,6 +987,28 @@ def ons_spilled_turbinable_energy(self, **kwargs) -> "pd.DataFrame":
     - **spilled_energy_turbinable** *number* — Turbinable spilled energy in MWavg (val_energiavertidaturbinavel)
     - **flow_rate_turbinable_spill** *number* — Turbinable spill flow rate (m3/s) (val_vazaovertidaturbinavel)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "subsystem",
+            "basin_name",
+            "river_name",
+            "agent_name",
+            "reservoir_name",
+            "plant_code",
+            "generation",
+            "generation_availability",
+            "flow_rate_turbined",
+            "flow_rate_spilled",
+            "flow_rate_non_turbinable_spill",
+            "productivity",
+            "generation_margin",
+            "spilled_energy",
+            "spilled_energy_turbinable",
+            "flow_rate_turbinable_spill",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_spilled_turbinable_energy", **kwargs)
 
 
@@ -716,7 +1016,7 @@ def ons_stored_energy_basin(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_stored_energy_basin** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **basin_name** *string* — Name of the basin (nomecurto)
@@ -725,6 +1025,16 @@ def ons_stored_energy_basin(self, **kwargs) -> "pd.DataFrame":
     - **verified_stored_energy_mwmonth** *number* — Verified stored energy in MW-Month (ear_verif_bacia_mwmes)
     - **verified_stored_energy_percentage** *number* — Verified stored energy as percentage (ear_verif_bacia_percentual)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "basin_name",
+            "reference_date",
+            "max_stored_energy",
+            "verified_stored_energy_mwmonth",
+            "verified_stored_energy_percentage",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_stored_energy_basin", **kwargs)
 
 
@@ -732,7 +1042,7 @@ def ons_stored_energy_equivalent_reservoir(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_stored_energy_equivalent_reservoir** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **ree_name** *string* — Name of the REE (Equivalent Energy Reservoir) (nom_ree)
@@ -741,6 +1051,16 @@ def ons_stored_energy_equivalent_reservoir(self, **kwargs) -> "pd.DataFrame":
     - **verified_stored_energy_mwmonth** *number* — Verified stored energy in MW-Month (ear_verif_ree_mwmes)
     - **verified_stored_energy_percentage** *number* — Verified stored energy as percentage (ear_verif_ree_percentual)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "ree_name",
+            "reference_date",
+            "max_stored_energy",
+            "verified_stored_energy_mwmonth",
+            "verified_stored_energy_percentage",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_stored_energy_equivalent_reservoir", **kwargs)
 
 
@@ -748,7 +1068,7 @@ def ons_stored_energy_reservoir(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_stored_energy_reservoir** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reservoir_name** *string* — Name of the reservoir (nom_reservatorio)
@@ -777,6 +1097,36 @@ def ons_stored_energy_reservoir(self, **kwargs) -> "pd.DataFrame":
     - **contrib_ear_sin** *number* — Contribution to stored energy of SIN (val_contribearsin)
     - **contrib_ear_max_sin** *number* — Contribution to maximum stored energy of SIN (val_contribearmaxsin)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reservoir_name",
+            "planning_code",
+            "reservoir_type",
+            "basin_name",
+            "electrical_region",
+            "subsystem_id",
+            "subsystem_name",
+            "downstream_subsystem_id",
+            "downstream_subsystem_name",
+            "reference_date",
+            "ear_reservoir_own_subsystem_mwmonth",
+            "ear_reservoir_downstream_subsystem_mwmonth",
+            "earmax_reservoir_own_subsystem_mwmonth",
+            "earmax_reservoir_downstream_subsystem_mwmonth",
+            "ear_reservoir_percentage",
+            "ear_total_mwmonth",
+            "ear_max_total_mwmonth",
+            "contrib_ear_basin",
+            "contrib_ear_max_basin",
+            "contrib_ear_subsystem",
+            "contrib_ear_max_subsystem",
+            "contrib_ear_downstream_subsystem",
+            "contrib_ear_max_downstream_subsystem",
+            "contrib_ear_sin",
+            "contrib_ear_max_sin",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_stored_energy_reservoir", **kwargs)
 
 
@@ -784,7 +1134,7 @@ def ons_stored_energy_subsystem(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_stored_energy_subsystem** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **max_stored_energy** *number* — Maximum stored energy in the subsystem in MW-Month
@@ -793,6 +1143,16 @@ def ons_stored_energy_subsystem(self, **kwargs) -> "pd.DataFrame":
     - **reference_date** *string (date)* — Timestamp of the stored energy
     - **subsystem** *enum* — Subsystem of the stored energy ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "max_stored_energy",
+            "verified_stored_energy_mwmonth",
+            "verified_stored_energy_percentage",
+            "reference_date",
+            "subsystem",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_stored_energy_subsystem", **kwargs)
 
 
@@ -800,7 +1160,7 @@ def ons_thermal_generation_dispatch_reason(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_thermal_generation_dispatch_reason** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Timestamp of the thermal generation dispatch reason (din_instante)
@@ -845,6 +1205,52 @@ def ons_thermal_generation_dispatch_reason(self, **kwargs) -> "pd.DataFrame":
     - **verified_generation_curtailed** *number* — Curtailed verified generation in MWavg (val_verifconstrainedoff)
     - **electric_restriction** *enum* — Type of electric restriction (tip_restricaoeletrica). [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "load_level",
+            "subsystem",
+            "generator_name",
+            "planning_generator_code",
+            "ceg",
+            "scheduled_generation_total",
+            "scheduled_generation_by_merit",
+            "scheduled_generation_by_merit_reference",
+            "scheduled_generation_by_merit_no_inflexible",
+            "scheduled_generation_inflexible",
+            "scheduled_generation_by_merit_inflexible",
+            "scheduled_generation_by_merit_pure_inflexible",
+            "scheduled_generation_electrical_reason",
+            "scheduled_generation_energy_guarantee",
+            "scheduled_generation_out_of_merit",
+            "scheduled_generation_loss_replacement",
+            "scheduled_generation_export",
+            "scheduled_generation_power_reserve",
+            "scheduled_generation_out_of_merit_substitute",
+            "scheduled_generation_unit_commitment",
+            "scheduled_generation_curtailed",
+            "scheduled_generation_inflexible_dessem",
+            "verified_generation_total",
+            "verified_generation_by_merit",
+            "verified_generation_by_merit_no_inflexible",
+            "verified_generation_inflexible",
+            "verified_generation_by_merit_inflexible",
+            "verified_generation_by_merit_pure_inflexible",
+            "verified_generation_electrical_reason",
+            "verified_generation_energy_guarantee",
+            "verified_generation_out_of_merit",
+            "verified_generation_loss_replacement",
+            "verified_generation_export",
+            "export_code_semi_hourly",
+            "verified_generation_power_reserve",
+            "reserve_generation_compliance_code",
+            "verified_generation_out_of_merit_substitute",
+            "verified_generation_unit_commitment",
+            "verified_generation_curtailed",
+            "electric_restriction",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_thermal_generation_dispatch_reason", **kwargs)
 
 
@@ -852,7 +1258,7 @@ def ons_thermal_operation_cost(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_thermal_operation_cost** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_week_start** *string (date-time)* — Start date of the reference week for the thermal operation cost (dat_iniciosemana).
@@ -864,6 +1270,19 @@ def ons_thermal_operation_cost(self, **kwargs) -> "pd.DataFrame":
     - **generator_code** *string* — Planning generator code (cod_usinaplanejamento)
     - **cost** *number* — Variable cost of operation R$/MWh (val_cvu).
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_week_start",
+            "reference_week_end",
+            "reference_month",
+            "revision_number",
+            "subsystem",
+            "generator_name",
+            "generator_code",
+            "cost",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_thermal_operation_cost", **kwargs)
 
 
@@ -871,7 +1290,7 @@ def ons_wind_and_solar_capacity_factor_hourly(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_wind_and_solar_capacity_factor_hourly** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **subsystem** *enum* — Subsystem from (nom_subsistema) ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
@@ -894,6 +1313,30 @@ def ons_wind_and_solar_capacity_factor_hourly(self, **kwargs) -> "pd.DataFrame":
     - **installed_capacity** *number* — Installed capacity in MWavg (val_capacidadeinstalada)
     - **capacity_factor** *number* — Capacity factor (val_fatorcapacidade)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "subsystem",
+            "state_code",
+            "reference_date",
+            "connection_point",
+            "connection_point_code",
+            "location_name",
+            "generator_latitude",
+            "generator_longitude",
+            "connection_point_latitude",
+            "connection_point_longitude",
+            "operation_mode",
+            "plant_type",
+            "plant_set",
+            "ons_id",
+            "ceg",
+            "generation_scheduled",
+            "generation_verified",
+            "installed_capacity",
+            "capacity_factor",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_wind_and_solar_capacity_factor_hourly", **kwargs)
 
 
@@ -901,7 +1344,7 @@ def ons_wind_and_solar_predicted_versus_scheduled(self, **kwargs) -> "pd.DataFra
     """Fetch data from the **ons_wind_and_solar_predicted_versus_scheduled** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Reference date for the data (dat_programacao).
@@ -911,6 +1354,10 @@ def ons_wind_and_solar_predicted_versus_scheduled(self, **kwargs) -> "pd.DataFra
     - **generation_predicted** *number* — Forecasted generation (val_previsao)
     - **generation_scheduled** *number* — Scheduled generation (val_programado)
     """
+    kwargs.setdefault(
+        "data_columns",
+        ["reference_date", "level", "plant_code", "plant_name", "generation_predicted", "generation_scheduled"],
+    )
     return self.fetch_dataframe(table_name="ons_wind_and_solar_predicted_versus_scheduled", **kwargs)
 
 
@@ -918,7 +1365,7 @@ def ons_wind_curtailment(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_wind_curtailment** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Timestamp of the stored energy
@@ -938,6 +1385,27 @@ def ons_wind_curtailment(self, **kwargs) -> "pd.DataFrame":
     - **physical_curtailment** *number* — Physical curtailment in MWh
     - **unconstrained_generation** *number* — Unconstrained generation in MWh (generation + physical_curtailment)
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "subsystem",
+            "state_code",
+            "generator_name",
+            "ons_id",
+            "ceg",
+            "generation",
+            "limited_generation",
+            "generation_availability",
+            "generation_reference",
+            "generation_final_reference",
+            "reason_code",
+            "source_code",
+            "description",
+            "physical_curtailment",
+            "unconstrained_generation",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_wind_curtailment", **kwargs)
 
 
@@ -945,7 +1413,7 @@ def ons_wind_curtailment_detailed(self, **kwargs) -> "pd.DataFrame":
     """Fetch data from the **ons_wind_curtailment_detailed** table.
 
     Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
+    (e.g. filters, start_reference_date, end_reference_date, …).
 
     Available columns:
     - **reference_date** *string (date-time)* — Reference date for the data (din_instante).
@@ -961,25 +1429,24 @@ def ons_wind_curtailment_detailed(self, **kwargs) -> "pd.DataFrame":
     - **estimated_generation** *number* — Estimated average power generation in MWavg , calculated from the verified wind data and the wind power curve, or based on historical verified generation if the curve is unavailable (val_geracaoestimada).
     - **verified_generation** *number* — Measured average power generation of the plant in MWavg (val_geracaoverificada).
     """
+    kwargs.setdefault(
+        "data_columns",
+        [
+            "reference_date",
+            "subsystem",
+            "state_code",
+            "operation_mode",
+            "plant_set",
+            "generator_name",
+            "ons_id",
+            "ceg",
+            "verified_wind",
+            "invalid_wind_data",
+            "estimated_generation",
+            "verified_generation",
+        ],
+    )
     return self.fetch_dataframe(table_name="ons_wind_curtailment_detailed", **kwargs)
-
-
-def r_e_d_e_m_e_t_meteorological_report(self, **kwargs) -> "pd.DataFrame":
-    """Fetch data from the **r_e_d_e_m_e_t_meteorological_report** table.
-
-    Accepts the same keyword arguments as ``fetch_dataframe``
-    (e.g. data_columns, filters, start_reference_date, …).
-
-    Available columns:
-    - **station** *string* — ICAO airport code
-    - **station_name** *string* — Airport name
-    - **reference_date** *string (date-time)* — Observation timestamp
-    - **wind_direction** *integer* — Wind direction in degrees
-    - **wind_speed** *number* — Wind speed in knots
-    - **wind_gust** *number* — Wind gust speed in knots
-    - **raw_message** *string* — Raw METAR message
-    """
-    return self.fetch_dataframe(table_name="r_e_d_e_m_e_t_meteorological_report", **kwargs)
 
 
 def register_aliases():
@@ -990,9 +1457,6 @@ def register_aliases():
     Client.ccee_spot_price = ccee_spot_price
     Client.ccee_spot_price_average_monthly = ccee_spot_price_average_monthly
     Client.ccee_spot_price_historical_weekly = ccee_spot_price_historical_weekly
-    Client.c_e_g = c_e_g
-    Client.c_e_g_data = c_e_g_data
-    Client.e_p_e_energy_consumption_monthly = e_p_e_energy_consumption_monthly
     Client.generator_generator_unit = generator_generator_unit
     Client.generator_unit = generator_unit
     Client.ons_commercial_generation_international_export = ons_commercial_generation_international_export
@@ -1032,4 +1496,3 @@ def register_aliases():
     Client.ons_wind_and_solar_predicted_versus_scheduled = ons_wind_and_solar_predicted_versus_scheduled
     Client.ons_wind_curtailment = ons_wind_curtailment
     Client.ons_wind_curtailment_detailed = ons_wind_curtailment_detailed
-    Client.r_e_d_e_m_e_t_meteorological_report = r_e_d_e_m_e_t_meteorological_report

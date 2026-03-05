@@ -62,23 +62,12 @@ def generate_method(table_name: str, schema: dict) -> str:
     column_lines = []
     for col_name in columns:
         column_lines.append(format_column_doc(col_name, schema[col_name]))
-    columns_doc = "\n".join(f"        {line}" for line in column_lines)
 
-    # Format the columns list for the generated source
     columns_repr = repr(columns)
 
     method = textwrap.dedent(f"""\
-    def {table_name}(self, **kwargs) -> "pd.DataFrame":
-        \"\"\"Fetch data from the **{table_name}** table.
-
-        Accepts the same keyword arguments as ``fetch_dataframe``
-        (e.g. filters, start_reference_date, end_reference_date, …).
-
-        Available columns:
-{columns_doc}
-        \"\"\"
-        kwargs.setdefault("data_columns", {columns_repr})
-        return self.fetch_dataframe(table_name="{table_name}", **kwargs)
+    def {table_name}(self, **kwargs):
+        return self.fetch_dataframe(table_name="{table_name}", data_columns={columns_repr}, **kwargs)
     """)
     return method
 
