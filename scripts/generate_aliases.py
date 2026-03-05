@@ -8,8 +8,6 @@ Requires LAKEHOUSE_API_URL environment variable to be set.
 
 from __future__ import annotations
 
-import inspect
-import sys
 import textwrap
 from pathlib import Path
 
@@ -22,37 +20,6 @@ from psr.lakehouse.metadata import get_model_name, get_table_name
 dotenv.load_dotenv()
 
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "src" / "psr" / "lakehouse" / "alias.py"
-
-# Parameters from fetch_dataframe that alias methods forward (everything except table_name)
-FORWARDED_PARAMS = [
-    ("data_columns", "list[str] | None", "None"),
-    ("filters", "dict | None", "None"),
-    ("start_reference_date", "str | None", "None"),
-    ("end_reference_date", "str | None", "None"),
-    ("group_by", "list[str] | None", "None"),
-    ("datetime_granularity", "str | None", "None"),
-    ("order_by", "list[dict] | None", "None"),
-    ("aggregation_method", "str | None", "None"),
-    ("joins", "list[dict] | None", "None"),
-    ("output_timezone", "str", '"America/Sao_Paulo"'),
-    ("page_size", "int", "1000"),
-    ("timeout", "int", "600"),
-]
-
-
-def build_param_signature() -> str:
-    """Build the parameter signature string for alias methods."""
-    parts = []
-    for name, type_hint, default in FORWARDED_PARAMS:
-        parts.append(f"{name}: {type_hint} = {default}")
-    return ", ".join(parts)
-
-
-def build_kwargs_dict() -> str:
-    """Build the kwargs dict passed to fetch_dataframe."""
-    names = [name for name, _, _ in FORWARDED_PARAMS]
-    pairs = [f'"{name}": {name}' for name in names]
-    return "{" + ", ".join(pairs) + "}"
 
 
 def format_column_doc(col_name: str, col_info: dict) -> str:
@@ -76,9 +43,6 @@ def format_column_doc(col_name: str, col_info: dict) -> str:
 
 def generate_method(table_name: str, schema: dict) -> str:
     """Generate source code for a single alias method."""
-    param_sig = build_param_signature()
-    kwargs_dict = build_kwargs_dict()
-
     # Build column documentation
     column_lines = []
     for col_name, col_info in schema.items():
@@ -88,19 +52,16 @@ def generate_method(table_name: str, schema: dict) -> str:
     columns_doc = "\n".join(f"        {line}" for line in column_lines)
 
     method = textwrap.dedent(f"""\
-    def {table_name}(
-        self,
-        {param_sig},
-    ) -> "pd.DataFrame":
+    def {table_name}(self, **kwargs) -> "pd.DataFrame":
         \"\"\"Fetch data from the **{table_name}** table.
+
+        Accepts the same keyword arguments as ``fetch_dataframe``
+        (e.g. data_columns, filters, start_reference_date, …).
 
         Available columns:
 {columns_doc}
         \"\"\"
-        return self.fetch_dataframe(
-            table_name="{table_name}",
-            **{kwargs_dict},
-        )
+        return self.fetch_dataframe(table_name="{table_name}", **kwargs)
     """)
     return method
 
