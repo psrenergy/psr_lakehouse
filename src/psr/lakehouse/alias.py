@@ -70,18 +70,6 @@ def ccee_spot_price_historical_weekly(self, **kwargs):
     )
 
 
-def ceg(self, **kwargs):
-    return self.fetch_dataframe(table_name="ceg", data_columns=["value"], **kwargs)
-
-
-def ceg_data(self, **kwargs):
-    return self.fetch_dataframe(
-        table_name="ceg_data",
-        data_columns=["ceg_id", "state_code", "technology", "fuel_type", "version", "source"],
-        **kwargs,
-    )
-
-
 def epe_energy_consumption_monthly(self, **kwargs):
     return self.fetch_dataframe(
         table_name="epe_energy_consumption_monthly",
@@ -97,24 +85,6 @@ def epe_energy_consumption_monthly(self, **kwargs):
             "data_version_date",
         ],
         **kwargs,
-    )
-
-
-def generator(self, **kwargs):
-    return self.fetch_dataframe(table_name="generator", data_columns=["ons_id"], **kwargs)
-
-
-def generator_generator_unit(self, **kwargs):
-    return self.fetch_dataframe(
-        table_name="generator_generator_unit",
-        data_columns=["generator_id", "unit_id", "relation_start_date", "relation_end_date"],
-        **kwargs,
-    )
-
-
-def generator_unit(self, **kwargs):
-    return self.fetch_dataframe(
-        table_name="generator_unit", data_columns=["ons_id", "equipment_code", "ceg_id"], **kwargs
     )
 
 
@@ -811,19 +781,13 @@ def redemet_meteorological_report(self, **kwargs):
 
 
 def register_aliases():
-    """Attach all table alias methods to the Client class."""
     from psr.lakehouse.client import Client
 
     Client.aneel_distributed_generation_projects = aneel_distributed_generation_projects
     Client.ccee_spot_price = ccee_spot_price
     Client.ccee_spot_price_average_monthly = ccee_spot_price_average_monthly
     Client.ccee_spot_price_historical_weekly = ccee_spot_price_historical_weekly
-    Client.ceg = ceg
-    Client.ceg_data = ceg_data
     Client.epe_energy_consumption_monthly = epe_energy_consumption_monthly
-    Client.generator = generator
-    Client.generator_generator_unit = generator_generator_unit
-    Client.generator_unit = generator_unit
     Client.ons_commercial_generation_international_export = ons_commercial_generation_international_export
     Client.ons_controlled_power_flow_program_daily = ons_controlled_power_flow_program_daily
     Client.ons_energy_balance_subsystem = ons_energy_balance_subsystem
