@@ -12,9 +12,9 @@ def get_model_name(table_name: str) -> str:
     if "_" not in table_name:
         return table_name
 
-    # Fallback: convert snake_case to PascalCase
-    # Special handling for organization prefixes (ONS, CCEE) that should remain uppercase
-    UPPERCASE_PREFIXES = {"ons", "ccee"}
+	# Fallback: convert snake_case to PascalCase
+    # Special handling for organization prefixes (ONS, CCEE, ANEEL) that should remain uppercase
+    UPPERCASE_PREFIXES = {"ons", "ccee", "aneel"}
 
     words = table_name.split("_")
     result = []
