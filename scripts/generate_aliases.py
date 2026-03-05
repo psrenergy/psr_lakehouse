@@ -8,6 +8,7 @@ Requires LAKEHOUSE_API_URL environment variable to be set.
 
 from __future__ import annotations
 
+import re
 import textwrap
 from pathlib import Path
 
@@ -15,12 +16,20 @@ import dotenv
 
 from psr.lakehouse import client
 from psr.lakehouse.client import Client
-from psr.lakehouse.metadata import get_model_name, get_table_name
+from psr.lakehouse.metadata import get_model_name
 
 dotenv.load_dotenv()
 
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "src" / "psr" / "lakehouse" / "alias.py"
 
+def to_snake(s: str) -> str:
+    # Add an underscore before each uppercase letter that is followed by a lowercase letter
+    s = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1_\2', s)
+    # Add an underscore before each lowercase letter that is preceded by an uppercase letter
+    s = re.sub(r'([a-z\d])([A-Z])', r'\1_\2', s)
+    # Convert the entire string to lowercase
+    s = s.lower()
+    return s
 
 def format_column_doc(col_name: str, col_info: dict) -> str:
     """Format a single column entry for the docstring."""
@@ -92,7 +101,7 @@ def main():
     skipped = []
 
     for model_name in model_names:
-        table_name = get_table_name(model_name)
+        table_name = to_snake(model_name)
 
         # Validate roundtrip
         roundtrip = get_model_name(table_name)
