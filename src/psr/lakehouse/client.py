@@ -33,7 +33,19 @@ class Client:
 
         if filters:
             for col, value in filters.items():
-                if value is not None:
+                if value is None:
+                    continue
+                if isinstance(value, (list, tuple, set)):
+                    if not value:
+                        raise LakehouseError(f"Filter for column '{col}' received an empty list.")
+                    query_filters.append(
+                        {
+                            "column": f"{model_name}.{col}",
+                            "value": [str(item) for item in value],
+                            "operator": "in",
+                        }
+                    )
+                else:
                     query_filters.append(
                         {
                             "column": f"{model_name}.{col}",
@@ -158,7 +170,9 @@ class Client:
         Args:
             table_name: Name of the table to query (e.g., "ccee_spot_price")
             data_columns: Optional columns to fetch. If not provided, all columns will be fetched.
-            filters: Optional dict of column: value filters (equality)
+            filters: Optional dict of column: value filters. A scalar value filters by
+                equality; a list of values filters with an SQL IN clause
+                (e.g., {"subsystem": ["NORTH", "SOUTH"]})
             start_reference_date: Optional start date filter (inclusive)
             end_reference_date: Optional end date filter (exclusive)
             group_by: Optional list of columns to group by
