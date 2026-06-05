@@ -100,6 +100,56 @@ class TestFetchDataframe:
         assert df["CCEESpotPrice.subsystem"].iloc[0] == "SOUTHEAST"
 
     @responses.activate
+    def test_fetch_dataframe_with_list_filter_uses_in_operator(self):
+        """Test that a list filter value is sent as an 'in' filter."""
+
+        mock_data = [
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "NORTH",
+                "CCEESpotPrice.spot_price": 65.0,
+            },
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "SOUTH",
+                "CCEESpotPrice.spot_price": 70.0,
+            },
+        ]
+
+        responses.add(
+            responses.POST,
+            "https://test-api.example.com/query/",
+            json=make_query_response(mock_data),
+            status=200,
+        )
+
+        df = psr.lakehouse.client.fetch_dataframe(
+            table_name="ccee_spot_price",
+            data_columns=["reference_date", "subsystem", "spot_price"],
+            filters={"subsystem": ["NORTH", "SOUTH"]},
+        )
+
+        assert len(df) == 2
+
+        import json
+
+        request_body = json.loads(responses.calls[0].request.body)
+        subsystem_filters = [f for f in request_body["query_filters"] if f["column"] == "CCEESpotPrice.subsystem"]
+        assert subsystem_filters == [
+            {"column": "CCEESpotPrice.subsystem", "value": ["NORTH", "SOUTH"], "operator": "in"}
+        ]
+
+    def test_fetch_dataframe_with_empty_list_filter_raises_error(self):
+        """Test that an empty list filter value raises an error."""
+
+        with pytest.raises(LakehouseError, match="empty list"):
+            psr.lakehouse.client.fetch_dataframe(
+                table_name="ccee_spot_price",
+                data_columns=["reference_date", "subsystem", "spot_price"],
+                filters={"subsystem": []},
+            )
+
+    @responses.activate
     def test_fetch_dataframe_empty_result(self):
         """Test handling of empty results."""
 
