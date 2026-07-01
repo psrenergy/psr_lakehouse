@@ -12,6 +12,4 @@ jobs:
       - uses: astral-sh/setup-uv@v3
       - run: uv run pytest tests/integration/ -v -s -m integration
         env:
-          AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
           LAKEHOUSE_API_URL: ${{secrets.LAKEHOUSE_API_URL}}
