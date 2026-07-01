@@ -29,6 +29,3 @@ markers = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/psr"]
-
-[project.scripts]
-experiments_iam = "psr.lakehouse.experiments.iam:main"
