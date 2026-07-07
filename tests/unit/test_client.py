@@ -1,5 +1,3 @@
-import warnings
-
 import pandas as pd
 import pytest
 import responses
@@ -8,30 +6,34 @@ import psr.lakehouse
 from psr.lakehouse.exceptions import LakehouseError
 
 
-def make_query_response(data: list, page: int = 1, page_size: int = 1000, total_count: int | None = None):
-    """Helper to create a standard query API response."""
-    if total_count is None:
-        total_count = len(data)
-    total_pages = (total_count + page_size - 1) // page_size if total_count > 0 else 0
+def make_query_response(data: list, page: int = 1, page_size: int = 1000, has_next: bool = False):
+    """Helper to create a standard query API response in the columnar format."""
+    columns = list(data[0].keys()) if data else []
+    rows = [[record[col] for col in columns] for record in data]
 
     return {
-        "data": data,
+        "data": {"columns": columns, "rows": rows},
         "pagination": {
             "page": page,
             "page_size": page_size,
-            "total_count": total_count,
-            "total_pages": total_pages,
-            "has_next": page < total_pages,
+            "has_next": has_next,
             "has_prev": page > 1,
         },
         "query_info": {
             "sql": "SELECT ...",
-            "columns_selected": len(data[0]) if data else 0,
+            "columns_selected": len(columns),
             "has_filters": True,
             "has_joins": False,
             "has_group_by": False,
         },
     }
+
+
+def make_records_response(data: list, page: int = 1, page_size: int = 1000, has_next: bool = False):
+    """Helper to create a query API response in the legacy records format."""
+    response = make_query_response(data, page=page, page_size=page_size, has_next=has_next)
+    response["data"] = data
+    return response
 
 
 class TestFetchDataframe:
@@ -139,6 +141,47 @@ class TestFetchDataframe:
             {"column": "CCEESpotPrice.subsystem", "value": ["NORTH", "SOUTH"], "operator": "in"}
         ]
 
+    @responses.activate
+    def test_fetch_dataframe_latest_only_forwarded(self):
+        """Test that latest_only defaults to True and is forwarded in the request body."""
+
+        mock_data = [
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.spot_price": 69.04,
+            },
+        ]
+
+        responses.add(
+            responses.POST,
+            "https://test-api.example.com/query/",
+            json=make_query_response(mock_data),
+            status=200,
+        )
+        responses.add(
+            responses.POST,
+            "https://test-api.example.com/query/",
+            json=make_query_response(mock_data),
+            status=200,
+        )
+
+        import json
+
+        psr.lakehouse.client.fetch_dataframe(
+            table_name="ccee_spot_price",
+            data_columns=["reference_date", "spot_price"],
+        )
+        request_body = json.loads(responses.calls[0].request.body)
+        assert request_body["latest_only"] is True
+
+        psr.lakehouse.client.fetch_dataframe(
+            table_name="ccee_spot_price",
+            data_columns=["reference_date", "spot_price"],
+            latest_only=False,
+        )
+        request_body = json.loads(responses.calls[1].request.body)
+        assert request_body["latest_only"] is False
+
     def test_fetch_dataframe_with_empty_list_filter_raises_error(self):
         """Test that an empty list filter value raises an error."""
 
@@ -193,48 +236,14 @@ class TestFetchDataframe:
         responses.add(
             responses.POST,
             "https://test-api.example.com/query/",
-            json={
-                "data": page1_data,
-                "pagination": {
-                    "page": 1,
-                    "page_size": 1,
-                    "total_count": 2,
-                    "total_pages": 2,
-                    "has_next": True,
-                    "has_prev": False,
-                },
-                "query_info": {
-                    "sql": "SELECT ...",
-                    "columns_selected": 3,
-                    "has_filters": False,
-                    "has_joins": False,
-                    "has_group_by": False,
-                },
-            },
+            json=make_query_response(page1_data, page=1, page_size=1, has_next=True),
             status=200,
         )
 
         responses.add(
             responses.POST,
             "https://test-api.example.com/query/",
-            json={
-                "data": page2_data,
-                "pagination": {
-                    "page": 2,
-                    "page_size": 1,
-                    "total_count": 2,
-                    "total_pages": 2,
-                    "has_next": False,
-                    "has_prev": True,
-                },
-                "query_info": {
-                    "sql": "SELECT ...",
-                    "columns_selected": 3,
-                    "has_filters": False,
-                    "has_joins": False,
-                    "has_group_by": False,
-                },
-            },
+            json=make_query_response(page2_data, page=2, page_size=1),
             status=200,
         )
 
@@ -275,6 +284,40 @@ class TestFetchDataframe:
         request_url = responses.calls[0].request.url
         assert "page_size=500" in request_url
         assert "page=1" in request_url
+        assert "response_format=columnar" in request_url
+
+    @responses.activate
+    def test_fetch_dataframe_records_format_fallback(self):
+        """Test that a records-shaped response (server predating columnar) is still handled."""
+
+        mock_data = [
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "NORTH",
+                "CCEESpotPrice.spot_price": 69.04,
+            },
+            {
+                "CCEESpotPrice.reference_date": "2023-05-01T00:00:00-03:00",
+                "CCEESpotPrice.subsystem": "SOUTH",
+                "CCEESpotPrice.spot_price": 70.00,
+            },
+        ]
+
+        responses.add(
+            responses.POST,
+            "https://test-api.example.com/query/",
+            json=make_records_response(mock_data),
+            status=200,
+        )
+
+        df = psr.lakehouse.client.fetch_dataframe(
+            table_name="ccee_spot_price",
+            data_columns=["reference_date", "subsystem", "spot_price"],
+        )
+
+        assert len(df) == 2
+        assert "CCEESpotPrice.spot_price" in df.columns
+        assert df["CCEESpotPrice.subsystem"].tolist() == ["NORTH", "SOUTH"]
 
     def test_fetch_dataframe_timeout_forwarded(self):
         """Test that custom timeout is forwarded to connector.post()."""
@@ -932,31 +975,17 @@ class TestFetchDataframe:
         )
 
 
-class TestFetchPartialDataOnTimeout:
-    def test_timeout_on_page_2_returns_partial_data_with_warning(self):
-        """Test that a timeout on page 2 returns data from page 1 with a warning."""
+class TestFetchFailureMidPagination:
+    def test_failure_on_page_2_raises_error(self):
+        """Test that a failure on page 2 raises instead of returning partial data."""
         from unittest.mock import patch
 
-        page1_response = {
-            "data": [
-                {"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "value": 1},
-            ],
-            "pagination": {
-                "page": 1,
-                "page_size": 1,
-                "total_count": 3,
-                "total_pages": 3,
-                "has_next": True,
-                "has_prev": False,
-            },
-            "query_info": {
-                "sql": "SELECT ...",
-                "columns_selected": 3,
-                "has_filters": False,
-                "has_joins": False,
-                "has_group_by": False,
-            },
-        }
+        page1_response = make_query_response(
+            [{"reference_date": "2023-05-01T00:00:00-03:00", "subsystem": "NORTH", "value": 1}],
+            page=1,
+            page_size=1,
+            has_next=True,
+        )
 
         def mock_post(url, json_body, params=None, timeout=None):
             if params and params.get("page") == 1:
@@ -964,21 +993,14 @@ class TestFetchPartialDataOnTimeout:
             raise LakehouseError("Request timed out")
 
         with patch.object(psr.lakehouse.connector, "post", side_effect=mock_post):
-            with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter("always")
-                df = psr.lakehouse.client.fetch_dataframe(
+            with pytest.raises(LakehouseError, match="Request timed out"):
+                psr.lakehouse.client.fetch_dataframe(
                     table_name="ons_energy_load_daily",
                     data_columns=["value"],
                 )
 
-                assert len(df) == 1
-                assert df.iloc[0]["value"] == 1
-                assert len(w) == 1
-                assert "page 2" in str(w[0].message)
-                assert "1 page(s) fetched" in str(w[0].message)
-
     def test_timeout_on_page_1_raises_error(self):
-        """Test that a timeout on the first page still raises LakehouseError."""
+        """Test that a timeout on the first page raises LakehouseError."""
         from unittest.mock import patch
 
         with patch.object(psr.lakehouse.connector, "post", side_effect=LakehouseError("Request timed out")):

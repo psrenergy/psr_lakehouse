@@ -77,6 +77,21 @@ class TestConnectorInitialization:
         assert "/health-check" in responses.calls[0].request.url
 
     @responses.activate
+    def test_initialize_creates_session_with_retries(self):
+        """Test that initialization creates a reusable session with retry configuration."""
+        connector = Connector.__new__(Connector)
+        connector._is_initialized = False
+
+        _mock_health_check("https://api.example.com")
+        connector.initialize(base_url="https://api.example.com")
+
+        retries = connector._session.get_adapter("https://api.example.com").max_retries
+        assert retries.total == 3
+        assert retries.backoff_factor == 1
+        assert set(retries.status_forcelist) == {502, 503, 504}
+        assert set(retries.allowed_methods) == {"GET", "POST"}
+
+    @responses.activate
     def test_initialize_health_check_failure_non_truthy(self):
         """Test that initialization fails when health check returns non-truthy response."""
         connector = Connector.__new__(Connector)

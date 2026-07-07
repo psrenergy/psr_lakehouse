@@ -14,6 +14,7 @@ def setup_unit_test():
 
     connector._is_initialized = True
     connector._base_url = "https://test-api.example.com"
+    connector._session = connector._create_session()
 
     yield
 
