@@ -1,5 +1,4 @@
 import re
-import warnings
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -119,34 +118,39 @@ class Client:
 
         return joins
 
-    def _fetch_all_pages(self, json_body: dict, page_size: int = 1000, timeout: int = 600) -> list[dict]:
-        """Fetch all pages of results."""
-        all_data = []
+    def _fetch_all_pages(
+        self, json_body: dict, page_size: int = 10000, timeout: int = 600
+    ) -> tuple[list[str] | None, list]:
+        """Fetch all pages of results.
+
+        Requests the columnar response format and returns (columns, rows). When the
+        server predates the columnar format and returns records, columns is None and
+        rows is the list of record dicts.
+        """
+        columns = None
+        all_rows = []
         page = 1
 
         while True:
-            try:
-                response = connector.post(
-                    "/query/",
-                    json_body,
-                    params={"page": page, "page_size": page_size},
-                    timeout=timeout,
-                )
-            except LakehouseError:
-                if all_data:
-                    warnings.warn(
-                        f"Request failed on page {page}. Returning partial data ({page - 1} page(s) fetched).",
-                        stacklevel=2,
-                    )
-                    break
-                raise
-            all_data.extend(response["data"])
+            response = connector.post(
+                "/query/",
+                json_body,
+                params={"page": page, "page_size": page_size, "response_format": "columnar"},
+                timeout=timeout,
+            )
+            data = response["data"]
+            if isinstance(data, list):
+                all_rows.extend(data)
+            else:
+                if columns is None:
+                    columns = data["columns"]
+                all_rows.extend(data["rows"])
 
             if not response["pagination"]["has_next"]:
                 break
             page += 1
 
-        return all_data
+        return columns, all_rows
 
     def fetch_dataframe(
         self,
@@ -160,8 +164,9 @@ class Client:
         order_by: list[dict] | None = None,
         aggregation_method: str | None = None,
         joins: list[dict] | None = None,
+        latest_only: bool = True,
         output_timezone: str = "America/Sao_Paulo",
-        page_size: int = 1000,
+        page_size: int = 10000,
         timeout: int = 600,
     ) -> pd.DataFrame:
         """
@@ -180,8 +185,14 @@ class Client:
             order_by: Optional list of dicts with "column" and "direction" keys for ordering results (e.g., [{"column": "reference_date", "direction": "desc"}])
             aggregation_method: Aggregation method (sum, avg, min, max) - required if group_by is set
             joins: Optional list of dicts with "table", "on", and "type" keys for joining other tables
+            latest_only: If True (default), each table is deduplicated server-side to the latest
+                non-deleted version of each datapoint. Set to False to return the full version
+                history, including superseded and soft-deleted rows. Note: for tables whose
+                versioning constraint spans all data fields (ONS registry-source and
+                versioned-metadata tables), dedup is currently a no-op and duplicates may still
+                be returned (lakehouse_server issue #427).
             output_timezone: Timezone for datetime output (default: "America/Sao_Paulo")
-            page_size: Number of records per page for API pagination (default: 1000)
+            page_size: Number of records per page for API pagination (default: 10000)
             timeout: Timeout in seconds for API requests (default: 600)
 
         Returns:
@@ -212,6 +223,7 @@ class Client:
         # Build JSON request body
         json_body = {
             "query_data": self._build_query_data(model_name, all_columns),
+            "latest_only": latest_only,
             "output_timezone": output_timezone,
         }
 
@@ -235,25 +247,25 @@ class Client:
         return self.fetch_dataframe_from_query(json_body, page_size=page_size, timeout=timeout)
 
     def fetch_dataframe_from_query(
-        self, json_body: dict, page_size: int = 1000, timeout: int | None = 600
+        self, json_body: dict, page_size: int = 10000, timeout: int | None = 600
     ) -> pd.DataFrame:
         """
         Fetch data from the API using a custom query JSON body and return as a pandas DataFrame.
 
         Args:
             json_body: JSON request body for the query
-            page_size: Number of records per page for API pagination (default: 1000)
+            page_size: Number of records per page for API pagination (default: 10000)
             timeout: Timeout in seconds for API requests (default: 600)
 
         Returns:
             pandas DataFrame with the query results
         """
-        data = self._fetch_all_pages(json_body, page_size=page_size, timeout=timeout)
-        df = pd.DataFrame(data)
+        columns, rows = self._fetch_all_pages(json_body, page_size=page_size, timeout=timeout)
+        df = pd.DataFrame(rows, columns=columns) if columns is not None else pd.DataFrame(rows)
 
         date_cols = [col for col in df.columns if col.endswith("reference_date")]
         if date_cols:
-            df[date_cols] = df[date_cols].apply(pd.to_datetime)
+            df[date_cols] = df[date_cols].apply(pd.to_datetime, format="ISO8601")
 
         return df
 

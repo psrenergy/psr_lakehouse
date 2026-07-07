@@ -1,6 +1,8 @@
 import os
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from psr.lakehouse.exceptions import LakehouseError
 
@@ -10,11 +12,28 @@ class Connector:
 
     _is_initialized: bool = False
     _base_url: str
+    _session: requests.Session
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
+
+    @staticmethod
+    def _create_session() -> requests.Session:
+        """Create a session with keep-alive and retries on transient server errors."""
+        session = requests.Session()
+        adapter = HTTPAdapter(
+            max_retries=Retry(
+                total=3,
+                backoff_factor=1,
+                status_forcelist=[502, 503, 504],
+                allowed_methods=["GET", "POST"],
+            )
+        )
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+        return session
 
     def initialize(
         self,
@@ -34,8 +53,10 @@ class Connector:
             )
         self._base_url = self._base_url.rstrip("/")
 
+        self._session = self._create_session()
+
         try:
-            response = requests.get(f"{self._base_url}/health-check", timeout=10)
+            response = self._session.get(f"{self._base_url}/health-check", timeout=10)
             if not response.json():
                 raise LakehouseError("Health check failed: API returned a non-truthy response.")
         except requests.exceptions.RequestException as e:
@@ -65,7 +86,7 @@ class Connector:
         url = f"{self._base_url}{endpoint}"
 
         try:
-            response = requests.post(
+            response = self._session.post(
                 url,
                 json=json_body,
                 params=params,
@@ -98,7 +119,7 @@ class Connector:
         url = f"{self._base_url}{endpoint}"
 
         try:
-            response = requests.get(
+            response = self._session.get(
                 url,
                 params=params,
                 timeout=60,
