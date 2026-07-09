@@ -6,7 +6,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=9454f7d5" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=70423902" />
     <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=dab9ba16" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -174,16 +174,16 @@ data-aria-dark="Switch to auto color mode">
   </div>
 </div><article class="yue" role="main">
           <section id="installation-configuration">
-<h1>Installation &amp; Configuration<a class="headerlink" href="#installation-configuration" title="Link to this heading">¶</a></h1>
+<h1>Installation &amp; Configuration<a class="headerlink" href="#installation-configuration" title="Link to this heading">#</a></h1>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">#</a></h2>
 <p>Install PSR Lakehouse using pip:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1">pip<span class="w"> </span>install<span class="w"> </span>psr-lakehouse
 </span></pre></div>
 </div>
 </section>
 <section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">¶</a></h2>
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p>Python 3.13+</p></li>
 <li><p>pandas</p></li>
@@ -191,9 +191,9 @@ data-aria-dark="Switch to auto color mode">
 </ul>
 </section>
 <section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h2>
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
 <section id="environment-variables">
-<h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading">¶</a></h3>
+<h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading">#</a></h3>
 <p>The library requires configuration via environment variables:</p>
 <p><strong>API URL</strong> (required):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nv">LAKEHOUSE_API_URL</span><span class="o">=</span><span class="s2">&quot;https://api.example.com&quot;</span>
@@ -201,7 +201,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 </section>
 <section id="programmatic-initialization">
-<h3>Programmatic Initialization<a class="headerlink" href="#programmatic-initialization" title="Link to this heading">¶</a></h3>
+<h3>Programmatic Initialization<a class="headerlink" href="#programmatic-initialization" title="Link to this heading">#</a></h3>
 <p>Alternatively, you can configure the client programmatically:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">initialize</span>
 </span><span data-line="2">
@@ -217,7 +217,7 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="development-setup">
-<h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">¶</a></h2>
+<h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">#</a></h2>
 <p>For development, the project uses <code class="docutils literal notranslate"><span class="pre">uv</span></code> as the package manager:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Install dependencies</span>
 </span><span data-line="2">uv<span class="w"> </span>sync
@@ -272,9 +272,9 @@ data-aria-dark="Switch to auto color mode">
   </p>
 </div>
       <div class="sy-foot-socials">
-<a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
-  <iconify-icon icon="simple-icons:github"></iconify-icon>
-</a></div>
+  <a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div>
     </div>
   </div>
 </footer>

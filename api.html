@@ -6,7 +6,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=9454f7d5" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=70423902" />
     <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=dab9ba16" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -188,16 +188,16 @@ data-aria-dark="Switch to auto color mode">
   </div>
 </div><article class="yue" role="main">
           <section id="api-reference">
-<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h1>
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">#</a></h1>
 <p>This page provides detailed documentation of the PSR Lakehouse Client API.</p>
 <section id="client-class">
-<h2>Client Class<a class="headerlink" href="#client-class" title="Link to this heading">¶</a></h2>
+<h2>Client Class<a class="headerlink" href="#client-class" title="Link to this heading">#</a></h2>
 <p>The main interface for interacting with the PSR Lakehouse API. The client uses a singleton pattern to ensure only one instance exists throughout your application.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
 </span></pre></div>
 </div>
 <section id="initialization">
-<h3>Initialization<a class="headerlink" href="#initialization" title="Link to this heading">¶</a></h3>
+<h3>Initialization<a class="headerlink" href="#initialization" title="Link to this heading">#</a></h3>
 <p>The client is automatically initialized as a singleton. You can configure it using:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">initialize</span>
 </span><span data-line="2">
@@ -213,9 +213,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="data-fetching-methods">
-<h2>Data Fetching Methods<a class="headerlink" href="#data-fetching-methods" title="Link to this heading">¶</a></h2>
+<h2>Data Fetching Methods<a class="headerlink" href="#data-fetching-methods" title="Link to this heading">#</a></h2>
 <section id="fetch-dataframe">
-<h3>fetch_dataframe()<a class="headerlink" href="#fetch-dataframe" title="Link to this heading">¶</a></h3>
+<h3>fetch_dataframe()<a class="headerlink" href="#fetch-dataframe" title="Link to this heading">#</a></h3>
 <p>Fetch data from the API and return as a pandas DataFrame using a simplified interface.</p>
 <p><strong>Signature:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">fetch_dataframe</span><span class="p">(</span>
@@ -307,7 +307,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 </section>
 <section id="fetch-dataframe-from-query">
-<h3>fetch_dataframe_from_query()<a class="headerlink" href="#fetch-dataframe-from-query" title="Link to this heading">¶</a></h3>
+<h3>fetch_dataframe_from_query()<a class="headerlink" href="#fetch-dataframe-from-query" title="Link to this heading">#</a></h3>
 <p>Fetch data using a custom JSON query body. This method provides access to advanced features like joins, custom operators, and complex ordering.</p>
 <p><strong>Signature:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">fetch_dataframe_from_query</span><span class="p">(</span>
@@ -401,9 +401,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="schema-discovery-methods">
-<h2>Schema Discovery Methods<a class="headerlink" href="#schema-discovery-methods" title="Link to this heading">¶</a></h2>
+<h2>Schema Discovery Methods<a class="headerlink" href="#schema-discovery-methods" title="Link to this heading">#</a></h2>
 <section id="list-tables">
-<h3>list_tables()<a class="headerlink" href="#list-tables" title="Link to this heading">¶</a></h3>
+<h3>list_tables()<a class="headerlink" href="#list-tables" title="Link to this heading">#</a></h3>
 <p>List all available table names in the API.</p>
 <p><strong>Signature:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">list_tables</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
@@ -422,7 +422,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 </section>
 <section id="get-schema">
-<h3>get_schema()<a class="headerlink" href="#get-schema" title="Link to this heading">¶</a></h3>
+<h3>get_schema()<a class="headerlink" href="#get-schema" title="Link to this heading">#</a></h3>
 <p>Get detailed schema information for a specific table.</p>
 <p><strong>Signature:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">get_schema</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
@@ -497,7 +497,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 </section>
 <section id="get-table-columns">
-<h3>get_table_columns()<a class="headerlink" href="#get-table-columns" title="Link to this heading">¶</a></h3>
+<h3>get_table_columns()<a class="headerlink" href="#get-table-columns" title="Link to this heading">#</a></h3>
 <p>Get a list of column names for a given table.</p>
 <p><strong>Signature:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">get_table_columns</span><span class="p">(</span><span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
@@ -520,9 +520,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="exceptions">
-<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">¶</a></h2>
+<h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">#</a></h2>
 <section id="lakehouseerror">
-<h3>LakehouseError<a class="headerlink" href="#lakehouseerror" title="Link to this heading">¶</a></h3>
+<h3>LakehouseError<a class="headerlink" href="#lakehouseerror" title="Link to this heading">#</a></h3>
 <p>Base exception class for all PSR Lakehouse errors.</p>
 <p><strong>Common Scenarios:</strong></p>
 <ul class="simple">
@@ -547,7 +547,7 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="best-practices">
-<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h2>
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
 <li><p><strong>Use Appropriate Method</strong></p>
 <ul class="simple">
@@ -589,7 +589,7 @@ data-aria-dark="Switch to auto color mode">
 </ol>
 </section>
 <section id="type-conversion">
-<h2>Type Conversion<a class="headerlink" href="#type-conversion" title="Link to this heading">¶</a></h2>
+<h2>Type Conversion<a class="headerlink" href="#type-conversion" title="Link to this heading">#</a></h2>
 <p>The client automatically handles type conversions:</p>
 <ul class="simple">
 <li><p><strong>Datetime columns</strong>: Columns named <code class="docutils literal notranslate"><span class="pre">reference_date</span></code> are automatically converted to <code class="docutils literal notranslate"><span class="pre">pd.Timestamp</span></code></p></li>
@@ -598,7 +598,7 @@ data-aria-dark="Switch to auto color mode">
 </ul>
 </section>
 <section id="connection-management">
-<h2>Connection Management<a class="headerlink" href="#connection-management" title="Link to this heading">¶</a></h2>
+<h2>Connection Management<a class="headerlink" href="#connection-management" title="Link to this heading">#</a></h2>
 <p>The HTTP connector validates connectivity during initialization by performing a health check against the API. The singleton pattern ensures connection resources are reused throughout your application lifecycle.</p>
 </section>
 </section>
@@ -632,9 +632,9 @@ data-aria-dark="Switch to auto color mode">
   </p>
 </div>
       <div class="sy-foot-socials">
-<a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
-  <iconify-icon icon="simple-icons:github"></iconify-icon>
-</a></div>
+  <a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div>
     </div>
   </div>
 </footer>

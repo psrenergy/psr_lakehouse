@@ -6,7 +6,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=9454f7d5" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=70423902" />
     <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=dab9ba16" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -188,12 +188,12 @@ data-aria-dark="Switch to auto color mode">
   </div>
 </div><article class="yue" role="main">
           <section id="advanced-examples">
-<h1>Advanced Examples<a class="headerlink" href="#advanced-examples" title="Link to this heading">¶</a></h1>
+<h1>Advanced Examples<a class="headerlink" href="#advanced-examples" title="Link to this heading">#</a></h1>
 <p>This page contains advanced examples based on real-world usage patterns.</p>
 <section id="example-1-power-plant-generation-analysis">
-<h2>Example 1: Power Plant Generation Analysis<a class="headerlink" href="#example-1-power-plant-generation-analysis" title="Link to this heading">¶</a></h2>
+<h2>Example 1: Power Plant Generation Analysis<a class="headerlink" href="#example-1-power-plant-generation-analysis" title="Link to this heading">#</a></h2>
 <section id="aggregate-generation-by-plant-type">
-<h3>Aggregate Generation by Plant Type<a class="headerlink" href="#aggregate-generation-by-plant-type" title="Link to this heading">¶</a></h3>
+<h3>Aggregate Generation by Plant Type<a class="headerlink" href="#aggregate-generation-by-plant-type" title="Link to this heading">#</a></h3>
 <p>This example shows how to aggregate hourly generation data by plant type:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
 </span><span data-line="2">
@@ -225,7 +225,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 </section>
 <section id="daily-generation-with-datetime-granularity">
-<h3>Daily Generation with Datetime Granularity<a class="headerlink" href="#daily-generation-with-datetime-granularity" title="Link to this heading">¶</a></h3>
+<h3>Daily Generation with Datetime Granularity<a class="headerlink" href="#daily-generation-with-datetime-granularity" title="Link to this heading">#</a></h3>
 <p>Aggregate hourly data to daily granularity:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
 </span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -258,7 +258,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 </section>
 <section id="hourly-data-with-sorting">
-<h3>Hourly Data with Sorting<a class="headerlink" href="#hourly-data-with-sorting" title="Link to this heading">¶</a></h3>
+<h3>Hourly Data with Sorting<a class="headerlink" href="#hourly-data-with-sorting" title="Link to this heading">#</a></h3>
 <p>Fetch hourly generation data with custom ordering:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
 </span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -302,9 +302,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="example-2-joining-multiple-tables">
-<h2>Example 2: Joining Multiple Tables<a class="headerlink" href="#example-2-joining-multiple-tables" title="Link to this heading">¶</a></h2>
+<h2>Example 2: Joining Multiple Tables<a class="headerlink" href="#example-2-joining-multiple-tables" title="Link to this heading">#</a></h2>
 <section id="energy-load-and-inflow-analysis">
-<h3>Energy Load and Inflow Analysis<a class="headerlink" href="#energy-load-and-inflow-analysis" title="Link to this heading">¶</a></h3>
+<h3>Energy Load and Inflow Analysis<a class="headerlink" href="#energy-load-and-inflow-analysis" title="Link to this heading">#</a></h3>
 <p>This example demonstrates joining energy load data with inflow energy data:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_energy_load</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
 </span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -351,9 +351,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="example-3-using-the-simplified-interface">
-<h2>Example 3: Using the Simplified Interface<a class="headerlink" href="#example-3-using-the-simplified-interface" title="Link to this heading">¶</a></h2>
+<h2>Example 3: Using the Simplified Interface<a class="headerlink" href="#example-3-using-the-simplified-interface" title="Link to this heading">#</a></h2>
 <section id="alternative-method-for-common-use-cases">
-<h3>Alternative Method for Common Use Cases<a class="headerlink" href="#alternative-method-for-common-use-cases" title="Link to this heading">¶</a></h3>
+<h3>Alternative Method for Common Use Cases<a class="headerlink" href="#alternative-method-for-common-use-cases" title="Link to this heading">#</a></h3>
 <p>For simpler queries, you can use the <code class="docutils literal notranslate"><span class="pre">fetch_dataframe</span></code> method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
 </span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
@@ -369,9 +369,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="example-4-schema-exploration">
-<h2>Example 4: Schema Exploration<a class="headerlink" href="#example-4-schema-exploration" title="Link to this heading">¶</a></h2>
+<h2>Example 4: Schema Exploration<a class="headerlink" href="#example-4-schema-exploration" title="Link to this heading">#</a></h2>
 <section id="discovering-available-data">
-<h3>Discovering Available Data<a class="headerlink" href="#discovering-available-data" title="Link to this heading">¶</a></h3>
+<h3>Discovering Available Data<a class="headerlink" href="#discovering-available-data" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
 </span><span data-line="2">
 </span><span data-line="3"><span class="c1"># List all available tables</span>
@@ -399,9 +399,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="query-structure-reference">
-<h2>Query Structure Reference<a class="headerlink" href="#query-structure-reference" title="Link to this heading">¶</a></h2>
+<h2>Query Structure Reference<a class="headerlink" href="#query-structure-reference" title="Link to this heading">#</a></h2>
 <section id="understanding-the-query-format">
-<h3>Understanding the Query Format<a class="headerlink" href="#understanding-the-query-format" title="Link to this heading">¶</a></h3>
+<h3>Understanding the Query Format<a class="headerlink" href="#understanding-the-query-format" title="Link to this heading">#</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">fetch_dataframe_from_query</span></code> method accepts a dictionary with the following structure:</p>
 <p><strong>Basic Structure:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p">{</span>
@@ -488,9 +488,9 @@ data-aria-dark="Switch to auto color mode">
   </p>
 </div>
       <div class="sy-foot-socials">
-<a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
-  <iconify-icon icon="simple-icons:github"></iconify-icon>
-</a></div>
+  <a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div>
     </div>
   </div>
 </footer>

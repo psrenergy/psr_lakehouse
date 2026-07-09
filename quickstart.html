@@ -6,7 +6,7 @@
     function setColorMode(t){let e=document.documentElement;e.setAttribute("data-color-mode",t);let a=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches,s=t;"auto"===t&&(s=a?"dark":"light"),"light"===s?(e.classList.remove("dark"),e.classList.add("light")):(e.classList.remove("light"),e.classList.add("dark"))}
     setColorMode(localStorage._theme||"auto");
   </script><link rel="stylesheet" type="text/css" href="_static/pygments.css?v=e1a1ceaf" />
-    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=9454f7d5" />
+    <link rel="stylesheet" type="text/css" href="_static/shibuya.css?v=70423902" />
     <link media="print" rel="stylesheet" type="text/css" href="_static/print.css?v=20ff2c19" />
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=dab9ba16" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -190,12 +190,12 @@ data-aria-dark="Switch to auto color mode">
   </div>
 </div><article class="yue" role="main">
           <section id="quick-start-guide">
-<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading">¶</a></h1>
+<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading">#</a></h1>
 <p>This guide will help you get started with PSR Lakehouse client.</p>
 <section id="basic-usage">
-<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h2>
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">#</a></h2>
 <section id="import-and-fetch-data">
-<h3>Import and Fetch Data<a class="headerlink" href="#import-and-fetch-data" title="Link to this heading">¶</a></h3>
+<h3>Import and Fetch Data<a class="headerlink" href="#import-and-fetch-data" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
 </span><span data-line="2">
 </span><span data-line="3"><span class="c1"># Fetch CCEE spot price data</span>
@@ -212,9 +212,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="filtering-data">
-<h2>Filtering Data<a class="headerlink" href="#filtering-data" title="Link to this heading">¶</a></h2>
+<h2>Filtering Data<a class="headerlink" href="#filtering-data" title="Link to this heading">#</a></h2>
 <section id="filter-by-column-values">
-<h3>Filter by Column Values<a class="headerlink" href="#filter-by-column-values" title="Link to this heading">¶</a></h3>
+<h3>Filter by Column Values<a class="headerlink" href="#filter-by-column-values" title="Link to this heading">#</a></h3>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">filters</span></code> parameter to filter by exact column values:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Filter by subsystem</span>
 </span><span data-line="2"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
@@ -228,7 +228,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 </section>
 <section id="date-range-filtering">
-<h3>Date Range Filtering<a class="headerlink" href="#date-range-filtering" title="Link to this heading">¶</a></h3>
+<h3>Date Range Filtering<a class="headerlink" href="#date-range-filtering" title="Link to this heading">#</a></h3>
 <p>Use <code class="docutils literal notranslate"><span class="pre">start_reference_date</span></code> and <code class="docutils literal notranslate"><span class="pre">end_reference_date</span></code> to filter data by date:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
 </span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
@@ -241,9 +241,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="aggregating-data">
-<h2>Aggregating Data<a class="headerlink" href="#aggregating-data" title="Link to this heading">¶</a></h2>
+<h2>Aggregating Data<a class="headerlink" href="#aggregating-data" title="Link to this heading">#</a></h2>
 <section id="group-and-aggregate">
-<h3>Group and Aggregate<a class="headerlink" href="#group-and-aggregate" title="Link to this heading">¶</a></h3>
+<h3>Group and Aggregate<a class="headerlink" href="#group-and-aggregate" title="Link to this heading">#</a></h3>
 <p>Use <code class="docutils literal notranslate"><span class="pre">group_by</span></code> and <code class="docutils literal notranslate"><span class="pre">aggregation_method</span></code> to aggregate data:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Group by subsystem and calculate average spot price</span>
 </span><span data-line="2"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
@@ -265,7 +265,7 @@ data-aria-dark="Switch to auto color mode">
 </ul>
 </section>
 <section id="temporal-aggregation">
-<h3>Temporal Aggregation<a class="headerlink" href="#temporal-aggregation" title="Link to this heading">¶</a></h3>
+<h3>Temporal Aggregation<a class="headerlink" href="#temporal-aggregation" title="Link to this heading">#</a></h3>
 <p>Use <code class="docutils literal notranslate"><span class="pre">datetime_granularity</span></code> to aggregate datetime data to a coarser granularity:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Aggregate hourly data to daily</span>
 </span><span data-line="2"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
@@ -282,9 +282,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="ordering-results">
-<h2>Ordering Results<a class="headerlink" href="#ordering-results" title="Link to this heading">¶</a></h2>
+<h2>Ordering Results<a class="headerlink" href="#ordering-results" title="Link to this heading">#</a></h2>
 <section id="sort-by-multiple-columns">
-<h3>Sort By Multiple Columns<a class="headerlink" href="#sort-by-multiple-columns" title="Link to this heading">¶</a></h3>
+<h3>Sort By Multiple Columns<a class="headerlink" href="#sort-by-multiple-columns" title="Link to this heading">#</a></h3>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">order_by</span></code> parameter to sort results:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
 </span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
@@ -302,9 +302,9 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="schema-discovery">
-<h2>Schema Discovery<a class="headerlink" href="#schema-discovery" title="Link to this heading">¶</a></h2>
+<h2>Schema Discovery<a class="headerlink" href="#schema-discovery" title="Link to this heading">#</a></h2>
 <section id="list-available-tables">
-<h3>List Available Tables<a class="headerlink" href="#list-available-tables" title="Link to this heading">¶</a></h3>
+<h3>List Available Tables<a class="headerlink" href="#list-available-tables" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">tables</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tables</span><span class="p">()</span>
 </span><span data-line="2"><span class="nb">print</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span>
 </span><span data-line="3"><span class="c1"># Output: [&#39;CCEESpotPrice&#39;, &#39;ONSEnergyLoadDaily&#39;, &#39;ONSStoredEnergySubsystem&#39;, ...]</span>
@@ -312,7 +312,7 @@ data-aria-dark="Switch to auto color mode">
 </div>
 </section>
 <section id="get-table-schema">
-<h3>Get Table Schema<a class="headerlink" href="#get-table-schema" title="Link to this heading">¶</a></h3>
+<h3>Get Table Schema<a class="headerlink" href="#get-table-schema" title="Link to this heading">#</a></h3>
 <p>Retrieve detailed schema information including field types, descriptions, and allowed values:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">)</span>
 </span><span data-line="2"><span class="nb">print</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
@@ -350,7 +350,7 @@ data-aria-dark="Switch to auto color mode">
 </section>
 </section>
 <section id="next-steps">
-<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">¶</a></h2>
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p>Check out the <a class="reference internal" href="examples.html"><span class="doc">Advanced Examples</span></a> page for more advanced use cases</p></li>
 <li><p>Read the <a class="reference internal" href="api.html"><span class="doc">API Reference</span></a> reference for complete method documentation</p></li>
@@ -396,9 +396,9 @@ data-aria-dark="Switch to auto color mode">
   </p>
 </div>
       <div class="sy-foot-socials">
-<a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
-  <iconify-icon icon="simple-icons:github"></iconify-icon>
-</a></div>
+  <a href="https://github.com/psrenergy/psr_lakehouse" aria-label="GitHub">
+    <iconify-icon icon="simple-icons:github"></iconify-icon>
+  </a></div>
     </div>
   </div>
 </footer>
