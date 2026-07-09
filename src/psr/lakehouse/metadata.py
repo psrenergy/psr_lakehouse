@@ -13,8 +13,21 @@ def get_model_name(table_name: str) -> str:
         return table_name
 
     # Fallback: convert snake_case to PascalCase
-    # Special handling for organization prefixes that should remain uppercase
-    UPPERCASE_PREFIXES = {"ons", "ccee", "aneel", "redemet", "epe"}
+    # Special handling for organization/source acronyms that should remain uppercase
+    UPPERCASE_PREFIXES = {
+        "ons",
+        "ccee",
+        "aneel",
+        "redemet",
+        "epe",
+        "inmet",
+        "anp",
+        "bbce",
+        "bcb",
+        "cl_cen",
+        "co_xm",
+        "pe_coes",
+    }
 
     words = table_name.split("_")
     result = []
