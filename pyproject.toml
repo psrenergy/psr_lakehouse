@@ -1,6 +1,6 @@
 [project]
 name = "psr-lakehouse"
-version = "0.4.1"
+version = "0.5.0"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -9,6 +9,9 @@ dependencies = [
     "requests>=2.32.0",
     "streamlit>=1.48.1",
 ]
+
+[project.scripts]
+psr-lakehouse = "psr.lakehouse.__main__:main"
 
 [build-system]
 requires = ["hatchling"]

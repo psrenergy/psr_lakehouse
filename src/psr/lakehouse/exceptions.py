@@ -9,6 +9,17 @@ class LakehouseError(Exception):
         return f"LakehouseError: {self.message}"
 
 
+class LakehouseAuthError(LakehouseError):
+    """Exception for failures to authenticate against a lakehouse that requires a login."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return f"LakehouseAuthError: {self.message}"
+
+
 class LakehouseInputError(LakehouseError):
     """Exception for invalid input errors in Lakehouse client."""
 
