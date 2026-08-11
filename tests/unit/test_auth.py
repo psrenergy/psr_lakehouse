@@ -1,4 +1,5 @@
 import json
+import os
 import stat
 import time
 
@@ -229,6 +230,15 @@ class TestLoginRejections:
         assert "AWSELBAuthSessionCookie-0=hand-copied" in mock_api.calls[-1].request.headers["Cookie"]
 
 
+@pytest.mark.skipif(
+    os.name == "nt",
+    reason=(
+        "POSIX modes are not enforced on Windows: chmod only toggles the read-only bit, so a file "
+        "reads back as 0o666 and a directory as 0o777 whatever was asked for. `_restrict` is "
+        "written as best-effort for exactly this reason; protecting the credential there would "
+        "mean ACLs, which is a separate piece of work."
+    ),
+)
 class TestSessionFilePermissions:
     def test_the_session_file_is_not_world_readable(self, mock_api, monkeypatch, session_file):
         log_in(mock_api, monkeypatch)
