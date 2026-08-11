@@ -75,18 +75,29 @@ class Connector:
         """Sign in in a browser and cache the session, replacing any session already cached.
 
         Args:
-            base_url: API base URL, when the connector has not been initialized yet.
+            base_url: API base URL. Honoured even when the connector is already initialized —
+                being a singleton, it may well be pointing somewhere else already.
         """
-        if not self._is_initialized:
-            self.initialize(base_url)
+        target = base_url.rstrip("/") if base_url else None
+        if not self._is_initialized or (target and target != getattr(self, "_base_url", None)):
+            self.initialize(target or base_url)
         auth.login(self._base_url, session=self._session)
 
-    def logout(self) -> bool:
-        """Forget the cached session for this API, in this process and on disk."""
-        if not self._is_initialized:
-            self.initialize()
-        auth._clear_alb_cookies(self._session)
-        return auth.clear_session(self._base_url)
+    def logout(self, base_url: str | None = None) -> bool:
+        """Forget the cached session for this API, in this process and on disk.
+
+        Deliberately does no initialization: throwing away a credential must not depend on the API
+        being reachable, which is often exactly why someone is logging out.
+        """
+        target = base_url or getattr(self, "_base_url", None) or os.getenv("LAKEHOUSE_API_URL")
+        if not target:
+            raise LakehouseError(
+                "No API URL to log out of. Pass base_url or set the LAKEHOUSE_API_URL environment variable."
+            )
+
+        if self._is_initialized:
+            auth._clear_alb_cookies(self._session)
+        return auth.clear_session(target.rstrip("/"))
 
     def _send(self, method: str, url: str, **kwargs) -> dict:
         """Send a request, logging in and retrying once if it was bounced to the login page.

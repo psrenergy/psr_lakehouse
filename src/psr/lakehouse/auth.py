@@ -84,14 +84,25 @@ def _read_store() -> dict:
 
 def _write_store(store: dict) -> None:
     path = session_file()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    _restrict(path.parent, 0o700)
+
+    # Only a directory this created is re-permissioned. `LAKEHOUSE_SESSION_FILE` is a documented,
+    # user-set path, so its parent may be a directory that already exists for other reasons and is
+    # not ours to tighten.
+    if not path.parent.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        _restrict(path.parent, 0o700)
 
     # Written to a sibling and renamed so an interrupted write cannot leave a half-written file
-    # behind, and created restricted *before* it holds a credential.
+    # behind. Opened 0600 *before* the credential goes in — writing first and chmod-ing after
+    # would leave it world-readable (0644 under the usual umask) for the length of the write, and
+    # unlinking first means a pre-existing temp file cannot donate a looser mode through O_CREAT.
     tmp = path.with_name(f"{path.name}.tmp")
-    tmp.write_text(json.dumps(store, indent=2), encoding="utf-8")
-    _restrict(tmp, 0o600)
+    tmp.unlink(missing_ok=True)
+    descriptor = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+        json.dump(store, handle, indent=2)
+
+    # `replace` carries the temp file's inode, and with it the 0600, over the destination.
     tmp.replace(path)
 
 
@@ -132,19 +143,36 @@ def save_session(base_url: str, session: requests.Session) -> None:
     _write_store(store)
 
 
+def _stored_cookies(entry: object) -> list[dict]:
+    """The well-formed cookie entries in a stored session, ignoring anything else.
+
+    The file is on disk and hand-editable, and a truncated or edited one must degrade to "not
+    logged in" — not raise a `KeyError` out of `initialize()` and break every fetch.
+    """
+    if not isinstance(entry, dict) or not isinstance(entry.get("cookies"), list):
+        return []
+
+    valid = []
+    for cookie in entry["cookies"]:
+        if not isinstance(cookie, dict):
+            continue
+        if not isinstance(cookie.get("name"), str) or not isinstance(cookie.get("value"), str):
+            continue
+        if not isinstance(cookie.get("expires"), (int, float, type(None))):
+            cookie = {**cookie, "expires": None}
+        valid.append(cookie)
+    return valid
+
+
 def load_session(base_url: str, session: requests.Session) -> bool:
     """Install the cached cookies for `base_url` onto `session`; say whether any were usable.
 
     Expired cookies are dropped rather than sent, so a week-old session behaves like no session
     at all instead of provoking a redirect on the first real request.
     """
-    entry = _read_store()["sessions"].get(_store_key(base_url))
-    if not entry:
-        return False
-
     now = time.time()
     installed = 0
-    for cookie in entry.get("cookies", []):
+    for cookie in _stored_cookies(_read_store()["sessions"].get(_store_key(base_url))):
         expires = cookie.get("expires")
         if expires and expires <= now:
             continue
@@ -152,10 +180,10 @@ def load_session(base_url: str, session: requests.Session) -> bool:
             requests.cookies.create_cookie(
                 name=cookie["name"],
                 value=cookie["value"],
-                domain=cookie.get("domain", ""),
-                path=cookie.get("path", "/"),
+                domain=cookie.get("domain") if isinstance(cookie.get("domain"), str) else "",
+                path=cookie.get("path") if isinstance(cookie.get("path"), str) else "/",
                 expires=expires,
-                secure=cookie.get("secure", True),
+                secure=bool(cookie.get("secure", True)),
             )
         )
         installed += 1
@@ -169,9 +197,9 @@ def session_info(base_url: str) -> dict | None:
     if not entry:
         return None
 
-    expiries = [cookie.get("expires") for cookie in entry.get("cookies", []) if cookie.get("expires")]
+    expiries = [cookie["expires"] for cookie in _stored_cookies(entry) if cookie.get("expires")]
     return {
-        "saved_at": entry.get("saved_at"),
+        "saved_at": entry.get("saved_at") if isinstance(entry, dict) else None,
         "expires_at": min(expiries) if expiries else None,
         "expired": bool(expiries) and min(expiries) <= time.time(),
     }
@@ -191,8 +219,10 @@ def clear_session(base_url: str | None = None) -> bool:
 
 
 def _clear_alb_cookies(session: requests.Session) -> None:
+    # `CookieJar.clear(name=…)` on its own raises: it demands the domain and path as well, and
+    # `requests` does not override it. This helper does that bookkeeping for every match.
     for name in [cookie.name for cookie in session.cookies if cookie.name.startswith(_ALB_COOKIE_PREFIX)]:
-        session.cookies.clear(name=name)
+        requests.cookies.remove_cookie_by_name(session.cookies, name)
 
 
 def _has_alb_cookie(session: requests.Session) -> bool:
@@ -203,7 +233,17 @@ def _has_alb_cookie(session: requests.Session) -> bool:
 # Recognising the bounce to the identity provider
 # --------------------------------------------------------------------------- #
 def _host(url: str) -> str:
+    """Host *and port*, for comparing one URL against another like for like."""
     return urlparse(url).netloc.lower()
+
+
+def _hostname(url: str) -> str:
+    """Host without the port, which is the only form a cookie domain may take."""
+    return (urlparse(url).hostname or "").lower()
+
+
+def _origin(url: str) -> tuple[str, str]:
+    return urlparse(url).scheme.lower(), _host(url)
 
 
 def bounced_to_idp(response: requests.Response, base_url: str) -> bool:
@@ -358,6 +398,15 @@ def _start_flow(session: requests.Session, base_url: str) -> str:
             "is nothing to log in to."
         )
 
+    # This URL is handed to the operating system's URL handler, which will act on whatever scheme
+    # it is given. It arrives in a `Location` header, so it is only as trustworthy as the host in
+    # `base_url` — check it is an ordinary web address before opening it.
+    if urlparse(authorize_url).scheme.lower() not in ("http", "https"):
+        raise LakehouseAuthError(
+            f"{base_url} redirected the login to something that is not a web address; refusing to "
+            f"open it: {authorize_url[:80]}"
+        )
+
     note(f"Logging in to {base_url} via {_host(authorize_url)}")
     return authorize_url
 
@@ -366,8 +415,11 @@ def _finish_from_callback(session: requests.Session, base_url: str, pasted: str)
     """Replay the browser's callback URL from here, where the nonce cookie is."""
     pasted = pasted.strip()
     parsed = urlparse(pasted)
-    if not parsed.scheme or _host(pasted) != _host(base_url):
-        raise LakehouseAuthError(f"that is not a {_host(base_url)} URL")
+
+    # The full origin, not just the host: matching on the host alone would accept an `http://`
+    # paste and replay the authorization code over cleartext.
+    if _origin(pasted) != _origin(base_url):
+        raise LakehouseAuthError(f"that is not a {urlparse(base_url).scheme}://{_host(base_url)} URL")
     if "code=" not in (parsed.query or ""):
         raise LakehouseAuthError("that URL carries no authorization code, so the sign-in did not finish")
 
@@ -399,7 +451,9 @@ def _paste_cookie(session: requests.Session, base_url: str) -> None:
         requests.cookies.create_cookie(
             name=f"{_ALB_COOKIE_PREFIX}-0",
             value=value.strip(),
-            domain=_host(base_url),
+            # `hostname`, not `netloc`: a domain carrying a port matches nothing, so the cookie
+            # would be stored and then never sent.
+            domain=_hostname(base_url),
             path="/",
             expires=int(time.time() + _ASSUMED_SESSION_SECONDS),
             secure=True,
@@ -417,6 +471,15 @@ def _verify(session: requests.Session, base_url: str, hint: str) -> None:
     if probe.is_redirect:
         raise LakehouseAuthError(
             f"The session was not accepted — requests are still redirected to the login page. {hint}"
+        )
+
+    # Getting past the load balancer is not the same as being allowed in: the application applies
+    # its own rule (a verified email in an allowed domain) and answers 403. Saying "logged in" here
+    # would cache a session that cannot fetch anything and move the complaint to the first query.
+    if probe.status_code == 403:
+        raise LakehouseAuthError(
+            f"Signed in, but {base_url} refused the account (HTTP 403). Access requires a verified "
+            "email in an allowed domain — sign in as a different user."
         )
 
 
