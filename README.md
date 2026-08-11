@@ -33,6 +33,12 @@ Configure the API URL:
 export LAKEHOUSE_API_URL="https://api.example.com"
 ```
 
+Log in (the production lakehouse is behind PSR's Cognito sign-in — the session is cached in `~/.psr-lakehouse/`, so this is a one-off):
+
+```bash
+psr-lakehouse login
+```
+
 Fetch data from the API:
 
 ```python
