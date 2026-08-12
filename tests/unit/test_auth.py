@@ -13,8 +13,9 @@ BASE_URL = "https://test-api.example.com"
 IDP = "https://accounts.example.com"
 AUTHORIZE_URL = f"{IDP}/oauth2/authorize?client_id=abc&redirect_uri={BASE_URL}/oauth2/idpresponse&state=xyz"
 
-# What the browser is left showing: a 401 whose URL still carries the unspent code.
-CALLBACK_URL = f"{BASE_URL}/oauth2/idpresponse?code=auth-code&state=xyz"
+# What the browser's code page shows, and what the user pastes back.
+CODE = "one-time-pairing-code"
+EMAIL = "user@psr-inc.com"
 
 
 @pytest.fixture(autouse=True)
@@ -38,82 +39,72 @@ def bounce(mock_api, path=f"{BASE_URL}/openapi.json"):
     mock_api.add(mock_api.GET, path, status=302, headers={"Location": AUTHORIZE_URL})
 
 
-def callback_succeeds(mock_api, expires=None):
-    """The replayed callback: the load balancer spends the code and hands over its cookie."""
-    cookie = "AWSELBAuthSessionCookie-0=session-value; Path=/"
-    if expires:
-        cookie += f"; Expires={time.strftime('%a, %d-%b-%Y %H:%M:%S GMT', time.gmtime(expires))}"
-    mock_api.add(
-        mock_api.GET,
-        f"{BASE_URL}/oauth2/idpresponse",
-        status=200,
-        json={"openapi": "3.1.0"},
-        headers={"Set-Cookie": cookie},
-    )
+def redeem_succeeds(mock_api, cookies=None, email=EMAIL):
+    """The redeem endpoint spending the code for the cookies the browser banked."""
+    if cookies is None:
+        cookies = [{"name": "AWSELBAuthSessionCookie-0", "value": "session-value"}]
+    mock_api.add(mock_api.POST, f"{BASE_URL}/auth/cli/token", status=200, json={"cookies": cookies, "email": email})
+
+
+def redeem_refused(mock_api, base=BASE_URL):
+    mock_api.add(mock_api.POST, f"{base}/auth/cli/token", status=400, json={"detail": "That code is invalid."})
 
 
 def authenticated(mock_api, path=f"{BASE_URL}/openapi.json"):
     mock_api.add(mock_api.GET, path, status=200, json={"openapi": "3.1.0"})
 
 
-def log_in(mock_api, monkeypatch, expires=None):
+def log_in(mock_api, monkeypatch):
     """Complete a login, so a test can start from a cached session."""
     bounce(mock_api)
-    callback_succeeds(mock_api, expires=expires)
+    redeem_succeeds(mock_api)
     authenticated(mock_api)
-    monkeypatch.setattr(auth, "_ask", lambda label: CALLBACK_URL)
+    monkeypatch.setattr(auth, "_ask", lambda label: CODE)
     auth.login(BASE_URL)
 
 
 class TestLogin:
-    def test_replays_the_pasted_callback_to_collect_the_cookie(self, mock_api, monkeypatch, dont_open_a_browser):
-        log_in(mock_api, monkeypatch, expires=time.time() + 7 * 24 * 3600)
+    def test_the_pasted_code_redeems_for_the_session(self, mock_api, monkeypatch, dont_open_a_browser):
+        log_in(mock_api, monkeypatch)
 
-        assert dont_open_a_browser == [AUTHORIZE_URL]
+        # The browser runs the whole flow itself, so it is sent to the lakehouse's own login
+        # page — not to an authorize URL only this process could complete.
+        assert dont_open_a_browser == [f"{BASE_URL}/auth/cli"]
+        redeemed = next(call.request for call in mock_api.calls if call.request.url.endswith("/auth/cli/token"))
+        assert json.loads(redeemed.body) == {"code": CODE}
         assert auth.session_info(BASE_URL)["expired"] is False
 
-    def test_the_client_starts_the_flow_so_it_holds_the_nonce(self, mock_api, monkeypatch):
-        # The authorize URL handed to the browser must be the one *this* session was given, or
-        # the load balancer will not honour the callback it comes back with.
-        mock_api.add(
-            mock_api.GET,
-            f"{BASE_URL}/openapi.json",
-            status=302,
-            headers={"Location": AUTHORIZE_URL, "Set-Cookie": "AWSALBAuthNonce=nonce-value; Path=/"},
-        )
-        callback_succeeds(mock_api)
+    def test_the_login_learns_who_it_was_for(self, mock_api, monkeypatch):
+        log_in(mock_api, monkeypatch)
+
+        assert auth.session_info(BASE_URL)["email"] == EMAIL
+
+    def test_a_missing_email_is_not_a_problem(self, mock_api, monkeypatch):
+        bounce(mock_api)
+        redeem_succeeds(mock_api, email=None)
         authenticated(mock_api)
-        monkeypatch.setattr(auth, "_ask", lambda label: CALLBACK_URL)
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
 
         auth.login(BASE_URL)
 
-        replayed = next(call.request for call in mock_api.calls if "idpresponse" in call.request.url)
-        assert "AWSALBAuthNonce=nonce-value" in replayed.headers["Cookie"]
+        assert auth.session_info(BASE_URL)["email"] is None
 
-    def test_rejects_a_callback_url_from_another_host(self, mock_api, monkeypatch):
+    def test_whitespace_around_the_pasted_code_is_forgiven(self, mock_api, monkeypatch):
         bounce(mock_api)
-        monkeypatch.setattr(auth, "_ask", lambda label: "https://evil.example.com/?code=stolen")
-        monkeypatch.setattr(auth, "_ask_secret", lambda label: (_ for _ in ()).throw(AssertionError("fell back")))
-
-        with pytest.raises(AssertionError, match="fell back"):
-            auth.login(BASE_URL)
-
-        assert not [call for call in mock_api.calls if "evil.example.com" in call.request.url]
-
-    def test_rejects_a_url_carrying_no_code(self, mock_api, monkeypatch):
-        bounce(mock_api)
-        monkeypatch.setattr(auth, "_ask", lambda label: f"{BASE_URL}/openapi.json")
-        monkeypatch.setattr(auth, "_ask_secret", lambda label: (_ for _ in ()).throw(AssertionError("fell back")))
-
-        with pytest.raises(AssertionError, match="fell back"):
-            auth.login(BASE_URL)
-
-    def test_falls_back_to_the_cookie_when_the_code_was_already_spent(self, mock_api, monkeypatch):
-        bounce(mock_api)
-        # The load balancer spent the code for the browser, so the replay sets no cookie.
-        mock_api.add(mock_api.GET, f"{BASE_URL}/oauth2/idpresponse", status=401, body="401")
+        redeem_succeeds(mock_api)
         authenticated(mock_api)
-        monkeypatch.setattr(auth, "_ask", lambda label: CALLBACK_URL)
+        monkeypatch.setattr(auth, "_ask", lambda label: f"  {CODE}\n")
+
+        auth.login(BASE_URL)
+
+        redeemed = next(call.request for call in mock_api.calls if call.request.url.endswith("/auth/cli/token"))
+        assert json.loads(redeemed.body) == {"code": CODE}
+
+    def test_falls_back_to_the_cookie_when_the_code_is_refused(self, mock_api, monkeypatch):
+        bounce(mock_api)
+        redeem_refused(mock_api)
+        authenticated(mock_api)
+        monkeypatch.setattr(auth, "_ask", lambda label: "expired-code")
         monkeypatch.setattr(auth, "_ask_secret", lambda label: "pasted-cookie-value")
 
         auth.login(BASE_URL)
@@ -122,11 +113,74 @@ class TestLogin:
         auth.load_session(BASE_URL, session)
         assert session.cookies.get("AWSELBAuthSessionCookie-0") == "pasted-cookie-value"
 
+    def test_a_server_without_the_endpoint_is_told_apart_from_a_bad_code(self, mock_api, monkeypatch):
+        bounce(mock_api)
+        mock_api.add(mock_api.POST, f"{BASE_URL}/auth/cli/token", status=404, json={"detail": "Not Found"})
+        authenticated(mock_api)
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
+        monkeypatch.setattr(auth, "_ask_secret", lambda label: "pasted-cookie-value")
+        messages = []
+        monkeypatch.setattr(auth, "note", messages.append)
+
+        auth.login(BASE_URL)
+
+        assert any("does not offer the code login" in message for message in messages)
+
+    def test_a_redeem_bounced_to_the_login_page_is_reported_as_misconfiguration(self, mock_api, monkeypatch):
+        # If the ALB lacks the forwarding rule for the redeem endpoint, the POST lands on the
+        # identity provider as HTML — no code will ever work, and the message must say so.
+        bounce(mock_api)
+        mock_api.add(mock_api.POST, f"{BASE_URL}/auth/cli/token", status=302, headers={"Location": AUTHORIZE_URL})
+        mock_api.add(mock_api.GET, AUTHORIZE_URL, status=200, body="<html>sign in</html>")
+        authenticated(mock_api)
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
+        messages = []
+        monkeypatch.setattr(auth, "note", messages.append)
+        monkeypatch.setattr(auth, "_ask_secret", lambda label: "pasted-cookie-value")
+
+        auth.login(BASE_URL)
+
+        assert any("missing the rule" in message for message in messages)
+
+    def test_an_answer_with_no_cookies_falls_back(self, mock_api, monkeypatch):
+        bounce(mock_api)
+        redeem_succeeds(mock_api, cookies=[])
+        authenticated(mock_api)
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
+        monkeypatch.setattr(auth, "_ask_secret", lambda label: "pasted-cookie-value")
+
+        auth.login(BASE_URL)
+
+        session = requests.Session()
+        auth.load_session(BASE_URL, session)
+        assert session.cookies.get("AWSELBAuthSessionCookie-0") == "pasted-cookie-value"
+
+    def test_only_load_balancer_cookies_are_installed(self, mock_api, monkeypatch):
+        # The response is JSON from the network; only the cookies this flow exists to carry
+        # may enter the jar.
+        bounce(mock_api)
+        redeem_succeeds(
+            mock_api,
+            cookies=[
+                {"name": "AWSELBAuthSessionCookie-0", "value": "session-value"},
+                {"name": "sneaky", "value": "tracking"},
+                "not-a-dict",
+            ],
+        )
+        authenticated(mock_api)
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
+
+        session = requests.Session()
+        auth.login(BASE_URL, session=session)
+
+        assert session.cookies.get("AWSELBAuthSessionCookie-0") == "session-value"
+        assert session.cookies.get("sneaky") is None
+
     def test_a_pasted_cookie_that_is_not_accepted_is_reported(self, mock_api, monkeypatch):
         bounce(mock_api)
-        mock_api.add(mock_api.GET, f"{BASE_URL}/oauth2/idpresponse", status=401, body="401")
-        bounce(mock_api)
-        monkeypatch.setattr(auth, "_ask", lambda label: CALLBACK_URL)
+        redeem_refused(mock_api)
+        bounce(mock_api)  # the verification probe is still redirected
+        monkeypatch.setattr(auth, "_ask", lambda label: "wrong-code")
         monkeypatch.setattr(auth, "_ask_secret", lambda label: "truncated")
 
         with pytest.raises(LakehouseAuthError, match="was not accepted"):
@@ -136,9 +190,9 @@ class TestLogin:
 
     def test_nothing_is_cached_when_the_login_does_not_take(self, mock_api, monkeypatch):
         bounce(mock_api)
-        callback_succeeds(mock_api)
+        redeem_succeeds(mock_api)
         bounce(mock_api)  # the verification probe is still redirected
-        monkeypatch.setattr(auth, "_ask", lambda label: CALLBACK_URL)
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
 
         with pytest.raises(LakehouseAuthError, match="was not accepted"):
             auth.login(BASE_URL)
@@ -165,68 +219,46 @@ class TestLoginRejections:
             )
         )
         bounce(mock_api)
-        callback_succeeds(mock_api)
+        redeem_succeeds(mock_api)
         authenticated(mock_api)
-        monkeypatch.setattr(auth, "_ask", lambda label: CALLBACK_URL)
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
 
         auth.login(BASE_URL, session=session)
 
         assert session.cookies.get("AWSELBAuthSessionCookie-0") == "session-value"
 
-    def test_refuses_to_open_a_redirect_that_is_not_a_web_address(self, mock_api, dont_open_a_browser):
-        # Handed straight to the OS URL handler, so a `Location` naming another scheme is not
-        # something to launch. It arrives from the network, not from the user.
-        mock_api.add(
-            mock_api.GET,
-            f"{BASE_URL}/openapi.json",
-            status=302,
-            headers={"Location": "javascript:alert(1)"},
-        )
-
-        with pytest.raises(LakehouseAuthError, match="not a web address"):
-            auth.login(BASE_URL)
-
-        assert dont_open_a_browser == []
-
-    def test_rejects_a_callback_url_that_downgrades_to_http(self, mock_api, monkeypatch):
-        # Same host, but cleartext: replaying it would put the authorization code on the wire.
-        bounce(mock_api)
-        monkeypatch.setattr(auth, "_ask", lambda label: CALLBACK_URL.replace("https://", "http://"))
-        monkeypatch.setattr(auth, "_ask_secret", lambda label: (_ for _ in ()).throw(AssertionError("fell back")))
-
-        with pytest.raises(AssertionError, match="fell back"):
-            auth.login(BASE_URL)
-
-        assert not [call for call in mock_api.calls if call.request.url.startswith("http://")]
-
     def test_a_session_the_server_refuses_is_not_a_successful_login(self, mock_api, monkeypatch):
         # Past the load balancer, refused by the application: not something to cache and call done.
         bounce(mock_api)
-        callback_succeeds(mock_api)
+        redeem_succeeds(mock_api)
         mock_api.add(mock_api.GET, f"{BASE_URL}/openapi.json", status=403, json={"detail": "Forbidden"})
-        monkeypatch.setattr(auth, "_ask", lambda label: CALLBACK_URL)
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
 
         with pytest.raises(LakehouseAuthError, match="refused the account"):
             auth.login(BASE_URL)
 
         assert auth.session_info(BASE_URL) is None
 
-    def test_the_pasted_cookie_is_scoped_without_the_port(self, mock_api, monkeypatch):
+    def test_the_redeemed_cookie_is_scoped_without_the_port(self, mock_api, monkeypatch):
         # A cookie domain may not carry a port; one that does is stored and then never sent.
         based = "https://test-api.example.com:8443"
         mock_api.add(mock_api.GET, f"{based}/openapi.json", status=302, headers={"Location": AUTHORIZE_URL})
-        mock_api.add(mock_api.GET, f"{based}/oauth2/idpresponse", status=401, body="401")
+        mock_api.add(
+            mock_api.POST,
+            f"{based}/auth/cli/token",
+            status=200,
+            json={"cookies": [{"name": "AWSELBAuthSessionCookie-0", "value": "session-value"}], "email": EMAIL},
+        )
         mock_api.add(mock_api.GET, f"{based}/openapi.json", status=200, json={"openapi": "3.1.0"})
-        monkeypatch.setattr(auth, "_ask", lambda label: f"{based}/oauth2/idpresponse?code=c&state=xyz")
-        monkeypatch.setattr(auth, "_ask_secret", lambda label: "hand-copied")
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
 
         session = requests.Session()
         auth.login(based, session=session)
 
-        assert session.cookies.get("AWSELBAuthSessionCookie-0") == "hand-copied"
+        assert session.cookies.get("AWSELBAuthSessionCookie-0") == "session-value"
         mock_api.add(mock_api.GET, f"{based}/query/schema", status=200, json={"ok": True})
         session.get(f"{based}/query/schema")
-        assert "AWSELBAuthSessionCookie-0=hand-copied" in mock_api.calls[-1].request.headers["Cookie"]
+        assert "AWSELBAuthSessionCookie-0=session-value" in mock_api.calls[-1].request.headers["Cookie"]
 
 
 class TestSessionFilePermissions:
@@ -278,10 +310,9 @@ class TestStoredSession:
         assert "AWSELBAuthSessionCookie-0=session-value" in mock_api.calls[-1].request.headers["Cookie"]
 
     def test_expired_cookies_are_not_reused(self, mock_api, monkeypatch, session_file):
-        log_in(mock_api, monkeypatch, expires=time.time() + 7 * 24 * 3600)
+        log_in(mock_api, monkeypatch)
 
-        # What a week-old session file looks like. It cannot be produced by logging in:
-        # `requests` drops an already-expired Set-Cookie instead of storing it.
+        # What a week-old session file looks like.
         store = json.loads(session_file.read_text())
         for cookie in store["sessions"][BASE_URL]["cookies"]:
             cookie["expires"] = time.time() - 60
@@ -325,7 +356,12 @@ class TestStoredSession:
         session_file.write_text(json.dumps({"version": 1, "sessions": {BASE_URL: {"cookies": cookies}}}))
 
         assert auth.load_session(BASE_URL, requests.Session()) is False
-        assert auth.session_info(BASE_URL) == {"saved_at": None, "expires_at": None, "expired": False}
+        assert auth.session_info(BASE_URL) == {
+            "saved_at": None,
+            "email": None,
+            "expires_at": None,
+            "expired": False,
+        }
 
     def test_an_unparseable_expiry_does_not_break_the_summary(self, session_file):
         session_file.write_text(
@@ -346,14 +382,14 @@ class TestStoredSession:
 class TestConnectorAuthentication:
     def test_a_bounced_request_logs_in_and_retries(self, mock_api, monkeypatch):
         monkeypatch.setattr(auth, "_interactive", lambda: True)
-        monkeypatch.setattr(auth, "_ask", lambda label: CALLBACK_URL)
+        monkeypatch.setattr(auth, "_ask", lambda label: CODE)
 
         # The first request is bounced to the IdP, then the login flow's own probe is bounced
         # too, and the retry after logging in succeeds.
         bounce(mock_api)
         mock_api.add(mock_api.GET, AUTHORIZE_URL, status=200, body="<html>sign in</html>")
         bounce(mock_api)
-        callback_succeeds(mock_api)
+        redeem_succeeds(mock_api)
         authenticated(mock_api)
 
         assert connector.get("/openapi.json") == {"openapi": "3.1.0"}

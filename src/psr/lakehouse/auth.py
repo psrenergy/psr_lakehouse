@@ -12,19 +12,18 @@ callback a CLI could listen on — an `Authorization` header changes nothing, th
 still bounced. So signing in happens in a browser, and this module's job is to get the
 resulting cookie *here*.
 
-That last part is the whole difficulty, and it explains the shape of `login`. The flow must be
-started by this client, not by the browser: `_start_flow` collects the `AWSALBAuthNonce` cookie
-the load balancer issues, and the callback at the end is only honoured for whoever holds it.
-The browser therefore signs the user in and then stops on a `401` at a URL that still carries
-an unspent authorization code, which the user pastes back so `_finish_from_callback` can redeem
-it from here. Were the browser allowed to run the flow end to end instead, it would be the
-browser that ended up holding the session — no use to a Python process.
+The hand-over works like pairing a device. `login` opens the browser at the lakehouse's
+`/auth/cli` page, and the browser runs the whole Cognito flow on its own behalf — password,
+Google, a passkey, whatever the account uses — ending up on that page with a fresh session.
+The page banks the session cookies server-side behind a one-time code (ten minutes, single
+use) and shows the code; the user pastes it into the terminal, and `_redeem_code` spends it at
+`POST /auth/cli/token` — reachable without a session, like `/health-check` — for the cookies
+plus the signed-in email. The server side of this lives in `lakehouse_server`'s
+`app/cli_auth/`.
 
-This works because the load balancer validates the nonce *before* it spends the code, which is
-undocumented but confirmed against production: the browser's rejected callback leaves the code
-untouched for us. `_paste_cookie` stays as the fallback should that order ever change — the
-cookie is then copied out of the browser by hand, which is clumsier but cannot be defeated by
-any of this.
+`_paste_cookie` is the fallback when the code cannot be redeemed (an old server, a load
+balancer missing the redeem endpoint's forwarding rule): the cookie is then copied out of the
+browser's devtools by hand, which is clumsier but depends on nothing.
 
 The session is cached in `~/.psr-lakehouse/session.json`, so this is a weekly event rather than
 a per-script one.
@@ -47,6 +46,11 @@ from psr.lakehouse.exceptions import LakehouseAuthError
 # Cheap, always-present, and *protected* — unlike `/health-check`, which has its own ALB rule
 # that forwards without authentication and so never reveals whether we are logged in.
 _PROBE_PATH = "/openapi.json"
+
+# The two halves of the code hand-over: the page the browser signs in to (which shows the
+# code), and the endpoint the code is redeemed at (reachable without a session).
+_LOGIN_PATH = "/auth/cli"
+_TOKEN_PATH = "/auth/cli/token"
 
 # The load balancer splits its session cookie across `-0`, `-1`, ... when the claims are large,
 # so this is a prefix rather than a name.
@@ -118,8 +122,12 @@ def _store_key(base_url: str) -> str:
     return base_url.rstrip("/")
 
 
-def save_session(base_url: str, session: requests.Session) -> None:
-    """Persist the load-balancer cookies held by `session` for `base_url`."""
+def save_session(base_url: str, session: requests.Session, email: str | None = None) -> None:
+    """Persist the load-balancer cookies held by `session` for `base_url`.
+
+    `email` is who the session belongs to, when the login learned it — the cookie itself is
+    opaque, so this is the only place the identity can be kept for `whoami` to answer with.
+    """
     cookies = [
         {
             "name": cookie.name,
@@ -139,7 +147,10 @@ def save_session(base_url: str, session: requests.Session) -> None:
         )
 
     store = _read_store()
-    store["sessions"][_store_key(base_url)] = {"saved_at": int(time.time()), "cookies": cookies}
+    entry = {"saved_at": int(time.time()), "cookies": cookies}
+    if email:
+        entry["email"] = email
+    store["sessions"][_store_key(base_url)] = entry
     _write_store(store)
 
 
@@ -198,8 +209,10 @@ def session_info(base_url: str) -> dict | None:
         return None
 
     expiries = [cookie["expires"] for cookie in _stored_cookies(entry) if cookie.get("expires")]
+    email = entry.get("email") if isinstance(entry, dict) else None
     return {
         "saved_at": entry.get("saved_at") if isinstance(entry, dict) else None,
+        "email": email if isinstance(email, str) else None,
         "expires_at": min(expiries) if expiries else None,
         "expired": bool(expiries) and min(expiries) <= time.time(),
     }
@@ -225,10 +238,6 @@ def _clear_alb_cookies(session: requests.Session) -> None:
         requests.cookies.remove_cookie_by_name(session.cookies, name)
 
 
-def _has_alb_cookie(session: requests.Session) -> bool:
-    return any(cookie.name.startswith(_ALB_COOKIE_PREFIX) for cookie in session.cookies)
-
-
 # --------------------------------------------------------------------------- #
 # Recognising the bounce to the identity provider
 # --------------------------------------------------------------------------- #
@@ -240,10 +249,6 @@ def _host(url: str) -> str:
 def _hostname(url: str) -> str:
     """Host without the port, which is the only form a cookie domain may take."""
     return (urlparse(url).hostname or "").lower()
-
-
-def _origin(url: str) -> tuple[str, str]:
-    return urlparse(url).scheme.lower(), _host(url)
 
 
 def bounced_to_idp(response: requests.Response, base_url: str) -> bool:
@@ -344,45 +349,40 @@ def login(base_url: str, session: requests.Session | None = None) -> None:
     """
     base_url = base_url.rstrip("/")
     session = session if session is not None else requests.Session()
-    authorize_url = _start_flow(session, base_url)
+    _require_behind_login(session, base_url)
 
-    _open_browser(authorize_url)
+    login_url = f"{base_url}{_LOGIN_PATH}"
+    _open_browser(login_url)
 
     # Printed whether or not opening worked: a browser that fails to launch is common enough (a
     # remote shell, WSL without a desktop session) that hiding the URL would strand the user.
     note("")
     note("Sign in in your browser — password, Google, a passkey, whatever the account uses:")
-    note(f"  {authorize_url}")
+    note(f"  {login_url}")
     note("")
-    note(f"It ends on a '401 Authorization Required' page at {_host(base_url)}. That is expected")
-    note("and means the sign-in worked: the load balancer will only spend it for whoever started")
-    note("the flow, which is this client. Copy that page's URL out of the address bar.")
+    note("It ends on a page showing a one-time code. Paste that code here.")
     note("")
 
-    pasted = _ask("URL from the address bar")
+    code = _ask("Code")
     hint = "The login did not take."
+    email = None
     try:
-        _finish_from_callback(session, base_url, pasted)
+        email = _redeem_code(session, base_url, code)
     except LakehouseAuthError as exc:
         note("")
-        note(f"That callback did not complete the login: {exc.message}")
+        note(f"That code did not complete the login: {exc.message}")
         _paste_cookie(session, base_url)
         hint = f"Check that you copied the value of {_ALB_COOKIE_PREFIX}-0 in full."
 
     _verify(session, base_url, hint)
-    save_session(base_url, session)
-    note(f"Logged in to {base_url}.")
+    save_session(base_url, session, email=email)
+    note(f"Logged in to {base_url}{f' as {email}' if email else ''}.")
 
 
-def _start_flow(session: requests.Session, base_url: str) -> str:
-    """Ask the lakehouse for a login and return the authorize URL it points us at.
-
-    This is the step that makes the rest possible: the load balancer answers with a `302` *and*
-    an `AWSALBAuthNonce` cookie, which lands in `session`. That nonce is what binds the flow to
-    this client, and why the browser cannot be left to complete the flow on its own behalf.
-    """
-    # A stale cookie would make the probe look authenticated and skip the whole flow, which is
-    # the opposite of what an explicit login should do.
+def _require_behind_login(session: requests.Session, base_url: str) -> None:
+    """Confirm there is a login to perform before sending anyone to a browser."""
+    # A stale cookie would make the probe look authenticated and mask what an explicit login is
+    # for; the redeemed cookies replace it anyway.
     _clear_alb_cookies(session)
 
     try:
@@ -390,46 +390,87 @@ def _start_flow(session: requests.Session, base_url: str) -> str:
     except requests.RequestException as exc:
         raise LakehouseAuthError(f"Could not reach {base_url}: {exc}") from exc
 
-    authorize_url = probe.headers.get("location", "") if probe.is_redirect else ""
-    if not authorize_url or _host(authorize_url) == _host(base_url):
+    location = probe.headers.get("location", "") if probe.is_redirect else ""
+    if not location or _host(location) == _host(base_url):
         raise LakehouseAuthError(
             f"{base_url} answered HTTP {probe.status_code} without redirecting to an identity "
             "provider, so it is not behind the load balancer's Cognito authentication and there "
             "is nothing to log in to."
         )
 
-    # This URL is handed to the operating system's URL handler, which will act on whatever scheme
-    # it is given. It arrives in a `Location` header, so it is only as trustworthy as the host in
-    # `base_url` — check it is an ordinary web address before opening it.
-    if urlparse(authorize_url).scheme.lower() not in ("http", "https"):
+    note(f"Logging in to {base_url} via {_host(location)}")
+
+
+def _redeem_code(session: requests.Session, base_url: str, code: str) -> str | None:
+    """Spend the pasted one-time code for the session the browser banked; return the email.
+
+    Raises `LakehouseAuthError` — with enough said to tell a mistyped code from a deployment
+    that cannot redeem codes at all — whenever no cookie was installed.
+    """
+    try:
+        response = session.post(f"{base_url}{_TOKEN_PATH}", json={"code": code.strip()}, timeout=_TIMEOUT)
+    except requests.RequestException as exc:
+        raise LakehouseAuthError(f"redeeming the code failed: {exc}") from exc
+
+    # The redeem endpoint must be reachable *without* a session (that is the point of it), so a
+    # bounce to the identity provider here means the load balancer lacks the endpoint's
+    # forwarding rule — no code will ever work, and retyping it will not help.
+    if _host(response.url) != _host(base_url):
         raise LakehouseAuthError(
-            f"{base_url} redirected the login to something that is not a web address; refusing to "
-            f"open it: {authorize_url[:80]}"
+            f"the load balancer sent the code to its login page instead of the lakehouse — it is "
+            f"missing the rule that forwards {_TOKEN_PATH} without authentication"
         )
-
-    note(f"Logging in to {base_url} via {_host(authorize_url)}")
-    return authorize_url
-
-
-def _finish_from_callback(session: requests.Session, base_url: str, pasted: str) -> None:
-    """Replay the browser's callback URL from here, where the nonce cookie is."""
-    pasted = pasted.strip()
-    parsed = urlparse(pasted)
-
-    # The full origin, not just the host: matching on the host alone would accept an `http://`
-    # paste and replay the authorization code over cleartext.
-    if _origin(pasted) != _origin(base_url):
-        raise LakehouseAuthError(f"that is not a {urlparse(base_url).scheme}://{_host(base_url)} URL")
-    if "code=" not in (parsed.query or ""):
-        raise LakehouseAuthError("that URL carries no authorization code, so the sign-in did not finish")
+    if response.status_code in (404, 405):
+        raise LakehouseAuthError(
+            f"{base_url} does not offer the code login (HTTP {response.status_code} on {_TOKEN_PATH}); "
+            "the server may predate it"
+        )
+    if response.status_code != 200:
+        raise LakehouseAuthError(_refusal(response))
 
     try:
-        session.get(pasted, timeout=_TIMEOUT)
-    except requests.RequestException as exc:
-        raise LakehouseAuthError(f"replaying the callback failed: {exc}") from exc
+        payload = response.json()
+    except ValueError as exc:
+        raise LakehouseAuthError("the redeem endpoint answered something that is not JSON") from exc
 
-    if not _has_alb_cookie(session):
-        raise LakehouseAuthError("the load balancer refused to exchange the code (it was probably already spent)")
+    cookies = payload.get("cookies") if isinstance(payload, dict) else None
+    installed = 0
+    for cookie in cookies if isinstance(cookies, list) else []:
+        name = cookie.get("name") if isinstance(cookie, dict) else None
+        value = cookie.get("value") if isinstance(cookie, dict) else None
+        if not isinstance(name, str) or not isinstance(value, str) or not name.startswith(_ALB_COOKIE_PREFIX):
+            continue
+        session.cookies.set_cookie(
+            requests.cookies.create_cookie(
+                name=name,
+                value=value,
+                # `hostname`, not `netloc`: a cookie domain carrying a port matches nothing.
+                domain=_hostname(base_url),
+                path="/",
+                # The server reads the cookies out of a request, where their lifetime is not
+                # visible, so the client stamps the ALB default of a week — see the constant.
+                expires=int(time.time() + _ASSUMED_SESSION_SECONDS),
+                secure=True,
+            )
+        )
+        installed += 1
+
+    if not installed:
+        raise LakehouseAuthError("the code was accepted but no session cookies came back")
+
+    email = payload.get("email")
+    return email if isinstance(email, str) and email else None
+
+
+def _refusal(response: requests.Response) -> str:
+    """The server's own words for refusing a code, when it gave any."""
+    try:
+        detail = response.json().get("detail")
+    except (ValueError, AttributeError):
+        detail = None
+    if isinstance(detail, str) and detail:
+        return detail
+    return f"the code was refused (HTTP {response.status_code})"
 
 
 def _paste_cookie(session: requests.Session, base_url: str) -> None:

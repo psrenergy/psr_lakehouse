@@ -50,7 +50,8 @@ def _whoami(args: argparse.Namespace) -> int:
         return 1
 
     state = "expired" if info["expired"] else f"valid until {_format_timestamp(info['expires_at'])}"
-    print(f"Logged in to {url} ({state})")
+    who = f" as {info['email']}" if info.get("email") else ""
+    print(f"Logged in to {url}{who} ({state})")
     print(f"Session cached in {auth.session_file()}")
     return 1 if info["expired"] else 0
 
