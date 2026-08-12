@@ -49,14 +49,15 @@ key to send. Signing in therefore happens **in a browser** — the only flow tha
 account in a pool that also offers Google and passkeys — and `auth.py`'s whole job is getting the
 resulting cookie into the client. It is cached in `~/.psr-lakehouse/session.json` (mode 0600).
 
-- The client must *start* the flow (`_start_flow`), because the ALB only completes a sign-in for
-  whoever holds the `AWSALBAuthNonce` cookie it issues, and that cookie is here rather than in
-  the browser. Consequently the browser ends on a **401** whose URL still carries an unspent
-  authorization code; the user pastes that URL back and `_finish_from_callback` redeems it from
-  here. Letting the browser run the flow end to end would leave the browser holding the session.
-- This relies on the ALB validating the nonce *before* spending the code — undocumented, but
-  confirmed working against production. `_paste_cookie` is the fallback should that order ever
-  change: `AWSELBAuthSessionCookie-0` copied out of the browser's devtools by hand.
+- The hand-over works like pairing a device. `login` opens the browser at the lakehouse's
+  `/auth/cli` page; the browser runs the whole Cognito flow on its own behalf and lands on that
+  page holding a fresh session. The page (served by `lakehouse_server`'s `app/cli_auth/`) banks
+  the session cookies behind a **one-time code** (10 minutes, single use) and shows the code;
+  the user pastes it into the terminal and `_redeem_code` spends it at `POST /auth/cli/token` —
+  reachable without a session, like `/health-check` — for the cookies plus the signed-in email.
+- `_paste_cookie` is the fallback whenever the code cannot be redeemed (an old server, a load
+  balancer missing the redeem endpoint's forwarding rule): `AWSELBAuthSessionCookie-0` copied
+  out of the browser's devtools by hand.
 - `connector._send()` recognises the bounce by comparing the host of the *final* URL against
   `base_url` — `requests` follows the redirect, so the status code alone does not reveal it.
   On a bounce it logs in and retries the request once.
@@ -64,9 +65,8 @@ resulting cookie into the client. It is cached in `~/.psr-lakehouse/session.json
   or not there is a session; the state is only discovered on the first real request.
 - No unattended login is possible (a browser is required); jobs reuse a session logged in
   interactively, via `LAKEHOUSE_SESSION_FILE`. `LAKEHOUSE_AUTO_LOGIN=0` disables the prompt.
-- The client never learns *which* account it holds a session for: the identity lives in the
-  `x-amzn-oidc-data` header the ALB sends to the app, which the app does not echo back. So
-  `whoami` reports validity, not an email.
+- The redeem endpoint answers with the account's email, which is cached alongside the cookies —
+  `whoami` reports who is logged in as well as whether the session is still valid.
 - Server side: `lakehouse_server`'s `app/core/alb_auth.py` additionally requires a **verified**
   email in an allowed domain (`psr-inc.com`), answering `403` otherwise.
 
