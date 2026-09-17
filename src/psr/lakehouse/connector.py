@@ -1,5 +1,6 @@
 import os
 import sys
+from importlib import metadata
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -110,7 +111,22 @@ class Connector:
         # Reachability first, with no token involved, so "the API is down" and
         # "your token is bad" cannot be reported as each other.
         try:
-            response = self._session.get(f"{self._base_url}/health-check", timeout=10)
+            installed = metadata.version("psr-lakehouse")
+        except metadata.PackageNotFoundError:
+            # Running from a source tree that was never installed.
+            installed = "unknown"
+
+        try:
+            # The version rides on this one request rather than on every one.
+            # It is the only way the API can tell a user who has not set a token
+            # from one whose client is too old to send one - the advice differs
+            # entirely - and that is a fact about the session, not about each
+            # query, so stating it once is enough.
+            response = self._session.get(
+                f"{self._base_url}/health-check",
+                headers={"X-PSR-Lakehouse-Version": installed},
+                timeout=10,
+            )
             if not response.json():
                 raise LakehouseError("Health check failed: API returned a non-truthy response.")
         except requests.exceptions.RequestException as e:
