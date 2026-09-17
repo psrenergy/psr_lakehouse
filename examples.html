@@ -197,26 +197,26 @@ data-aria-dark="Switch to auto color mode">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">client</span>
 </span><span data-line="2">
 </span><span data-line="3"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
-</span><span data-line="4">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="5">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
-</span><span data-line="6">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+</span><span data-line="4">    <span class="s2">"query_data"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="5">        <span class="s2">"ONSPowerPlantHourlyGeneration.plant_type"</span><span class="p">,</span>
+</span><span data-line="6">        <span class="s2">"ONSPowerPlantHourlyGeneration.generation"</span>
 </span><span data-line="7">    <span class="p">],</span>
-</span><span data-line="8">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="9">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="10">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+</span><span data-line="8">    <span class="s2">"group_by"</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="9">        <span class="s2">"group_by_clause"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="10">            <span class="s2">"ONSPowerPlantHourlyGeneration.plant_type"</span>
 </span><span data-line="11">        <span class="p">],</span>
-</span><span data-line="12">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span>
+</span><span data-line="12">        <span class="s2">"default_aggregation_method"</span><span class="p">:</span> <span class="s2">"sum"</span>
 </span><span data-line="13">    <span class="p">},</span>
-</span><span data-line="14">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="14">    <span class="s2">"query_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="15">        <span class="p">{</span>
-</span><span data-line="16">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="17">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
-</span><span data-line="18">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+</span><span data-line="16">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="17">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span>
+</span><span data-line="18">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"2025-01-01"</span>
 </span><span data-line="19">        <span class="p">},</span>
 </span><span data-line="20">        <span class="p">{</span>
-</span><span data-line="21">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="22">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
-</span><span data-line="23">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+</span><span data-line="21">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="22">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&lt;="</span><span class="p">,</span>
+</span><span data-line="23">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"2025-01-31"</span>
 </span><span data-line="24">        <span class="p">}</span>
 </span><span data-line="25">    <span class="p">]</span>
 </span><span data-line="26"><span class="p">})</span>
@@ -227,29 +227,29 @@ data-aria-dark="Switch to auto color mode">
 <h3>Daily Generation with Datetime Granularity<a class="headerlink" href="#daily-generation-with-datetime-granularity" title="Link to this heading">#</a></h3>
 <p>Aggregate hourly data to daily granularity:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
-</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="3">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="4">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
-</span><span data-line="5">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+</span><span data-line="2">    <span class="s2">"query_data"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">"ONSPowerPlantHourlyGeneration.plant_type"</span><span class="p">,</span>
+</span><span data-line="5">        <span class="s2">"ONSPowerPlantHourlyGeneration.generation"</span>
 </span><span data-line="6">    <span class="p">],</span>
-</span><span data-line="7">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="8">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="9">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="10">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+</span><span data-line="7">    <span class="s2">"group_by"</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="8">        <span class="s2">"group_by_clause"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="9">            <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="10">            <span class="s2">"ONSPowerPlantHourlyGeneration.plant_type"</span>
 </span><span data-line="11">        <span class="p">],</span>
-</span><span data-line="12">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
-</span><span data-line="13">        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>
+</span><span data-line="12">        <span class="s2">"default_aggregation_method"</span><span class="p">:</span> <span class="s2">"sum"</span><span class="p">,</span>
+</span><span data-line="13">        <span class="s2">"datetime_granularity"</span><span class="p">:</span> <span class="s2">"day"</span>
 </span><span data-line="14">    <span class="p">},</span>
-</span><span data-line="15">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="15">    <span class="s2">"query_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="16">        <span class="p">{</span>
-</span><span data-line="17">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="18">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
-</span><span data-line="19">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+</span><span data-line="17">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="18">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span>
+</span><span data-line="19">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"2025-01-01"</span>
 </span><span data-line="20">        <span class="p">},</span>
 </span><span data-line="21">        <span class="p">{</span>
-</span><span data-line="22">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="23">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
-</span><span data-line="24">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+</span><span data-line="22">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="23">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&lt;="</span><span class="p">,</span>
+</span><span data-line="24">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"2025-01-31"</span>
 </span><span data-line="25">        <span class="p">}</span>
 </span><span data-line="26">    <span class="p">]</span>
 </span><span data-line="27"><span class="p">})</span>
@@ -260,39 +260,39 @@ data-aria-dark="Switch to auto color mode">
 <h3>Hourly Data with Sorting<a class="headerlink" href="#hourly-data-with-sorting" title="Link to this heading">#</a></h3>
 <p>Fetch hourly generation data with custom ordering:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
-</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="3">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="4">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
-</span><span data-line="5">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+</span><span data-line="2">    <span class="s2">"query_data"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">"ONSPowerPlantHourlyGeneration.plant_type"</span><span class="p">,</span>
+</span><span data-line="5">        <span class="s2">"ONSPowerPlantHourlyGeneration.generation"</span>
 </span><span data-line="6">    <span class="p">],</span>
-</span><span data-line="7">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="8">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="9">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="10">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+</span><span data-line="7">    <span class="s2">"group_by"</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="8">        <span class="s2">"group_by_clause"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="9">            <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="10">            <span class="s2">"ONSPowerPlantHourlyGeneration.plant_type"</span>
 </span><span data-line="11">        <span class="p">],</span>
-</span><span data-line="12">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
-</span><span data-line="13">        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;hour&quot;</span>
+</span><span data-line="12">        <span class="s2">"default_aggregation_method"</span><span class="p">:</span> <span class="s2">"sum"</span><span class="p">,</span>
+</span><span data-line="13">        <span class="s2">"datetime_granularity"</span><span class="p">:</span> <span class="s2">"hour"</span>
 </span><span data-line="14">    <span class="p">},</span>
-</span><span data-line="15">    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="15">    <span class="s2">"order_by"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="16">        <span class="p">{</span>
-</span><span data-line="17">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="18">            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;desc&quot;</span>
+</span><span data-line="17">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="18">            <span class="s2">"direction"</span><span class="p">:</span> <span class="s2">"desc"</span>
 </span><span data-line="19">        <span class="p">},</span>
 </span><span data-line="20">        <span class="p">{</span>
-</span><span data-line="21">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
-</span><span data-line="22">            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>
+</span><span data-line="21">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSPowerPlantHourlyGeneration.plant_type"</span><span class="p">,</span>
+</span><span data-line="22">            <span class="s2">"direction"</span><span class="p">:</span> <span class="s2">"asc"</span>
 </span><span data-line="23">        <span class="p">}</span>
 </span><span data-line="24">    <span class="p">],</span>
-</span><span data-line="25">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="25">    <span class="s2">"query_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="26">        <span class="p">{</span>
-</span><span data-line="27">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="28">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
-</span><span data-line="29">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+</span><span data-line="27">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="28">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span>
+</span><span data-line="29">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"2025-01-01"</span>
 </span><span data-line="30">        <span class="p">},</span>
 </span><span data-line="31">        <span class="p">{</span>
-</span><span data-line="32">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="33">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
-</span><span data-line="34">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+</span><span data-line="32">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="33">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&lt;="</span><span class="p">,</span>
+</span><span data-line="34">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"2025-01-31"</span>
 </span><span data-line="35">        <span class="p">}</span>
 </span><span data-line="36">    <span class="p">]</span>
 </span><span data-line="37"><span class="p">})</span>
@@ -306,41 +306,41 @@ data-aria-dark="Switch to auto color mode">
 <h3>Energy Load and Inflow Analysis<a class="headerlink" href="#energy-load-and-inflow-analysis" title="Link to this heading">#</a></h3>
 <p>This example demonstrates joining energy load data with inflow energy data:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_energy_load</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
-</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="3">        <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="4">        <span class="s2">&quot;ONSEnergyLoadDaily.subsystem&quot;</span><span class="p">,</span>
-</span><span data-line="5">        <span class="s2">&quot;ONSEnergyLoadDaily.energy_load&quot;</span><span class="p">,</span>
-</span><span data-line="6">        <span class="s2">&quot;ONSInflowEnergySubsystem.gross_inflow_energy_mwavg&quot;</span><span class="p">,</span>
-</span><span data-line="7">        <span class="s2">&quot;ONSInflowEnergySubsystem.subsystem&quot;</span>
+</span><span data-line="2">    <span class="s2">"query_data"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">"ONSEnergyLoadDaily.reference_date"</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">"ONSEnergyLoadDaily.subsystem"</span><span class="p">,</span>
+</span><span data-line="5">        <span class="s2">"ONSEnergyLoadDaily.energy_load"</span><span class="p">,</span>
+</span><span data-line="6">        <span class="s2">"ONSInflowEnergySubsystem.gross_inflow_energy_mwavg"</span><span class="p">,</span>
+</span><span data-line="7">        <span class="s2">"ONSInflowEnergySubsystem.subsystem"</span>
 </span><span data-line="8">    <span class="p">],</span>
-</span><span data-line="9">    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="9">    <span class="s2">"joins"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="10">        <span class="p">{</span>
-</span><span data-line="11">            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem&quot;</span><span class="p">,</span>
-</span><span data-line="12">            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="11">            <span class="s2">"join_model"</span><span class="p">:</span> <span class="s2">"ONSInflowEnergySubsystem"</span><span class="p">,</span>
+</span><span data-line="12">            <span class="s2">"join_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="13">                <span class="p">{</span>
-</span><span data-line="14">                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="15">                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="16">                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+</span><span data-line="14">                    <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSEnergyLoadDaily.reference_date"</span><span class="p">,</span>
+</span><span data-line="15">                    <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"ONSInflowEnergySubsystem.reference_date"</span><span class="p">,</span>
+</span><span data-line="16">                    <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"="</span>
 </span><span data-line="17">                <span class="p">},</span>
 </span><span data-line="18">                <span class="p">{</span>
-</span><span data-line="19">                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.subsystem&quot;</span><span class="p">,</span>
-</span><span data-line="20">                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSInflowEnergySubsystem.subsystem&quot;</span><span class="p">,</span>
-</span><span data-line="21">                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+</span><span data-line="19">                    <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSEnergyLoadDaily.subsystem"</span><span class="p">,</span>
+</span><span data-line="20">                    <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"ONSInflowEnergySubsystem.subsystem"</span><span class="p">,</span>
+</span><span data-line="21">                    <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"="</span>
 </span><span data-line="22">                <span class="p">}</span>
 </span><span data-line="23">            <span class="p">],</span>
-</span><span data-line="24">            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>
+</span><span data-line="24">            <span class="s2">"is_outer_join"</span><span class="p">:</span> <span class="kc">False</span>
 </span><span data-line="25">        <span class="p">}</span>
 </span><span data-line="26">    <span class="p">],</span>
-</span><span data-line="27">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="27">    <span class="s2">"query_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="28">        <span class="p">{</span>
-</span><span data-line="29">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="30">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
-</span><span data-line="31">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+</span><span data-line="29">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSEnergyLoadDaily.reference_date"</span><span class="p">,</span>
+</span><span data-line="30">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span>
+</span><span data-line="31">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"2025-01-01"</span>
 </span><span data-line="32">        <span class="p">},</span>
 </span><span data-line="33">        <span class="p">{</span>
-</span><span data-line="34">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSEnergyLoadDaily.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="35">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span>
-</span><span data-line="36">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-31&quot;</span>
+</span><span data-line="34">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSEnergyLoadDaily.reference_date"</span><span class="p">,</span>
+</span><span data-line="35">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&lt;="</span><span class="p">,</span>
+</span><span data-line="36">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"2025-01-31"</span>
 </span><span data-line="37">        <span class="p">}</span>
 </span><span data-line="38">    <span class="p">]</span>
 </span><span data-line="39"><span class="p">})</span>
@@ -355,12 +355,12 @@ data-aria-dark="Switch to auto color mode">
 <h3>Alternative Method for Common Use Cases<a class="headerlink" href="#alternative-method-for-common-use-cases" title="Link to this heading">#</a></h3>
 <p>For simpler queries, you can use the <code class="docutils literal notranslate"><span class="pre">fetch_dataframe</span></code> method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df_generation</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
-</span><span data-line="3">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">,</span> <span class="s2">&quot;generation&quot;</span><span class="p">],</span>
-</span><span data-line="4">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span>
-</span><span data-line="5">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-31&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">],</span>
-</span><span data-line="7">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span>
+</span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ons_power_plant_hourly_generation"</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"plant_type"</span><span class="p">,</span> <span class="s2">"generation"</span><span class="p">],</span>
+</span><span data-line="4">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2025-01-01"</span><span class="p">,</span>
+</span><span data-line="5">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2025-01-31"</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">"plant_type"</span><span class="p">],</span>
+</span><span data-line="7">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">"sum"</span>
 </span><span data-line="8"><span class="p">)</span>
 </span></pre></div>
 </div>
@@ -375,24 +375,24 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="2">
 </span><span data-line="3"><span class="c1"># List all available tables</span>
 </span><span data-line="4"><span class="n">tables</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tables</span><span class="p">()</span>
-</span><span data-line="5"><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available tables: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="5"><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Available tables: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span><span data-line="6"><span class="nb">print</span><span class="p">(</span><span class="n">tables</span><span class="p">[:</span><span class="mi">10</span><span class="p">])</span>  <span class="c1"># Show first 10</span>
 </span><span data-line="7">
-</span><span data-line="8"><span class="c1"># Examine a specific table&#39;s schema</span>
-</span><span data-line="9"><span class="n">table_name</span> <span class="o">=</span> <span class="s2">&quot;ccee_spot_price&quot;</span>
+</span><span data-line="8"><span class="c1"># Examine a specific table's schema</span>
+</span><span data-line="9"><span class="n">table_name</span> <span class="o">=</span> <span class="s2">"ccee_spot_price"</span>
 </span><span data-line="10"><span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="n">table_name</span><span class="p">)</span>
 </span><span data-line="11">
 </span><span data-line="12"><span class="c1"># Display schema information</span>
 </span><span data-line="13"><span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_info</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span data-line="14">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Field: </span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="15">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Type: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="16">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Nullable: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nullable&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="14">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Field: </span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="15">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Type: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="16">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Nullable: </span><span class="si">{</span><span class="n">field_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'nullable'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span><span data-line="17">
-</span><span data-line="18">    <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
-</span><span data-line="19">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Description: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="18">    <span class="k">if</span> <span class="s1">'description'</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+</span><span data-line="19">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Description: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">'description'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span><span data-line="20">
-</span><span data-line="21">    <span class="k">if</span> <span class="s1">&#39;enum_values&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
-</span><span data-line="22">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Allowed values: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;enum_values&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="21">    <span class="k">if</span> <span class="s1">'enum_values'</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+</span><span data-line="22">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Allowed values: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">'enum_values'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span></pre></div>
 </div>
 </section>
@@ -404,39 +404,39 @@ data-aria-dark="Switch to auto color mode">
 <p>The <code class="docutils literal notranslate"><span class="pre">fetch_dataframe_from_query</span></code> method accepts a dictionary with the following structure:</p>
 <p><strong>Basic Structure:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p">{</span>
-</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="3">        <span class="s2">&quot;ModelName.column1&quot;</span><span class="p">,</span>
-</span><span data-line="4">        <span class="s2">&quot;ModelName.column2&quot;</span>
+</span><span data-line="2">    <span class="s2">"query_data"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">"ModelName.column1"</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">"ModelName.column2"</span>
 </span><span data-line="5">    <span class="p">],</span>
-</span><span data-line="6">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="6">    <span class="s2">"query_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="7">        <span class="p">{</span>
-</span><span data-line="8">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
-</span><span data-line="9">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>  <span class="c1"># or &quot;&lt;=&quot;, &quot;=&quot;, &quot;!=&quot;, &quot;&gt;&quot;, &quot;&lt;&quot;</span>
-</span><span data-line="10">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span>
+</span><span data-line="8">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ModelName.column_name"</span><span class="p">,</span>
+</span><span data-line="9">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span>  <span class="c1"># or "&lt;=", "=", "!=", "&gt;", "&lt;"</span>
+</span><span data-line="10">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"value"</span>
 </span><span data-line="11">        <span class="p">}</span>
 </span><span data-line="12">    <span class="p">],</span>
-</span><span data-line="13">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="14">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ModelName.column1&quot;</span><span class="p">],</span>
-</span><span data-line="15">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>  <span class="c1"># or &quot;avg&quot;, &quot;min&quot;, &quot;max&quot;</span>
-</span><span data-line="16">        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>  <span class="c1"># or &quot;hour&quot;, &quot;week&quot;, &quot;month&quot;</span>
+</span><span data-line="13">    <span class="s2">"group_by"</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="14">        <span class="s2">"group_by_clause"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"ModelName.column1"</span><span class="p">],</span>
+</span><span data-line="15">        <span class="s2">"default_aggregation_method"</span><span class="p">:</span> <span class="s2">"sum"</span><span class="p">,</span>  <span class="c1"># or "avg", "min", "max"</span>
+</span><span data-line="16">        <span class="s2">"datetime_granularity"</span><span class="p">:</span> <span class="s2">"day"</span>  <span class="c1"># or "hour", "week", "month"</span>
 </span><span data-line="17">    <span class="p">},</span>
-</span><span data-line="18">    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="18">    <span class="s2">"order_by"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="19">        <span class="p">{</span>
-</span><span data-line="20">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
-</span><span data-line="21">            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>  <span class="c1"># or &quot;desc&quot;</span>
+</span><span data-line="20">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ModelName.column_name"</span><span class="p">,</span>
+</span><span data-line="21">            <span class="s2">"direction"</span><span class="p">:</span> <span class="s2">"asc"</span>  <span class="c1"># or "desc"</span>
 </span><span data-line="22">        <span class="p">}</span>
 </span><span data-line="23">    <span class="p">],</span>
-</span><span data-line="24">    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="24">    <span class="s2">"joins"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="25">        <span class="p">{</span>
-</span><span data-line="26">            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName&quot;</span><span class="p">,</span>
-</span><span data-line="27">            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="26">            <span class="s2">"join_model"</span><span class="p">:</span> <span class="s2">"OtherModelName"</span><span class="p">,</span>
+</span><span data-line="27">            <span class="s2">"join_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="28">                <span class="p">{</span>
-</span><span data-line="29">                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.key_column&quot;</span><span class="p">,</span>
-</span><span data-line="30">                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName.key_column&quot;</span><span class="p">,</span>
-</span><span data-line="31">                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+</span><span data-line="29">                    <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ModelName.key_column"</span><span class="p">,</span>
+</span><span data-line="30">                    <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"OtherModelName.key_column"</span><span class="p">,</span>
+</span><span data-line="31">                    <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"="</span>
 </span><span data-line="32">                <span class="p">}</span>
 </span><span data-line="33">            <span class="p">],</span>
-</span><span data-line="34">            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>  <span class="c1"># or True for outer join</span>
+</span><span data-line="34">            <span class="s2">"is_outer_join"</span><span class="p">:</span> <span class="kc">False</span>  <span class="c1"># or True for outer join</span>
 </span><span data-line="35">        <span class="p">}</span>
 </span><span data-line="36">    <span class="p">]</span>
 </span><span data-line="37"><span class="p">}</span>

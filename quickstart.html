@@ -199,10 +199,10 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="2">
 </span><span data-line="3"><span class="c1"># Fetch CCEE spot price data</span>
 </span><span data-line="4"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="5">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">,</span> <span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
-</span><span data-line="7">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
-</span><span data-line="8">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
+</span><span data-line="5">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ccee_spot_price"</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"subsystem"</span><span class="p">,</span> <span class="s2">"spot_price"</span><span class="p">],</span>
+</span><span data-line="7">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2023-05-01"</span><span class="p">,</span>
+</span><span data-line="8">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-05-02"</span><span class="p">,</span>
 </span><span data-line="9"><span class="p">)</span>
 </span><span data-line="10"><span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 </span></pre></div>
@@ -217,11 +217,11 @@ data-aria-dark="Switch to auto color mode">
 <p>Use the <code class="docutils literal notranslate"><span class="pre">filters</span></code> parameter to filter by exact column values:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Filter by subsystem</span>
 </span><span data-line="2"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_stored_energy_subsystem&quot;</span><span class="p">,</span>
-</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">,</span> <span class="s2">&quot;max_stored_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;verified_stored_energy_percentage&quot;</span><span class="p">],</span>
-</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
-</span><span data-line="7">    <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;subsystem&quot;</span><span class="p">:</span> <span class="s2">&quot;SOUTHEAST&quot;</span><span class="p">},</span>
+</span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ons_stored_energy_subsystem"</span><span class="p">,</span>
+</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"subsystem"</span><span class="p">,</span> <span class="s2">"max_stored_energy"</span><span class="p">,</span> <span class="s2">"verified_stored_energy_percentage"</span><span class="p">],</span>
+</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2023-05-01"</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-05-02"</span><span class="p">,</span>
+</span><span data-line="7">    <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s2">"subsystem"</span><span class="p">:</span> <span class="s2">"SOUTHEAST"</span><span class="p">},</span>
 </span><span data-line="8"><span class="p">)</span>
 </span></pre></div>
 </div>
@@ -230,10 +230,10 @@ data-aria-dark="Switch to auto color mode">
 <h3>Date Range Filtering<a class="headerlink" href="#date-range-filtering" title="Link to this heading">#</a></h3>
 <p>Use <code class="docutils literal notranslate"><span class="pre">start_reference_date</span></code> and <code class="docutils literal notranslate"><span class="pre">end_reference_date</span></code> to filter data by date:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="3">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
-</span><span data-line="4">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>  <span class="c1"># inclusive</span>
-</span><span data-line="5">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>     <span class="c1"># exclusive</span>
+</span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ccee_spot_price"</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"spot_price"</span><span class="p">],</span>
+</span><span data-line="4">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2023-01-01"</span><span class="p">,</span>  <span class="c1"># inclusive</span>
+</span><span data-line="5">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-02-01"</span><span class="p">,</span>     <span class="c1"># exclusive</span>
 </span><span data-line="6"><span class="p">)</span>
 </span></pre></div>
 </div>
@@ -246,12 +246,12 @@ data-aria-dark="Switch to auto color mode">
 <p>Use <code class="docutils literal notranslate"><span class="pre">group_by</span></code> and <code class="docutils literal notranslate"><span class="pre">aggregation_method</span></code> to aggregate data:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Group by subsystem and calculate average spot price</span>
 </span><span data-line="2"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
-</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>
-</span><span data-line="7">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
-</span><span data-line="8">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ccee_spot_price"</span><span class="p">,</span>
+</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"spot_price"</span><span class="p">],</span>
+</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2023-01-01"</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-02-01"</span><span class="p">,</span>
+</span><span data-line="7">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">"subsystem"</span><span class="p">],</span>
+</span><span data-line="8">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">"avg"</span><span class="p">,</span>
 </span><span data-line="9"><span class="p">)</span>
 </span></pre></div>
 </div>
@@ -268,13 +268,13 @@ data-aria-dark="Switch to auto color mode">
 <p>Use <code class="docutils literal notranslate"><span class="pre">datetime_granularity</span></code> to aggregate datetime data to a coarser granularity:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Aggregate hourly data to daily</span>
 </span><span data-line="2"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
-</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">,</span> <span class="s2">&quot;generation&quot;</span><span class="p">],</span>
-</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-31&quot;</span><span class="p">,</span>
-</span><span data-line="7">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;plant_type&quot;</span><span class="p">],</span>
-</span><span data-line="8">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span>
-</span><span data-line="9">    <span class="n">datetime_granularity</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>  <span class="c1"># Options: hour, day, week, month</span>
+</span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ons_power_plant_hourly_generation"</span><span class="p">,</span>
+</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"plant_type"</span><span class="p">,</span> <span class="s2">"generation"</span><span class="p">],</span>
+</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2025-01-01"</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2025-01-31"</span><span class="p">,</span>
+</span><span data-line="7">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"plant_type"</span><span class="p">],</span>
+</span><span data-line="8">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">"sum"</span><span class="p">,</span>
+</span><span data-line="9">    <span class="n">datetime_granularity</span><span class="o">=</span><span class="s2">"day"</span><span class="p">,</span>  <span class="c1"># Options: hour, day, week, month</span>
 </span><span data-line="10"><span class="p">)</span>
 </span></pre></div>
 </div>
@@ -286,14 +286,14 @@ data-aria-dark="Switch to auto color mode">
 <h3>Sort By Multiple Columns<a class="headerlink" href="#sort-by-multiple-columns" title="Link to this heading">#</a></h3>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">order_by</span></code> parameter to sort results:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
-</span><span data-line="3">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">,</span> <span class="s2">&quot;generation&quot;</span><span class="p">],</span>
-</span><span data-line="4">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;plant_type&quot;</span><span class="p">],</span>
-</span><span data-line="5">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">datetime_granularity</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>
+</span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ons_power_plant_hourly_generation"</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"plant_type"</span><span class="p">,</span> <span class="s2">"generation"</span><span class="p">],</span>
+</span><span data-line="4">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"plant_type"</span><span class="p">],</span>
+</span><span data-line="5">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">"sum"</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">datetime_granularity</span><span class="o">=</span><span class="s2">"day"</span><span class="p">,</span>
 </span><span data-line="7">    <span class="n">order_by</span><span class="o">=</span><span class="p">[</span>
-</span><span data-line="8">        <span class="p">{</span><span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;desc&quot;</span><span class="p">},</span>
-</span><span data-line="9">        <span class="p">{</span><span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;plant_type&quot;</span><span class="p">,</span> <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span><span class="p">},</span>
+</span><span data-line="8">        <span class="p">{</span><span class="s2">"column"</span><span class="p">:</span> <span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"direction"</span><span class="p">:</span> <span class="s2">"desc"</span><span class="p">},</span>
+</span><span data-line="9">        <span class="p">{</span><span class="s2">"column"</span><span class="p">:</span> <span class="s2">"plant_type"</span><span class="p">,</span> <span class="s2">"direction"</span><span class="p">:</span> <span class="s2">"asc"</span><span class="p">},</span>
 </span><span data-line="10">    <span class="p">],</span>
 </span><span data-line="11"><span class="p">)</span>
 </span></pre></div>
@@ -306,42 +306,42 @@ data-aria-dark="Switch to auto color mode">
 <h3>List Available Tables<a class="headerlink" href="#list-available-tables" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">tables</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tables</span><span class="p">()</span>
 </span><span data-line="2"><span class="nb">print</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span>
-</span><span data-line="3"><span class="c1"># Output: [&#39;CCEESpotPrice&#39;, &#39;ONSEnergyLoadDaily&#39;, &#39;ONSStoredEnergySubsystem&#39;, ...]</span>
+</span><span data-line="3"><span class="c1"># Output: ['CCEESpotPrice', 'ONSEnergyLoadDaily', 'ONSStoredEnergySubsystem', ...]</span>
 </span></pre></div>
 </div>
 </section>
 <section id="get-table-schema">
 <h3>Get Table Schema<a class="headerlink" href="#get-table-schema" title="Link to this heading">#</a></h3>
 <p>Retrieve detailed schema information including field types, descriptions, and allowed values:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="s2">"ccee_spot_price"</span><span class="p">)</span>
 </span><span data-line="2"><span class="nb">print</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
 </span></pre></div>
 </div>
 <p>Example schema output:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p">{</span>
-</span><span data-line="2">    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="3">        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;integer&#39;</span><span class="p">,</span>
-</span><span data-line="4">        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-</span><span data-line="5">        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Id&#39;</span>
+</span><span data-line="2">    <span class="s1">'id'</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="3">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'integer'</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+</span><span data-line="5">        <span class="s1">'title'</span><span class="p">:</span> <span class="s1">'Id'</span>
 </span><span data-line="6">    <span class="p">},</span>
-</span><span data-line="7">    <span class="s1">&#39;reference_date&#39;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="8">        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
-</span><span data-line="9">        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-</span><span data-line="10">        <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;date-time&#39;</span><span class="p">,</span>
-</span><span data-line="11">        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Reference Date&#39;</span><span class="p">,</span>
-</span><span data-line="12">        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Timestamp of the spot price&#39;</span>
+</span><span data-line="7">    <span class="s1">'reference_date'</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="8">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+</span><span data-line="9">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span><span data-line="10">        <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'date-time'</span><span class="p">,</span>
+</span><span data-line="11">        <span class="s1">'title'</span><span class="p">:</span> <span class="s1">'Reference Date'</span><span class="p">,</span>
+</span><span data-line="12">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Timestamp of the spot price'</span>
 </span><span data-line="13">    <span class="p">},</span>
-</span><span data-line="14">    <span class="s1">&#39;subsystem&#39;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="15">        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;enum&#39;</span><span class="p">,</span>
-</span><span data-line="16">        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-</span><span data-line="17">        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Subsystem identifier&#39;</span><span class="p">,</span>
-</span><span data-line="18">        <span class="s1">&#39;enum_values&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;NORTE&#39;</span><span class="p">,</span> <span class="s1">&#39;NORDESTE&#39;</span><span class="p">,</span> <span class="s1">&#39;SUDESTE&#39;</span><span class="p">,</span> <span class="s1">&#39;SUL&#39;</span><span class="p">,</span> <span class="s1">&#39;SISTEMA INTERLIGADO NACIONAL&#39;</span><span class="p">]</span>
+</span><span data-line="14">    <span class="s1">'subsystem'</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="15">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'enum'</span><span class="p">,</span>
+</span><span data-line="16">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+</span><span data-line="17">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Subsystem identifier'</span><span class="p">,</span>
+</span><span data-line="18">        <span class="s1">'enum_values'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'NORTE'</span><span class="p">,</span> <span class="s1">'NORDESTE'</span><span class="p">,</span> <span class="s1">'SUDESTE'</span><span class="p">,</span> <span class="s1">'SUL'</span><span class="p">,</span> <span class="s1">'SISTEMA INTERLIGADO NACIONAL'</span><span class="p">]</span>
 </span><span data-line="19">    <span class="p">},</span>
-</span><span data-line="20">    <span class="s1">&#39;spot_price&#39;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="21">        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;number&#39;</span><span class="p">,</span>
-</span><span data-line="22">        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-</span><span data-line="23">        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Spot Price&#39;</span><span class="p">,</span>
-</span><span data-line="24">        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Spot price in R$/MWh&#39;</span>
+</span><span data-line="20">    <span class="s1">'spot_price'</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="21">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'number'</span><span class="p">,</span>
+</span><span data-line="22">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span><span data-line="23">        <span class="s1">'title'</span><span class="p">:</span> <span class="s1">'Spot Price'</span><span class="p">,</span>
+</span><span data-line="24">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Spot price in R$/MWh'</span>
 </span><span data-line="25">    <span class="p">}</span>
 </span><span data-line="26"><span class="p">}</span>
 </span></pre></div>

@@ -78,6 +78,7 @@ data-aria-dark="Switch to auto color mode">
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#client-class">Client Class</a><ul>
 <li><a class="reference internal" href="#initialization">Initialization</a></li>
+<li><a class="reference internal" href="#whoami">whoami()</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#data-fetching-methods">Data Fetching Methods</a><ul>
@@ -201,14 +202,28 @@ data-aria-dark="Switch to auto color mode">
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">initialize</span>
 </span><span data-line="2">
 </span><span data-line="3"><span class="n">initialize</span><span class="p">(</span>
-</span><span data-line="4">    <span class="n">base_url</span><span class="o">=</span><span class="s2">&quot;https://api.example.com&quot;</span><span class="p">,</span>
-</span><span data-line="5"><span class="p">)</span>
+</span><span data-line="4">    <span class="n">base_url</span><span class="o">=</span><span class="s2">"https://api.example.com"</span><span class="p">,</span>
+</span><span data-line="5">    <span class="n">pat</span><span class="o">=</span><span class="s2">"psr_..."</span><span class="p">,</span>
+</span><span data-line="6"><span class="p">)</span>
 </span></pre></div>
 </div>
 <p>Or set environment variables before importing:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nv">LAKEHOUSE_API_URL</span><span class="o">=</span><span class="s2">&quot;https://api.example.com&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="nv">LAKEHOUSE_API_URL</span><span class="o">=</span><span class="s2">"https://api.example.com"</span>
+</span><span data-line="2"><span class="nv">LAKEHOUSE_PAT</span><span class="o">=</span><span class="s2">"psr_..."</span>
 </span></pre></div>
 </div>
+<p>Generate a token at <a class="reference external" href="https://cockpit.psr-inc.com">https://cockpit.psr-inc.com</a>. A rejected or unentitled token
+raises <code class="docutils literal notranslate"><span class="pre">LakehouseAuthError</span></code> during initialization; a missing one currently only
+warns, but will become an error once the API is gated.</p>
+</section>
+<section id="whoami">
+<h3>whoami()<a class="headerlink" href="#whoami" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">whoami</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="n">whoami</span><span class="p">()</span>
+</span></pre></div>
+</div>
+<p>Returns the account the configured token belongs to and its active plan.</p>
 </section>
 </section>
 <section id="data-fetching-methods">
@@ -227,7 +242,7 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="8">    <span class="n">aggregation_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span data-line="9">    <span class="n">datetime_granularity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span data-line="10">    <span class="n">order_by</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="11">    <span class="n">output_timezone</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;America/Sao_Paulo&quot;</span><span class="p">,</span>
+</span><span data-line="11">    <span class="n">output_timezone</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"America/Sao_Paulo"</span><span class="p">,</span>
 </span><span data-line="12"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 </span></pre></div>
 </div>
@@ -255,51 +270,51 @@ data-aria-dark="Switch to auto color mode">
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="c1"># Basic fetch</span>
 </span><span data-line="2"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">,</span> <span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
-</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
-</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ccee_spot_price"</span><span class="p">,</span>
+</span><span data-line="4">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"subsystem"</span><span class="p">,</span> <span class="s2">"spot_price"</span><span class="p">],</span>
+</span><span data-line="5">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2023-05-01"</span><span class="p">,</span>
+</span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-05-02"</span><span class="p">,</span>
 </span><span data-line="7"><span class="p">)</span>
 </span><span data-line="8">
 </span><span data-line="9"><span class="c1"># With filtering</span>
 </span><span data-line="10"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="11">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_stored_energy_subsystem&quot;</span><span class="p">,</span>
-</span><span data-line="12">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;verified_stored_energy_percentage&quot;</span><span class="p">],</span>
-</span><span data-line="13">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-01&quot;</span><span class="p">,</span>
-</span><span data-line="14">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-05-02&quot;</span><span class="p">,</span>
-</span><span data-line="15">    <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;subsystem&quot;</span><span class="p">:</span> <span class="s2">&quot;SOUTHEAST&quot;</span><span class="p">},</span>
+</span><span data-line="11">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ons_stored_energy_subsystem"</span><span class="p">,</span>
+</span><span data-line="12">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"verified_stored_energy_percentage"</span><span class="p">],</span>
+</span><span data-line="13">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2023-05-01"</span><span class="p">,</span>
+</span><span data-line="14">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-05-02"</span><span class="p">,</span>
+</span><span data-line="15">    <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s2">"subsystem"</span><span class="p">:</span> <span class="s2">"SOUTHEAST"</span><span class="p">},</span>
 </span><span data-line="16"><span class="p">)</span>
 </span><span data-line="17">
 </span><span data-line="18"><span class="c1"># With aggregation</span>
 </span><span data-line="19"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="20">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="21">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
-</span><span data-line="22">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
-</span><span data-line="23">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>
-</span><span data-line="24">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
-</span><span data-line="25">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;avg&quot;</span><span class="p">,</span>
+</span><span data-line="20">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ccee_spot_price"</span><span class="p">,</span>
+</span><span data-line="21">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"spot_price"</span><span class="p">],</span>
+</span><span data-line="22">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2023-01-01"</span><span class="p">,</span>
+</span><span data-line="23">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-02-01"</span><span class="p">,</span>
+</span><span data-line="24">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">"subsystem"</span><span class="p">],</span>
+</span><span data-line="25">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">"avg"</span><span class="p">,</span>
 </span><span data-line="26"><span class="p">)</span>
 </span><span data-line="27">
 </span><span data-line="28"><span class="c1"># With temporal aggregation</span>
 </span><span data-line="29"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="30">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ons_power_plant_hourly_generation&quot;</span><span class="p">,</span>
-</span><span data-line="31">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;plant_type&quot;</span><span class="p">,</span> <span class="s2">&quot;generation&quot;</span><span class="p">],</span>
-</span><span data-line="32">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-01&quot;</span><span class="p">,</span>
-</span><span data-line="33">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2025-01-31&quot;</span><span class="p">,</span>
-</span><span data-line="34">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;plant_type&quot;</span><span class="p">],</span>
-</span><span data-line="35">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span>
-</span><span data-line="36">    <span class="n">datetime_granularity</span><span class="o">=</span><span class="s2">&quot;day&quot;</span><span class="p">,</span>
+</span><span data-line="30">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ons_power_plant_hourly_generation"</span><span class="p">,</span>
+</span><span data-line="31">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"plant_type"</span><span class="p">,</span> <span class="s2">"generation"</span><span class="p">],</span>
+</span><span data-line="32">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2025-01-01"</span><span class="p">,</span>
+</span><span data-line="33">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2025-01-31"</span><span class="p">,</span>
+</span><span data-line="34">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"plant_type"</span><span class="p">],</span>
+</span><span data-line="35">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">"sum"</span><span class="p">,</span>
+</span><span data-line="36">    <span class="n">datetime_granularity</span><span class="o">=</span><span class="s2">"day"</span><span class="p">,</span>
 </span><span data-line="37"><span class="p">)</span>
 </span><span data-line="38">
 </span><span data-line="39"><span class="c1"># With ordering</span>
 </span><span data-line="40"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="41">    <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="42">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spot_price&quot;</span><span class="p">],</span>
-</span><span data-line="43">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-01-01&quot;</span><span class="p">,</span>
-</span><span data-line="44">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">&quot;2023-02-01&quot;</span><span class="p">,</span>
+</span><span data-line="41">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ccee_spot_price"</span><span class="p">,</span>
+</span><span data-line="42">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"spot_price"</span><span class="p">],</span>
+</span><span data-line="43">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2023-01-01"</span><span class="p">,</span>
+</span><span data-line="44">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-02-01"</span><span class="p">,</span>
 </span><span data-line="45">    <span class="n">order_by</span><span class="o">=</span><span class="p">[</span>
-</span><span data-line="46">        <span class="p">{</span><span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;reference_date&quot;</span><span class="p">,</span> <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;desc&quot;</span><span class="p">},</span>
-</span><span data-line="47">        <span class="p">{</span><span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;subsystem&quot;</span><span class="p">,</span> <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span><span class="p">},</span>
+</span><span data-line="46">        <span class="p">{</span><span class="s2">"column"</span><span class="p">:</span> <span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"direction"</span><span class="p">:</span> <span class="s2">"desc"</span><span class="p">},</span>
+</span><span data-line="47">        <span class="p">{</span><span class="s2">"column"</span><span class="p">:</span> <span class="s2">"subsystem"</span><span class="p">,</span> <span class="s2">"direction"</span><span class="p">:</span> <span class="s2">"asc"</span><span class="p">},</span>
 </span><span data-line="48">    <span class="p">],</span>
 </span><span data-line="49"><span class="p">)</span>
 </span></pre></div>
@@ -327,42 +342,42 @@ data-aria-dark="Switch to auto color mode">
 <p><strong>Query Body Structure:</strong></p>
 <p>The <code class="docutils literal notranslate"><span class="pre">json_body</span></code> parameter accepts a dictionary with the following structure:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p">{</span>
-</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="3">        <span class="s2">&quot;ModelName.column1&quot;</span><span class="p">,</span>
-</span><span data-line="4">        <span class="s2">&quot;ModelName.column2&quot;</span>
+</span><span data-line="2">    <span class="s2">"query_data"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">"ModelName.column1"</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">"ModelName.column2"</span>
 </span><span data-line="5">    <span class="p">],</span>
-</span><span data-line="6">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="6">    <span class="s2">"query_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="7">        <span class="p">{</span>
-</span><span data-line="8">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
-</span><span data-line="9">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>  <span class="c1"># Operators: =, !=, &gt;, &lt;, &gt;=, &lt;=</span>
-</span><span data-line="10">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span>
+</span><span data-line="8">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ModelName.column_name"</span><span class="p">,</span>
+</span><span data-line="9">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span>  <span class="c1"># Operators: =, !=, &gt;, &lt;, &gt;=, &lt;=</span>
+</span><span data-line="10">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"value"</span>
 </span><span data-line="11">        <span class="p">}</span>
 </span><span data-line="12">    <span class="p">],</span>
-</span><span data-line="13">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="14">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ModelName.column1&quot;</span><span class="p">],</span>
-</span><span data-line="15">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>  <span class="c1"># Options: sum, avg, min, max</span>
-</span><span data-line="16">        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>  <span class="c1"># Options: hour, day, week, month</span>
+</span><span data-line="13">    <span class="s2">"group_by"</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="14">        <span class="s2">"group_by_clause"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"ModelName.column1"</span><span class="p">],</span>
+</span><span data-line="15">        <span class="s2">"default_aggregation_method"</span><span class="p">:</span> <span class="s2">"sum"</span><span class="p">,</span>  <span class="c1"># Options: sum, avg, min, max</span>
+</span><span data-line="16">        <span class="s2">"datetime_granularity"</span><span class="p">:</span> <span class="s2">"day"</span>  <span class="c1"># Options: hour, day, week, month</span>
 </span><span data-line="17">    <span class="p">},</span>
-</span><span data-line="18">    <span class="s2">&quot;order_by&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="18">    <span class="s2">"order_by"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="19">        <span class="p">{</span>
-</span><span data-line="20">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.column_name&quot;</span><span class="p">,</span>
-</span><span data-line="21">            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;asc&quot;</span>  <span class="c1"># or &quot;desc&quot;</span>
+</span><span data-line="20">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ModelName.column_name"</span><span class="p">,</span>
+</span><span data-line="21">            <span class="s2">"direction"</span><span class="p">:</span> <span class="s2">"asc"</span>  <span class="c1"># or "desc"</span>
 </span><span data-line="22">        <span class="p">}</span>
 </span><span data-line="23">    <span class="p">],</span>
-</span><span data-line="24">    <span class="s2">&quot;joins&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="24">    <span class="s2">"joins"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="25">        <span class="p">{</span>
-</span><span data-line="26">            <span class="s2">&quot;join_model&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName&quot;</span><span class="p">,</span>
-</span><span data-line="27">            <span class="s2">&quot;join_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="26">            <span class="s2">"join_model"</span><span class="p">:</span> <span class="s2">"OtherModelName"</span><span class="p">,</span>
+</span><span data-line="27">            <span class="s2">"join_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="28">                <span class="p">{</span>
-</span><span data-line="29">                    <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ModelName.key_column&quot;</span><span class="p">,</span>
-</span><span data-line="30">                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;OtherModelName.key_column&quot;</span><span class="p">,</span>
-</span><span data-line="31">                    <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;=&quot;</span>
+</span><span data-line="29">                    <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ModelName.key_column"</span><span class="p">,</span>
+</span><span data-line="30">                    <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"OtherModelName.key_column"</span><span class="p">,</span>
+</span><span data-line="31">                    <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"="</span>
 </span><span data-line="32">                <span class="p">}</span>
 </span><span data-line="33">            <span class="p">],</span>
-</span><span data-line="34">            <span class="s2">&quot;is_outer_join&quot;</span><span class="p">:</span> <span class="kc">False</span>  <span class="c1"># or True</span>
+</span><span data-line="34">            <span class="s2">"is_outer_join"</span><span class="p">:</span> <span class="kc">False</span>  <span class="c1"># or True</span>
 </span><span data-line="35">        <span class="p">}</span>
 </span><span data-line="36">    <span class="p">],</span>
-</span><span data-line="37">    <span class="s2">&quot;output_timezone&quot;</span><span class="p">:</span> <span class="s2">&quot;America/Sao_Paulo&quot;</span>
+</span><span data-line="37">    <span class="s2">"output_timezone"</span><span class="p">:</span> <span class="s2">"America/Sao_Paulo"</span>
 </span><span data-line="38"><span class="p">}</span>
 </span></pre></div>
 </div>
@@ -374,24 +389,24 @@ data-aria-dark="Switch to auto color mode">
 </ul>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe_from_query</span><span class="p">({</span>
-</span><span data-line="2">    <span class="s2">&quot;query_data&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="3">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="4">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span><span class="p">,</span>
-</span><span data-line="5">        <span class="s2">&quot;ONSPowerPlantHourlyGeneration.generation&quot;</span>
+</span><span data-line="2">    <span class="s2">"query_data"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="3">        <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s2">"ONSPowerPlantHourlyGeneration.plant_type"</span><span class="p">,</span>
+</span><span data-line="5">        <span class="s2">"ONSPowerPlantHourlyGeneration.generation"</span>
 </span><span data-line="6">    <span class="p">],</span>
-</span><span data-line="7">    <span class="s2">&quot;group_by&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="8">        <span class="s2">&quot;group_by_clause&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="9">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="10">            <span class="s2">&quot;ONSPowerPlantHourlyGeneration.plant_type&quot;</span>
+</span><span data-line="7">    <span class="s2">"group_by"</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="8">        <span class="s2">"group_by_clause"</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="9">            <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="10">            <span class="s2">"ONSPowerPlantHourlyGeneration.plant_type"</span>
 </span><span data-line="11">        <span class="p">],</span>
-</span><span data-line="12">        <span class="s2">&quot;default_aggregation_method&quot;</span><span class="p">:</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
-</span><span data-line="13">        <span class="s2">&quot;datetime_granularity&quot;</span><span class="p">:</span> <span class="s2">&quot;day&quot;</span>
+</span><span data-line="12">        <span class="s2">"default_aggregation_method"</span><span class="p">:</span> <span class="s2">"sum"</span><span class="p">,</span>
+</span><span data-line="13">        <span class="s2">"datetime_granularity"</span><span class="p">:</span> <span class="s2">"day"</span>
 </span><span data-line="14">    <span class="p">},</span>
-</span><span data-line="15">    <span class="s2">&quot;query_filters&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="15">    <span class="s2">"query_filters"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="16">        <span class="p">{</span>
-</span><span data-line="17">            <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="s2">&quot;ONSPowerPlantHourlyGeneration.reference_date&quot;</span><span class="p">,</span>
-</span><span data-line="18">            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span>
-</span><span data-line="19">            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;2025-01-01&quot;</span>
+</span><span data-line="17">            <span class="s2">"column"</span><span class="p">:</span> <span class="s2">"ONSPowerPlantHourlyGeneration.reference_date"</span><span class="p">,</span>
+</span><span data-line="18">            <span class="s2">"operator"</span><span class="p">:</span> <span class="s2">"&gt;="</span><span class="p">,</span>
+</span><span data-line="19">            <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"2025-01-01"</span>
 </span><span data-line="20">        <span class="p">}</span>
 </span><span data-line="21">    <span class="p">]</span>
 </span><span data-line="22"><span class="p">})</span>
@@ -414,9 +429,9 @@ data-aria-dark="Switch to auto color mode">
 </ul>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">tables</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">list_tables</span><span class="p">()</span>
-</span><span data-line="2"><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available tables: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="2"><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Available tables: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tables</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span><span data-line="3"><span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">[:</span><span class="mi">10</span><span class="p">]:</span>
-</span><span data-line="4">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="4">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  - </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span></pre></div>
 </div>
 </section>
@@ -445,51 +460,51 @@ data-aria-dark="Switch to auto color mode">
 </li>
 </ul>
 <p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">schema</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_schema</span><span class="p">(</span><span class="s2">"ccee_spot_price"</span><span class="p">)</span>
 </span><span data-line="2">
 </span><span data-line="3"><span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_info</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span data-line="4">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
-</span><span data-line="5">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Type: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="6">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Nullable: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;nullable&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="4">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">:"</span><span class="p">)</span>
+</span><span data-line="5">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Type: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="6">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Nullable: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">'nullable'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span><span data-line="7">
-</span><span data-line="8">    <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
-</span><span data-line="9">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Description: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="8">    <span class="k">if</span> <span class="s1">'description'</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+</span><span data-line="9">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Description: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">'description'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span><span data-line="10">
-</span><span data-line="11">    <span class="k">if</span> <span class="s1">&#39;enum_values&#39;</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
-</span><span data-line="12">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Allowed values: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">&#39;enum_values&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="11">    <span class="k">if</span> <span class="s1">'enum_values'</span> <span class="ow">in</span> <span class="n">field_info</span><span class="p">:</span>
+</span><span data-line="12">        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  Allowed values: </span><span class="si">{</span><span class="n">field_info</span><span class="p">[</span><span class="s1">'enum_values'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span></pre></div>
 </div>
 <p><strong>Example Output:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="p">{</span>
-</span><span data-line="2">    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="3">        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;integer&#39;</span><span class="p">,</span>
-</span><span data-line="4">        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-</span><span data-line="5">        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Id&#39;</span>
+</span><span data-line="2">    <span class="s1">'id'</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="3">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'integer'</span><span class="p">,</span>
+</span><span data-line="4">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+</span><span data-line="5">        <span class="s1">'title'</span><span class="p">:</span> <span class="s1">'Id'</span>
 </span><span data-line="6">    <span class="p">},</span>
-</span><span data-line="7">    <span class="s1">&#39;reference_date&#39;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="8">        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span>
-</span><span data-line="9">        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-</span><span data-line="10">        <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;date-time&#39;</span><span class="p">,</span>
-</span><span data-line="11">        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Reference Date&#39;</span><span class="p">,</span>
-</span><span data-line="12">        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Timestamp of the spot price&#39;</span>
+</span><span data-line="7">    <span class="s1">'reference_date'</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="8">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'string'</span><span class="p">,</span>
+</span><span data-line="9">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span><span data-line="10">        <span class="s1">'format'</span><span class="p">:</span> <span class="s1">'date-time'</span><span class="p">,</span>
+</span><span data-line="11">        <span class="s1">'title'</span><span class="p">:</span> <span class="s1">'Reference Date'</span><span class="p">,</span>
+</span><span data-line="12">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Timestamp of the spot price'</span>
 </span><span data-line="13">    <span class="p">},</span>
-</span><span data-line="14">    <span class="s1">&#39;subsystem&#39;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="15">        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;enum&#39;</span><span class="p">,</span>
-</span><span data-line="16">        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-</span><span data-line="17">        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Subsystem identifier&#39;</span><span class="p">,</span>
-</span><span data-line="18">        <span class="s1">&#39;enum_values&#39;</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="19">            <span class="s1">&#39;NORTE&#39;</span><span class="p">,</span>
-</span><span data-line="20">            <span class="s1">&#39;NORDESTE&#39;</span><span class="p">,</span>
-</span><span data-line="21">            <span class="s1">&#39;SUDESTE&#39;</span><span class="p">,</span>
-</span><span data-line="22">            <span class="s1">&#39;SUL&#39;</span><span class="p">,</span>
-</span><span data-line="23">            <span class="s1">&#39;SISTEMA INTERLIGADO NACIONAL&#39;</span>
+</span><span data-line="14">    <span class="s1">'subsystem'</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="15">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'enum'</span><span class="p">,</span>
+</span><span data-line="16">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+</span><span data-line="17">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Subsystem identifier'</span><span class="p">,</span>
+</span><span data-line="18">        <span class="s1">'enum_values'</span><span class="p">:</span> <span class="p">[</span>
+</span><span data-line="19">            <span class="s1">'NORTE'</span><span class="p">,</span>
+</span><span data-line="20">            <span class="s1">'NORDESTE'</span><span class="p">,</span>
+</span><span data-line="21">            <span class="s1">'SUDESTE'</span><span class="p">,</span>
+</span><span data-line="22">            <span class="s1">'SUL'</span><span class="p">,</span>
+</span><span data-line="23">            <span class="s1">'SISTEMA INTERLIGADO NACIONAL'</span>
 </span><span data-line="24">        <span class="p">]</span>
 </span><span data-line="25">    <span class="p">},</span>
-</span><span data-line="26">    <span class="s1">&#39;spot_price&#39;</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="27">        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;number&#39;</span><span class="p">,</span>
-</span><span data-line="28">        <span class="s1">&#39;nullable&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-</span><span data-line="29">        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Spot Price&#39;</span><span class="p">,</span>
-</span><span data-line="30">        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;Spot price in R$/MWh&#39;</span>
+</span><span data-line="26">    <span class="s1">'spot_price'</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="27">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'number'</span><span class="p">,</span>
+</span><span data-line="28">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span><span data-line="29">        <span class="s1">'title'</span><span class="p">:</span> <span class="s1">'Spot Price'</span><span class="p">,</span>
+</span><span data-line="30">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Spot price in R$/MWh'</span>
 </span><span data-line="31">    <span class="p">}</span>
 </span><span data-line="32"><span class="p">}</span>
 </span></pre></div>
@@ -511,9 +526,9 @@ data-aria-dark="Switch to auto color mode">
 <li><p><code class="docutils literal notranslate"><span class="pre">list[str]</span></code> - List of column names</p></li>
 </ul>
 <p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">columns</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_table_columns</span><span class="p">(</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">)</span>
-</span><span data-line="2"><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns: </span><span class="si">{</span><span class="n">columns</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span data-line="3"><span class="c1"># Output: [&#39;id&#39;, &#39;reference_date&#39;, &#39;subsystem&#39;, &#39;spot_price&#39;, &#39;updated_at&#39;, ...]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">columns</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_table_columns</span><span class="p">(</span><span class="s2">"ccee_spot_price"</span><span class="p">)</span>
+</span><span data-line="2"><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Columns: </span><span class="si">{</span><span class="n">columns</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span data-line="3"><span class="c1"># Output: ['id', 'reference_date', 'subsystem', 'spot_price', 'updated_at', ...]</span>
 </span></pre></div>
 </div>
 </section>
@@ -535,12 +550,12 @@ data-aria-dark="Switch to auto color mode">
 </span><span data-line="2">
 </span><span data-line="3"><span class="k">try</span><span class="p">:</span>
 </span><span data-line="4">    <span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span>
-</span><span data-line="5">        <span class="n">table_name</span><span class="o">=</span><span class="s2">&quot;ccee_spot_price&quot;</span><span class="p">,</span>
-</span><span data-line="6">        <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;subsystem&quot;</span><span class="p">],</span>
+</span><span data-line="5">        <span class="n">table_name</span><span class="o">=</span><span class="s2">"ccee_spot_price"</span><span class="p">,</span>
+</span><span data-line="6">        <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">"subsystem"</span><span class="p">],</span>
 </span><span data-line="7">        <span class="c1"># Missing aggregation_method - will raise LakehouseError</span>
 </span><span data-line="8">    <span class="p">)</span>
 </span><span data-line="9"><span class="k">except</span> <span class="n">LakehouseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-</span><span data-line="10">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span data-line="10">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span></pre></div>
 </div>
 </section>
