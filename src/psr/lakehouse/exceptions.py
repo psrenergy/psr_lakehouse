@@ -10,14 +10,20 @@ class LakehouseError(Exception):
 
 
 class LakehouseAuthError(LakehouseError):
-    """Exception for failures to authenticate against a lakehouse that requires a login."""
+    """Exception for failures to authenticate against a lakehouse that requires a token.
+
+    Unlike its siblings this does not prepend its own class name in `__str__`:
+    a traceback already prints the class, so doing it again reads as
+    "LakehouseAuthError: LakehouseAuthError: ..." in the one place a user is
+    most likely to be reading carefully.
+    """
 
     def __init__(self, message: str):
         super().__init__(message)
         self.message = message
 
     def __str__(self):
-        return f"LakehouseAuthError: {self.message}"
+        return self.message
 
 
 class LakehouseInputError(LakehouseError):
