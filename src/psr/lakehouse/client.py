@@ -7,6 +7,8 @@ from psr.lakehouse.connector import connector
 from psr.lakehouse.exceptions import LakehouseError
 from psr.lakehouse.metadata import get_model_name
 
+DEFAULT_OUTPUT_TIMEZONE = "America/Sao_Paulo"
+
 
 class Client:
     _instance = None
@@ -165,7 +167,7 @@ class Client:
         aggregation_method: str | None = None,
         joins: list[dict] | None = None,
         latest_only: bool = True,
-        output_timezone: str = "America/Sao_Paulo",
+        output_timezone: str = DEFAULT_OUTPUT_TIMEZONE,
         page_size: int = 10000,
         timeout: int = 600,
     ) -> pd.DataFrame:
@@ -246,11 +248,43 @@ class Client:
 
         return self.fetch_dataframe_from_query(json_body, page_size=page_size, timeout=timeout)
 
+    def _with_stable_order(self, json_body: dict) -> dict:
+        """Append `<model>.id` as the last order_by key so pagination is deterministic.
+
+        Results are paginated by page/page_size. When the requested ordering is not unique --
+        `reference_date` alone repeats across every plant at the same half-hour -- rows can
+        repeat on one page and be dropped from another. An `id` tiebreaker makes the order
+        total. Skipped for aggregated queries and for models without an `id` column.
+        """
+        order_by = json_body.get("order_by")
+        if not order_by or json_body.get("group_by"):
+            return json_body
+
+        model_name = order_by[0]["column"].rsplit(".", 1)[0]
+        id_column = f"{model_name}.id"
+        if id_column not in json_body.get("query_data", []):
+            return json_body
+        if any(item["column"] == id_column for item in order_by):
+            return json_body
+
+        return {**json_body, "order_by": [*order_by, {"column": id_column, "direction": "asc"}]}
+
     def fetch_dataframe_from_query(
         self, json_body: dict, page_size: int = 10000, timeout: int | None = 600
     ) -> pd.DataFrame:
         """
         Fetch data from the API using a custom query JSON body and return as a pandas DataFrame.
+
+        Applies the same defaults as `fetch_dataframe` when the caller omits them, so a
+        hand-built query does not silently behave differently from the alias methods:
+
+        - `latest_only`: defaults to True (dedup server-side to the latest non-deleted version
+          of each datapoint). Without it the server returns the full version history, and each
+          revised datapoint shows up more than once.
+        - `output_timezone`: defaults to "America/Sao_Paulo". Without it the server returns UTC,
+          which yields the right timestamps carrying the wrong values.
+
+        Pass the keys explicitly to opt out; existing values are never overwritten.
 
         Args:
             json_body: JSON request body for the query
@@ -260,6 +294,13 @@ class Client:
         Returns:
             pandas DataFrame with the query results
         """
+        json_body = {
+            "latest_only": True,
+            "output_timezone": DEFAULT_OUTPUT_TIMEZONE,
+            **json_body,
+        }
+        json_body = self._with_stable_order(json_body)
+
         columns, rows = self._fetch_all_pages(json_body, page_size=page_size, timeout=timeout)
         df = pd.DataFrame(rows, columns=columns) if columns is not None else pd.DataFrame(rows)
 
