@@ -1,10 +1,10 @@
 import os
+import sys
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from psr.lakehouse import auth
 from psr.lakehouse.exceptions import LakehouseAuthError, LakehouseError
 
 
@@ -14,6 +14,9 @@ class Connector:
     _is_initialized: bool = False
     _base_url: str
     _session: requests.Session
+    _identity: dict | None = None
+    _pat: str | None = None
+    _warned_about_missing_pat: bool = False
 
     def __new__(cls):
         if cls._instance is None:
@@ -28,6 +31,10 @@ class Connector:
             max_retries=Retry(
                 total=3,
                 backoff_factor=1,
+                # 503 is retried because the usual cause is transient. A 503 that
+                # persists past the backoff is a server-side misconfiguration and
+                # is reported as such rather than as a bad token. 401 and 403 are
+                # deliberately absent: a bad token must fail fast.
                 status_forcelist=[502, 503, 504],
                 allowed_methods=["GET", "POST"],
             )
@@ -39,12 +46,30 @@ class Connector:
     def initialize(
         self,
         base_url: str | None = None,
+        pat: str | None = None,
     ):
         """
-        Initialize the connector with API URL.
+        Initialize the connector with the API URL and a personal access token.
 
         Args:
             base_url: API base URL. Defaults to LAKEHOUSE_API_URL environment variable.
+            pat: PSR personal access token (`psr_...`). Generate one at
+                https://cockpit.psr-inc.com. Prefer leaving this unset and using
+                the LAKEHOUSE_PAT environment variable: a token written literally
+                into this call is printed in full by any traceback that passes
+                through the line, since Python renders the source of every frame.
+                Passing a token read from somewhere else - `os.environ`, a secret
+                manager - is fine, because the traceback shows the expression
+                rather than its value.
+
+        Raises:
+            LakehouseAuthError: If the token is rejected, or if its owner holds
+                no active Lakehouse plan.
+            LakehouseError: If the API URL is missing or the API is unreachable.
+
+        Note:
+            A token is not yet mandatory. Without one this warns and carries on,
+            so existing scripts keep running until the API starts requiring it.
         """
         # Get base URL from parameter or environment variable
         self._base_url = base_url or os.getenv("LAKEHOUSE_API_URL")
@@ -54,14 +79,36 @@ class Connector:
             )
         self._base_url = self._base_url.rstrip("/")
 
+        self._pat = pat or os.getenv("LAKEHOUSE_PAT")
+
         self._session = self._create_session()
+        if self._pat:
+            # Set on the session rather than per call, so no request can be
+            # added later that forgets to carry it.
+            self._session.headers["Authorization"] = f"Bearer {self._pat}"
+        else:
+            # Deliberately a warning and not an error, for now. The API does not
+            # reject anonymous queries yet, and turning this into an exception
+            # before it does would break every existing script for no benefit -
+            # the upgrade window is the whole point. It becomes an error once the
+            # API is gated; until then the job of this message is to make sure
+            # nobody is surprised on that day.
+            # Printed rather than raised through `warnings`, whose formatting
+            # prefixes every message with the file and line that triggered it -
+            # "<stdin-1>:1:" in a REPL, which is noise to the analyst this is
+            # addressed to. Once per process: it is a nudge, not a nag.
+            if not Connector._warned_about_missing_pat:
+                Connector._warned_about_missing_pat = True
+                print(
+                    "psr-lakehouse: no personal access token configured; querying the PSR "
+                    "Lakehouse is becoming token-only.\n"
+                    "               Generate one at https://cockpit.psr-inc.com and set it "
+                    "in the LAKEHOUSE_PAT environment variable.",
+                    file=sys.stderr,
+                )
 
-        # A deployment behind the load balancer needs a session cookie on every request; the
-        # cached one is installed up front so a logged-in user is never asked again. The health
-        # check below is exempt from authentication, so it passes either way and cannot be used
-        # to tell whether we are logged in — that is discovered on the first real request.
-        auth.load_session(self._base_url, self._session)
-
+        # Reachability first, with no token involved, so "the API is down" and
+        # "your token is bad" cannot be reported as each other.
         try:
             response = self._session.get(f"{self._base_url}/health-check", timeout=10)
             if not response.json():
@@ -69,63 +116,43 @@ class Connector:
         except requests.exceptions.RequestException as e:
             raise LakehouseError(f"Health check failed: Unable to connect to API at {self._base_url}. {e}") from e
 
+        # Then the token, once, here. Without this the first failure of a bad
+        # token is whichever fetch_dataframe happens to run first, which in a
+        # notebook is often minutes of work later. Skipped when there is no
+        # token: against a gated API it would only 401, and against an ungated
+        # one there is nothing to resolve.
+        if self._pat:
+            self._identity = self.get("/query/whoami", _skip_init_check=True)
+            # Greeting the person by name is the shortest way to answer the two
+            # questions a token raises - is it working, and whose is it. Reading
+            # the wrong name here is how someone catches a stale LAKEHOUSE_PAT
+            # before a day's analysis is attributed to a colleague.
+            name = self._identity.get("full_name") or self._identity.get("email") or "back"
+            print(f"Welcome, {name}!", file=sys.stderr)
+
         self._is_initialized = True
 
-    def login(self, base_url: str | None = None) -> None:
-        """Sign in in a browser and cache the session, replacing any session already cached.
+    def whoami(self) -> dict:
+        """Return who the configured token belongs to, and the plan it carries.
 
-        Args:
-            base_url: API base URL. Honoured even when the connector is already initialized —
-                being a singleton, it may well be pointing somewhere else already.
+        Resolved once at initialize() and held, so this is free to call. It is
+        the answer to "am I about to run this as the right person".
+
+        Raises:
+            LakehouseAuthError: If no token is configured. There is no anonymous
+                answer to this question, so unlike a query it cannot be served
+                during the upgrade window.
         """
-        target = base_url.rstrip("/") if base_url else None
-        if not self._is_initialized or (target and target != getattr(self, "_base_url", None)):
-            self.initialize(target or base_url)
-        auth.login(self._base_url, session=self._session)
+        if not self._is_initialized:
+            self.initialize()
 
-    def logout(self, base_url: str | None = None) -> bool:
-        """Forget the cached session for this API, in this process and on disk.
-
-        Deliberately does no initialization: throwing away a credential must not depend on the API
-        being reachable, which is often exactly why someone is logging out.
-        """
-        target = base_url or getattr(self, "_base_url", None) or os.getenv("LAKEHOUSE_API_URL")
-        if not target:
-            raise LakehouseError(
-                "No API URL to log out of. Pass base_url or set the LAKEHOUSE_API_URL environment variable."
-            )
-
-        if self._is_initialized:
-            auth._clear_alb_cookies(self._session)
-        return auth.clear_session(target.rstrip("/"))
-
-    def _send(self, method: str, url: str, **kwargs) -> dict:
-        """Send a request, logging in and retrying once if it was bounced to the login page.
-
-        The load balancer answers an unauthenticated request with a redirect to Cognito, which
-        `requests` follows — so what arrives here is a page of HTML from another host rather
-        than an error status. `auth.bounced_to_idp` is what recognises that.
-        """
-        response = self._session.request(method, url, **kwargs)
-
-        if auth.bounced_to_idp(response, self._base_url):
-            auth.ensure_login(self._session, self._base_url)
-            response = self._session.request(method, url, **kwargs)
-            if auth.bounced_to_idp(response, self._base_url):
-                raise LakehouseAuthError(
-                    f"Still being redirected to the login page after logging in, requesting {url}."
-                )
-
-        if response.status_code == 403:
-            # The load balancer let the request through, so the login worked; the application
-            # itself refused the identity behind it.
+        if not self._pat:
             raise LakehouseAuthError(
-                f"{self._base_url} rejected this account (HTTP 403). Access requires a verified "
-                "@psr-inc.com email; run `psr-lakehouse login` to sign in as a different user."
+                "No personal access token configured, so there is nobody to report. "
+                "Generate one at https://cockpit.psr-inc.com and set it in the "
+                "LAKEHOUSE_PAT environment variable."
             )
-
-        response.raise_for_status()
-        return response.json()
+        return self._identity or {}
 
     def post(self, endpoint: str, json_body: dict, params: dict | None = None, timeout: int = 600) -> dict:
         """
@@ -141,6 +168,7 @@ class Connector:
             JSON response as dictionary
 
         Raises:
+            LakehouseAuthError: If the token is missing, rejected or unentitled
             LakehouseError: If the request fails
         """
         if not self._is_initialized:
@@ -149,37 +177,108 @@ class Connector:
         url = f"{self._base_url}{endpoint}"
 
         try:
-            return self._send("POST", url, json=json_body, params=params, timeout=timeout)
+            response = self._session.post(
+                url,
+                json=json_body,
+                params=params,
+                timeout=timeout,
+            )
+            response.raise_for_status()
+            return response.json()
         except requests.exceptions.HTTPError as e:
-            raise LakehouseError(self._format_http_error(e, url)) from e
+            # `from None`: the chained HTTPError repeats the status, reason and
+            # URL that _format_http_error already puts in the message, so all it
+            # adds to a notebook traceback is two frames of requests internals
+            # between the user and the sentence telling them what to do.
+            raise self._http_error(e, url) from None
         except requests.exceptions.RequestException as e:
             raise LakehouseError(f"Request to {url} failed: {e}") from e
 
-    def get(self, endpoint: str, params: dict | None = None) -> dict:
+    def get(self, endpoint: str, params: dict | None = None, _skip_init_check: bool = False) -> dict:
         """
         Make a GET request to the API.
 
         Args:
-            endpoint: API endpoint path (e.g., "/query/schema")
+            endpoint: API endpoint path (e.g., "/query/whoami")
             params: Optional query parameters
+            _skip_init_check: Internal. Set by initialize()'s own probe, which
+                runs before _is_initialized is true and must not recurse into it.
 
         Returns:
             JSON response as dictionary
 
         Raises:
+            LakehouseAuthError: If the token is missing, rejected or unentitled
             LakehouseError: If the request fails
         """
-        if not self._is_initialized:
+        if not self._is_initialized and not _skip_init_check:
             self.initialize()
 
         url = f"{self._base_url}{endpoint}"
 
         try:
-            return self._send("GET", url, params=params, timeout=60)
+            response = self._session.get(
+                url,
+                params=params,
+                timeout=60,
+            )
+            response.raise_for_status()
+            return response.json()
         except requests.exceptions.HTTPError as e:
-            raise LakehouseError(self._format_http_error(e, url)) from e
+            # `from None`: the chained HTTPError repeats the status, reason and
+            # URL that _format_http_error already puts in the message, so all it
+            # adds to a notebook traceback is two frames of requests internals
+            # between the user and the sentence telling them what to do.
+            raise self._http_error(e, url) from None
         except requests.exceptions.RequestException as e:
             raise LakehouseError(f"Request to {url} failed: {e}") from e
+
+    def _http_error(self, error: requests.exceptions.HTTPError, url: str) -> LakehouseError:
+        """Pick the exception class for an HTTP failure.
+
+        401 and 403 become LakehouseAuthError, because what the caller has to
+        do about them - get a token, or get a plan - has nothing to do with the
+        query they wrote. The server's `detail` is appended as-is: it is a short
+        stable sentence by contract, never the upstream identity provider's
+        prose, so it is safe to put in a traceback.
+
+        A 401 reads differently depending on whether a token was sent. During
+        the upgrade window most of them will be from scripts that never had one,
+        and telling those people to check a token they never set would send them
+        looking for a bug instead of to the page that issues one.
+        """
+        status_code = error.response.status_code
+
+        # Auth failures say one thing and say it once. The status, the URL and
+        # the server's own wording all describe the same problem, so repeating
+        # them buries the sentence that says what to do about it.
+        if status_code == 401 and not self._pat:
+            return LakehouseAuthError(
+                "No personal access token was sent, and the PSR Lakehouse requires one. "
+                "Generate a token at https://cockpit.psr-inc.com and set it in the "
+                "LAKEHOUSE_PAT environment variable."
+            )
+        if status_code == 401:
+            return LakehouseAuthError(
+                "The personal access token was rejected. Check LAKEHOUSE_PAT, or generate "
+                "a new token at https://cockpit.psr-inc.com."
+            )
+        if status_code == 403:
+            # Here the server's wording is the whole point: it distinguishes
+            # having no account from having no active plan, which send the
+            # reader to different places.
+            return LakehouseAuthError(f"{self._detail(error)} Check your account at https://cockpit.psr-inc.com.")
+        return LakehouseError(self._format_http_error(error, url))
+
+    @staticmethod
+    def _detail(error: requests.exceptions.HTTPError) -> str:
+        """The server's own sentence, without the status and URL around it."""
+        try:
+            body = error.response.json()
+        except ValueError:
+            return f"HTTP {error.response.status_code} {error.response.reason}."
+        detail = body.get("detail", body) if isinstance(body, dict) else body
+        return str(detail)
 
     @staticmethod
     def _format_http_error(error: requests.exceptions.HTTPError, url: str) -> str:

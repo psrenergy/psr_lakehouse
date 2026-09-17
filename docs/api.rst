@@ -20,9 +20,10 @@ The client is automatically initialized as a singleton. You can configure it usi
 .. code-block:: python
 
    from psr.lakehouse import initialize
-   
+
    initialize(
        base_url="https://api.example.com",
+       pat="psr_...",
    )
 
 Or set environment variables before importing:
@@ -30,6 +31,22 @@ Or set environment variables before importing:
 .. code-block:: bash
 
    LAKEHOUSE_API_URL="https://api.example.com"
+   LAKEHOUSE_PAT="psr_..."
+
+Generate a token at https://cockpit.psr-inc.com. A rejected or unentitled token
+raises ``LakehouseAuthError`` during initialization; a missing one currently only
+warns, but will become an error once the API is gated.
+
+whoami()
+~~~~~~~~
+
+.. code-block:: python
+
+   from psr.lakehouse import whoami
+
+   whoami()
+
+Returns the account the configured token belongs to and its active plan.
 
 Data Fetching Methods
 ----------------------
