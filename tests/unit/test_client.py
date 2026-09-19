@@ -182,6 +182,117 @@ class TestFetchDataframe:
         request_body = json.loads(responses.calls[1].request.body)
         assert request_body["latest_only"] is False
 
+    @responses.activate
+    def test_fetch_dataframe_from_query_applies_defaults(self):
+        """Test that a hand-built query body gets the same defaults as the alias methods."""
+
+        import json
+
+        mock_data = [
+            {
+                "ONSWindCurtailment.id": 1,
+                "ONSWindCurtailment.reference_date": "2026-07-01T00:00:00-03:00",
+                "ONSWindCurtailment.generation": 458.25,
+            },
+        ]
+
+        for _ in range(2):
+            responses.add(
+                responses.POST,
+                "https://test-api.example.com/query/",
+                json=make_query_response(mock_data),
+                status=200,
+            )
+
+        psr.lakehouse.client.fetch_dataframe_from_query(
+            {"query_data": ["ONSWindCurtailment.reference_date", "ONSWindCurtailment.generation"]}
+        )
+        request_body = json.loads(responses.calls[0].request.body)
+        assert request_body["latest_only"] is True
+        assert request_body["output_timezone"] == "America/Sao_Paulo"
+
+        psr.lakehouse.client.fetch_dataframe_from_query(
+            {
+                "query_data": ["ONSWindCurtailment.reference_date"],
+                "latest_only": False,
+                "output_timezone": "UTC",
+            }
+        )
+        request_body = json.loads(responses.calls[1].request.body)
+        assert request_body["latest_only"] is False
+        assert request_body["output_timezone"] == "UTC"
+
+    @responses.activate
+    def test_fetch_dataframe_from_query_appends_id_tiebreaker(self):
+        """Test that a non-unique order_by gets `id` appended so pagination is deterministic."""
+
+        import json
+
+        mock_data = [
+            {
+                "ONSWindCurtailment.id": 1,
+                "ONSWindCurtailment.reference_date": "2026-07-01T00:00:00-03:00",
+            },
+        ]
+
+        responses.add(
+            responses.POST,
+            "https://test-api.example.com/query/",
+            json=make_query_response(mock_data),
+            status=200,
+        )
+
+        psr.lakehouse.client.fetch_dataframe_from_query(
+            {
+                "query_data": ["ONSWindCurtailment.id", "ONSWindCurtailment.reference_date"],
+                "order_by": [{"column": "ONSWindCurtailment.reference_date", "direction": "asc"}],
+            }
+        )
+        request_body = json.loads(responses.calls[0].request.body)
+        assert request_body["order_by"] == [
+            {"column": "ONSWindCurtailment.reference_date", "direction": "asc"},
+            {"column": "ONSWindCurtailment.id", "direction": "asc"},
+        ]
+
+    @responses.activate
+    def test_fetch_dataframe_from_query_skips_tiebreaker_when_not_applicable(self):
+        """Test that the `id` tiebreaker is skipped without an id column, on group_by, or if present."""
+
+        import json
+
+        mock_data = [{"ONSWindCurtailment.reference_date": "2026-07-01T00:00:00-03:00"}]
+
+        for _ in range(3):
+            responses.add(
+                responses.POST,
+                "https://test-api.example.com/query/",
+                json=make_query_response(mock_data),
+                status=200,
+            )
+
+        order_by = [{"column": "ONSWindCurtailment.reference_date", "direction": "asc"}]
+
+        # `id` was not requested, so it cannot be ordered on
+        psr.lakehouse.client.fetch_dataframe_from_query(
+            {"query_data": ["ONSWindCurtailment.reference_date"], "order_by": order_by}
+        )
+        assert json.loads(responses.calls[0].request.body)["order_by"] == order_by
+
+        # aggregated queries have no per-row id
+        psr.lakehouse.client.fetch_dataframe_from_query(
+            {
+                "query_data": ["ONSWindCurtailment.id", "ONSWindCurtailment.reference_date"],
+                "group_by": ["ONSWindCurtailment.reference_date"],
+                "order_by": order_by,
+            }
+        )
+        assert json.loads(responses.calls[1].request.body)["order_by"] == order_by
+
+        # already ordered on id, do not duplicate it
+        explicit = [{"column": "ONSWindCurtailment.id", "direction": "desc"}]
+        psr.lakehouse.client.fetch_dataframe_from_query({"query_data": ["ONSWindCurtailment.id"], "order_by": explicit})
+        assert json.loads(responses.calls[2].request.body)["order_by"] == explicit
+
     def test_fetch_dataframe_with_empty_list_filter_raises_error(self):
         """Test that an empty list filter value raises an error."""
 
