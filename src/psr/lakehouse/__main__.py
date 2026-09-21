@@ -1,17 +1,16 @@
-"""Command line entry point: `psr-lakehouse login | logout | whoami`.
+"""Command line entry point: `psr-lakehouse whoami`.
 
-Logging in is a one-off act that outlives the process doing it — the session is cached on disk —
-so it belongs on the command line rather than inside every script. Scripts do still start a login
-on demand (see `psr.lakehouse.auth`), but running `psr-lakehouse login` once keeps the browser
-detour out of the middle of a data fetch.
+Checking which account a token belongs to is the one thing worth doing outside a
+script, because the answer decides whether running the script is worth starting.
+It is deliberately the whole CLI: authentication is an environment variable now,
+so there is no session to create or forget.
 """
 
 import argparse
 import os
 import sys
-from datetime import datetime, timezone
 
-from psr.lakehouse import auth
+from psr.lakehouse.connector import connector
 from psr.lakehouse.exceptions import LakehouseError
 
 
@@ -22,53 +21,23 @@ def _resolve_url(url: str | None) -> str:
     return resolved.rstrip("/")
 
 
-def _format_timestamp(value: int | float | None) -> str:
-    if not value:
-        return "unknown"
-    return datetime.fromtimestamp(value, tz=timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M")
-
-
-def _login(args: argparse.Namespace) -> int:
-    auth.login(_resolve_url(args.url))
-    return 0
-
-
-def _logout(args: argparse.Namespace) -> int:
-    url = None if args.all else _resolve_url(args.url)
-    if auth.clear_session(url):
-        print(f"Logged out of {url}." if url else "Logged out of every lakehouse.")
-    else:
-        print(f"No cached session for {url}." if url else "No cached sessions.")
-    return 0
-
-
 def _whoami(args: argparse.Namespace) -> int:
     url = _resolve_url(args.url)
-    info = auth.session_info(url)
-    if not info:
-        print(f"Not logged in to {url}.")
-        return 1
+    connector.initialize(base_url=url)
+    identity = connector.whoami()
 
-    state = "expired" if info["expired"] else f"valid until {_format_timestamp(info['expires_at'])}"
-    print(f"Logged in to {url} ({state})")
-    print(f"Session cached in {auth.session_file()}")
-    return 1 if info["expired"] else 0
+    subscription = identity.get("subscription")
+    print(f"{identity.get('full_name') or 'Unknown'} <{identity.get('email')}>")
+    print(f"Plan: {subscription['name'] if subscription else 'none'}")
+    print(f"API:  {url}")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="psr-lakehouse", description="PSR Lakehouse client.")
     subcommands = parser.add_subparsers(dest="command", required=True)
 
-    login = subcommands.add_parser("login", help="Sign in in a browser and cache the session.")
-    login.add_argument("--url", help="API base URL. Defaults to $LAKEHOUSE_API_URL.")
-    login.set_defaults(handler=_login)
-
-    logout = subcommands.add_parser("logout", help="Forget the cached session.")
-    logout.add_argument("--url", help="API base URL. Defaults to $LAKEHOUSE_API_URL.")
-    logout.add_argument("--all", action="store_true", help="Forget every cached session.")
-    logout.set_defaults(handler=_logout)
-
-    whoami = subcommands.add_parser("whoami", help="Show the cached session, if any.")
+    whoami = subcommands.add_parser("whoami", help="Show which account the configured token belongs to.")
     whoami.add_argument("--url", help="API base URL. Defaults to $LAKEHOUSE_API_URL.")
     whoami.set_defaults(handler=_whoami)
 

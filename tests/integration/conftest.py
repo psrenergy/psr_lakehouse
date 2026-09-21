@@ -15,4 +15,7 @@ def init_connector():
     if not api_url:
         pytest.skip("LAKEHOUSE_API_URL not set — skipping integration tests")
 
+    if not os.getenv("LAKEHOUSE_PAT"):
+        pytest.skip("LAKEHOUSE_PAT not set — skipping integration tests")
+
     initialize(base_url=api_url)

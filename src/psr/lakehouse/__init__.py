@@ -4,8 +4,7 @@ from .connector import connector as connector
 from .metadata import get_model_name
 
 initialize = connector.initialize
-login = connector.login
-logout = connector.logout
+whoami = connector.whoami
 
 register_aliases()
 
@@ -13,7 +12,6 @@ __all__ = [
     "client",
     "connector",
     "initialize",
-    "login",
-    "logout",
+    "whoami",
     "get_model_name",
 ]
