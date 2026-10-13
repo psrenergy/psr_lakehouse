@@ -1,4 +1,5 @@
 import re
+import sys
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -148,6 +149,21 @@ class Client:
                     columns = data["columns"]
                 all_rows.extend(data["rows"])
 
+            if response["pagination"].get("quota_exhausted"):
+                # This page spent the last of the weekly row quota, cut to what
+                # was left or ending on it exactly, and the next request would be
+                # a 429. Returning what arrived is more useful than raising and
+                # discarding it; the rows are the first N of the full result, so
+                # nothing in the middle is missing.
+                # Printed rather than warned, like the connector's PAT nudge.
+                print(
+                    f"psr-lakehouse: your plan's weekly row quota is used up; returning the "
+                    f"first {len(all_rows):,} rows of a longer result.\n"
+                    "               usage() shows the quota; the error on your next query "
+                    "says when it frees.",
+                    file=sys.stderr,
+                )
+                break
             if not response["pagination"]["has_next"]:
                 break
             page += 1
@@ -220,7 +236,9 @@ class Client:
         elif data_columns:
             all_columns = data_columns
         else:
-            all_columns = []
+            # The server rejects an empty `query_data` and fails on a bare model name,
+            # so request every column explicitly.
+            all_columns = self.get_table_columns(table_name)
 
         # Build JSON request body
         json_body = {

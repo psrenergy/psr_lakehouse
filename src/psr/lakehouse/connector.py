@@ -38,6 +38,10 @@ class Connector:
                 # deliberately absent: a bad token must fail fast.
                 status_forcelist=[502, 503, 504],
                 allowed_methods=["GET", "POST"],
+                # Without this, urllib3 also retries any 429 that carries a
+                # Retry-After, and sleeps for it: a spent weekly row quota
+                # answers with days, so the call hangs instead of raising.
+                respect_retry_after_header=False,
             )
         )
         session.mount("https://", adapter)
@@ -169,6 +173,20 @@ class Connector:
                 "LAKEHOUSE_PAT environment variable."
             )
         return self._identity or {}
+
+    def usage(self) -> None:
+        """Print the account, its plan and how much of the plan's limits are used.
+
+        Unlike whoami(), this asks the API again: rows used move with every
+        query, so the figure held since initialize() would be stale by the time
+        anyone wants to know how much quota is left.
+
+        Raises:
+            LakehouseAuthError: If no token is configured.
+        """
+        self.whoami()
+        self._identity = self.get("/query/whoami")
+        print(_format_usage(self._identity, self._base_url))
 
     def post(self, endpoint: str, json_body: dict, params: dict | None = None, timeout: int = 600) -> dict:
         """
@@ -312,6 +330,57 @@ class Connector:
             pass
 
         return f"HTTP {status_code} {reason} for {url}"
+
+
+def _format_usage(identity: dict, base_url: str) -> str:
+    """Render GET /query/whoami as the block usage() prints."""
+    name = identity.get("full_name") or "Unknown"
+    subscription = identity.get("subscription")
+    if subscription:
+        plan = subscription.get("name") or "Unnamed plan"
+        if subscription.get("description"):
+            plan = f"{plan} ({subscription['description']})"
+    else:
+        plan = "none"
+
+    lines = [
+        "PSR Lakehouse",
+        f"  Account   {name} <{identity.get('email')}>",
+        f"  Plan      {plan}",
+        f"  API       {base_url}",
+    ]
+
+    tables = identity.get("tables")
+    if tables is not None:
+        lines.append(f"  Tables    {len(tables)} available")
+        lines.extend(f"              - {table}" for table in tables)
+
+    limits = identity.get("limits") or {}
+    if limits:
+        lines.append("")
+        lines.append("Limits")
+        quota = limits.get("weekly_row_quota")
+        used = limits.get("weekly_rows_used") or 0
+        if quota is None:
+            lines.append(f"  Weekly rows  {used:,} used (no quota)")
+        else:
+            share = min(used / quota, 1.0) if quota else 1.0
+            lines.append(f"  Weekly rows  {_bar(share)} {used:,} / {quota:,} ({share:.0%})")
+            lines.append(f"               {max(quota - used, 0):,} left this week")
+
+    return "\n".join(lines)
+
+
+def _bar(share: float, width: int = 20) -> str:
+    # Block characters where the terminal can show them; a Windows console
+    # redirected to a cp1252 file cannot, and would raise on print.
+    full, empty = "█", "░"
+    try:
+        (full + empty).encode(sys.stdout.encoding or "ascii")
+    except (UnicodeEncodeError, LookupError):
+        full, empty = "#", "-"
+    filled = round(share * width)
+    return f"[{full * filled}{empty * (width - filled)}]"
 
 
 connector = Connector()

@@ -24,6 +24,36 @@ Import and Fetch Data
 
 The result is a pandas DataFrame with the query results.
 
+Checking Your Usage
+~~~~~~~~~~~~~~~~~~~
+
+Every plan has a weekly row quota. ``usage()`` shows your account, its plan,
+the tables it can query and how much of the quota is left:
+
+.. code-block:: python
+
+   from psr.lakehouse import usage
+
+   usage()
+
+.. code-block:: text
+
+   PSR Lakehouse
+     Account   Jane Doe <jane.doe@email.com>
+     Plan      Beta Tester
+     API       https://api.example.com
+     Tables    6 available
+                 - CCEESpotPrice
+                 - ...
+
+   Limits
+     Weekly rows  [███████░░░░░░░░░░░░░] 370 / 1,000 (37%)
+                  630 left this week
+
+If a query needs more rows than the quota has left, ``fetch_dataframe`` returns
+the first rows that fit and prints a notice to stderr. The next query raises an
+error that says when the quota frees.
+
 Filtering Data
 --------------
 

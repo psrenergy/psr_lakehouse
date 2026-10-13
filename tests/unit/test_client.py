@@ -73,6 +73,49 @@ class TestFetchDataframe:
         assert "CCEESpotPrice.subsystem" in df.columns
 
     @responses.activate
+    def test_fetch_dataframe_without_columns_requests_all_columns(self):
+        """Test that omitting data_columns requests every column of the table explicitly."""
+
+        import json
+
+        mock_openapi = {
+            "components": {
+                "schemas": {
+                    "CCEESpotPrice": {
+                        "type": "object",
+                        "properties": {
+                            "reference_date": {"type": "string", "format": "date-time"},
+                            "subsystem": {"type": "string"},
+                            "spot_price": {"type": "number"},
+                        },
+                    }
+                }
+            }
+        }
+
+        responses.add(
+            responses.GET,
+            "https://test-api.example.com/openapi.json",
+            json=mock_openapi,
+            status=200,
+        )
+        responses.add(
+            responses.POST,
+            "https://test-api.example.com/query/",
+            json=make_query_response([]),
+            status=200,
+        )
+
+        psr.lakehouse.client.fetch_dataframe(table_name="ccee_spot_price")
+
+        request_body = json.loads(responses.calls[-1].request.body)
+        assert request_body["query_data"] == [
+            "CCEESpotPrice.reference_date",
+            "CCEESpotPrice.subsystem",
+            "CCEESpotPrice.spot_price",
+        ]
+
+    @responses.activate
     def test_fetch_dataframe_with_filters(self):
         """Test data fetching with filters."""
 
@@ -365,6 +408,20 @@ class TestFetchDataframe:
 
         assert len(df) == 2
         assert len(responses.calls) == 2
+
+    @responses.activate
+    def test_fetch_dataframe_stops_at_the_page_that_spends_the_quota(self, capsys):
+        """The next page would be a 429, so return the rows that arrived and say why."""
+        page1_data = [{"ONSEnergyLoadDaily.value": 1}, {"ONSEnergyLoadDaily.value": 2}]
+        page1 = make_query_response(page1_data, page=1, page_size=10, has_next=True)
+        page1["pagination"]["quota_exhausted"] = True
+        responses.add(responses.POST, "https://test-api.example.com/query/", json=page1, status=200)
+
+        df = psr.lakehouse.client.fetch_dataframe(table_name="ons_energy_load_daily", data_columns=["value"])
+
+        assert len(df) == 2
+        assert len(responses.calls) == 1
+        assert "weekly row quota is used up" in capsys.readouterr().err
 
     @responses.activate
     def test_fetch_dataframe_page_size_forwarded(self):
