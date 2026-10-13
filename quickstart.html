@@ -78,6 +78,7 @@ data-aria-dark="Switch to auto color mode">
     <div class="sy-scrollbar sy-rside-inner px-6 xl:top-16 xl:sticky xl:pl-0 pt-6 pb-4"><div class="localtoc"><h3>On this page</h3><ul>
 <li><a class="reference internal" href="#basic-usage">Basic Usage</a><ul>
 <li><a class="reference internal" href="#import-and-fetch-data">Import and Fetch Data</a></li>
+<li><a class="reference internal" href="#checking-your-usage">Checking Your Usage</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#filtering-data">Filtering Data</a><ul>
@@ -208,6 +209,32 @@ data-aria-dark="Switch to auto color mode">
 </span></pre></div>
 </div>
 <p>The result is a pandas DataFrame with the query results.</p>
+</section>
+<section id="checking-your-usage">
+<h3>Checking Your Usage<a class="headerlink" href="#checking-your-usage" title="Link to this heading">#</a></h3>
+<p>Every plan has a weekly row quota. <code class="docutils literal notranslate"><span class="pre">usage()</span></code> shows your account, its plan,
+the tables it can query and how much of the quota is left:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">usage</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="n">usage</span><span class="p">()</span>
+</span></pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">PSR Lakehouse
+</span><span data-line="2">  Account   Jane Doe &lt;jane.doe@email.com&gt;
+</span><span data-line="3">  Plan      Beta Tester
+</span><span data-line="4">  API       https://api.example.com
+</span><span data-line="5">  Tables    6 available
+</span><span data-line="6">              - CCEESpotPrice
+</span><span data-line="7">              - ...
+</span><span data-line="8">
+</span><span data-line="9">Limits
+</span><span data-line="10">  Weekly rows  [███████░░░░░░░░░░░░░] 370 / 1,000 (37%)
+</span><span data-line="11">               630 left this week
+</span></pre></div>
+</div>
+<p>If a query needs more rows than the quota has left, <code class="docutils literal notranslate"><span class="pre">fetch_dataframe</span></code> returns
+the first rows that fit and prints a notice to stderr. The next query raises an
+error that says when the quota frees.</p>
 </section>
 </section>
 <section id="filtering-data">

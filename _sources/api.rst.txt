@@ -48,6 +48,23 @@ whoami()
 
 Returns the account the configured token belongs to and its active plan.
 
+usage()
+~~~~~~~
+
+.. code-block:: python
+
+   from psr.lakehouse import usage
+
+   usage()
+
+Prints the account, its plan, the tables it can query and how much of the plan's
+limits are used (the weekly row quota). Unlike ``whoami()``, it
+asks the API again, so the rows-used figure is current. Returns ``None``.
+
+**Raises:**
+
+* ``LakehouseAuthError`` - If no personal access token is configured
+
 Data Fetching Methods
 ----------------------
 
@@ -88,7 +105,9 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
 
 **Returns:**
 
-* ``pd.DataFrame`` - Query results as a pandas DataFrame
+* ``pd.DataFrame`` - Query results as a pandas DataFrame. If the weekly row
+  quota runs out partway through, the first rows that fit are returned and a
+  notice is printed to stderr; see ``usage()``.
 
 **Raises:**
 
@@ -169,7 +188,8 @@ Fetch data using a custom JSON query body. This method provides access to advanc
 
 **Returns:**
 
-* ``pd.DataFrame`` - Query results as a pandas DataFrame
+* ``pd.DataFrame`` - Query results as a pandas DataFrame. Truncated to the rows that fit
+  if the weekly row quota runs out, as with ``fetch_dataframe()``.
 
 **Query Body Structure:**
 

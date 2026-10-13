@@ -79,6 +79,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#client-class">Client Class</a><ul>
 <li><a class="reference internal" href="#initialization">Initialization</a></li>
 <li><a class="reference internal" href="#whoami">whoami()</a></li>
+<li><a class="reference internal" href="#usage">usage()</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#data-fetching-methods">Data Fetching Methods</a><ul>
@@ -225,6 +226,21 @@ warns, but will become an error once the API is gated.</p>
 </div>
 <p>Returns the account the configured token belongs to and its active plan.</p>
 </section>
+<section id="usage">
+<h3>usage()<a class="headerlink" href="#usage" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse</span><span class="w"> </span><span class="kn">import</span> <span class="n">usage</span>
+</span><span data-line="2">
+</span><span data-line="3"><span class="n">usage</span><span class="p">()</span>
+</span></pre></div>
+</div>
+<p>Prints the account, its plan, the tables it can query and how much of the plan’s
+limits are used (the weekly row quota). Unlike <code class="docutils literal notranslate"><span class="pre">whoami()</span></code>, it
+asks the API again, so the rows-used figure is current. Returns <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p><strong>Raises:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LakehouseAuthError</span></code> - If no personal access token is configured</p></li>
+</ul>
+</section>
 </section>
 <section id="data-fetching-methods">
 <h2>Data Fetching Methods<a class="headerlink" href="#data-fetching-methods" title="Link to this heading">#</a></h2>
@@ -261,7 +277,9 @@ warns, but will become an error once the API is gated.</p>
 </ul>
 <p><strong>Returns:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> - Query results as a pandas DataFrame</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> - Query results as a pandas DataFrame. If the weekly row
+quota runs out partway through, the first rows that fit are returned and a
+notice is printed to stderr; see <code class="docutils literal notranslate"><span class="pre">usage()</span></code>.</p></li>
 </ul>
 <p><strong>Raises:</strong></p>
 <ul class="simple">
@@ -337,7 +355,8 @@ warns, but will become an error once the API is gated.</p>
 </ul>
 <p><strong>Returns:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> - Query results as a pandas DataFrame</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> - Query results as a pandas DataFrame. Truncated to the rows that fit
+if the weekly row quota runs out, as with <code class="docutils literal notranslate"><span class="pre">fetch_dataframe()</span></code>.</p></li>
 </ul>
 <p><strong>Query Body Structure:</strong></p>
 <p>The <code class="docutils literal notranslate"><span class="pre">json_body</span></code> parameter accepts a dictionary with the following structure:</p>
