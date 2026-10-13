@@ -114,6 +114,7 @@ class TestConnectorInitialization:
         assert retries.backoff_factor == 1
         assert set(retries.status_forcelist) == {502, 503, 504}
         assert set(retries.allowed_methods) == {"GET", "POST"}
+        assert retries.respect_retry_after_header is False
 
     @responses.activate
     def test_initialize_health_check_failure_non_truthy(self):
@@ -450,3 +451,58 @@ class TestConnectorAuthentication:
             connector.post("/query/", {"query_data": []})
 
         assert "rejected" not in str(error.value)
+
+
+class TestConnectorUsage:
+    @responses.activate
+    def test_usage_refetches_and_prints_limits(self, capsys, monkeypatch):
+        """Rows used move with every query, so usage() asks again rather than
+        reporting what initialize() saw."""
+        from psr.lakehouse.connector import connector
+
+        monkeypatch.setattr(connector, "_pat", "psr_test_token")
+        connector._identity = {**IDENTITY, "limits": {"weekly_row_quota": 1000, "weekly_rows_used": 0}}
+        _mock_whoami(
+            "https://test-api.example.com",
+            json={
+                **IDENTITY,
+                "tables": ["CCEESpotPrice", "CCEEAgentProfile"],
+                "limits": {"weekly_row_quota": 1000, "weekly_rows_used": 250, "max_concurrent_queries": 4},
+            },
+        )
+
+        connector.usage()
+
+        out = capsys.readouterr().out
+        assert "Someone <someone@psr-inc.com>" in out
+        assert "PSR Staff (Internal access)" in out
+        assert "2 available" in out
+        assert "- CCEESpotPrice" in out
+        assert "250 / 1,000 (25%)" in out
+        assert "750 left this week" in out
+        assert "oncurrent" not in out
+        assert connector._identity["limits"]["weekly_rows_used"] == 250
+
+    def test_format_usage_without_plan_or_quota(self):
+        from psr.lakehouse.connector import _format_usage
+
+        out = _format_usage(
+            {
+                "full_name": "Someone",
+                "email": "someone@psr-inc.com",
+                "subscription": None,
+                "limits": {"weekly_row_quota": None, "weekly_rows_used": 12},
+            },
+            "https://api.example.com",
+        )
+
+        assert "Plan      none" in out
+        assert "12 used (no quota)" in out
+
+    def test_usage_without_a_token_raises(self, monkeypatch):
+        from psr.lakehouse.connector import connector
+
+        monkeypatch.setattr(connector, "_pat", None)
+
+        with pytest.raises(LakehouseAuthError):
+            connector.usage()

@@ -5,6 +5,7 @@ from .metadata import get_model_name
 
 initialize = connector.initialize
 whoami = connector.whoami
+usage = connector.usage
 
 register_aliases()
 
@@ -13,5 +14,6 @@ __all__ = [
     "connector",
     "initialize",
     "whoami",
+    "usage",
     "get_model_name",
 ]
