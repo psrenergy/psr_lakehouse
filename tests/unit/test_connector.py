@@ -466,7 +466,7 @@ class TestConnectorUsage:
             "https://test-api.example.com",
             json={
                 **IDENTITY,
-                "tables": ["CCEESpotPrice", "CCEEAgentProfile"],
+                "tables": ["CCEESpotPrice", "CCEEAgentProfile", "ONSLoadCurve"],
                 "limits": {"weekly_row_quota": 1000, "weekly_rows_used": 250, "max_concurrent_queries": 4},
             },
         )
@@ -476,8 +476,9 @@ class TestConnectorUsage:
         out = capsys.readouterr().out
         assert "Someone <someone@psr-inc.com>" in out
         assert "PSR Staff (Internal access)" in out
-        assert "2 available" in out
-        assert "- CCEESpotPrice" in out
+        assert "3 available from 2 sources" in out
+        assert "CCEE 2, ONS 1" in out
+        assert "CCEESpotPrice" not in out
         assert "250 / 1,000 (25%)" in out
         assert "750 left this week" in out
         assert "oncurrent" not in out
@@ -498,6 +499,19 @@ class TestConnectorUsage:
 
         assert "Plan      none" in out
         assert "12 used (no quota)" in out
+
+    def test_group_by_source(self):
+        from psr.lakehouse.connector import _group_by_source
+
+        assert _group_by_source(
+            [
+                "ONSEnergyBalanceSubsystem",
+                "ONSLoadCurve",
+                "CLCENPowerPlant",
+                "CLCenSpotPriceNodeQuarterHourly",
+                "DcideCompiledCurve",
+            ]
+        ) == {"CLCEN": 2, "Dcide": 1, "ONS": 2}
 
     def test_usage_without_a_token_raises(self, monkeypatch):
         from psr.lakehouse.connector import connector

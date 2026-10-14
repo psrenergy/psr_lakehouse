@@ -42,9 +42,9 @@ the tables it can query and how much of the quota is left:
      Account   Jane Doe <jane.doe@email.com>
      Plan      Beta Tester
      API       https://api.example.com
-     Tables    6 available
-                 - CCEESpotPrice
-                 - ...
+     Tables    6 available from 2 sources
+               CCEE 4, ONS 2
+               client.list_tables() lists them all
 
    Limits
      Weekly rows  [███████░░░░░░░░░░░░░] 370 / 1,000 (37%)
