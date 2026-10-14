@@ -1,5 +1,7 @@
 import os
+import re
 import sys
+import textwrap
 from importlib import metadata
 
 import requests
@@ -352,8 +354,11 @@ def _format_usage(identity: dict, base_url: str) -> str:
 
     tables = identity.get("tables")
     if tables is not None:
-        lines.append(f"  Tables    {len(tables)} available")
-        lines.extend(f"              - {table}" for table in tables)
+        sources = _group_by_source(tables)
+        lines.append(f"  Tables    {len(tables)} available from {len(sources)} sources")
+        summary = ", ".join(f"{source} {count}" for source, count in sources.items())
+        lines.extend(textwrap.wrap(summary, width=78, initial_indent=" " * 12, subsequent_indent=" " * 12))
+        lines.append("            client.list_tables() lists them all")
 
     limits = identity.get("limits") or {}
     if limits:
@@ -369,6 +374,26 @@ def _format_usage(identity: dict, base_url: str) -> str:
             lines.append(f"               {max(quota - used, 0):,} left this week")
 
     return "\n".join(lines)
+
+
+def _group_by_source(tables: list[str]) -> dict[str, int]:
+    """Count tables per data source, the acronym their names start with.
+
+    A plan can reach over a hundred tables, too many to list here. The source
+    is the leading capitals before the first word ("ONS" in ONSLoadCurve).
+    Names that spell the source differently (CLCenSpot... beside CLCEN...)
+    join the longest source they start with, ignoring case.
+    """
+    prefixes = set()
+    for table in tables:
+        match = re.match(r"[A-Z]+(?=[A-Z][a-z])", table) or re.match(r"[A-Z][a-z]+", table)
+        prefixes.add(match.group(0) if match else table)
+
+    counts: dict[str, int] = {}
+    for table in tables:
+        source = max((p for p in prefixes if table.lower().startswith(p.lower())), key=len, default=table)
+        counts[source] = counts.get(source, 0) + 1
+    return dict(sorted(counts.items()))
 
 
 def _bar(share: float, width: int = 20) -> str:
