@@ -11,7 +11,6 @@
 
 ![Tests](https://github.com/psrenergy/psr_lakehouse/actions/workflows/ci.yml/badge.svg)  ![PyPI - Version](https://img.shields.io/pypi/v/psr-lakehouse?color=3dd13f) [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://psrenergy.github.io/psr_lakehouse/)
 
-
 </div>
 
 # PSR Lakehouse 🏞️🏡
