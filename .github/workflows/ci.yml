@@ -7,14 +7,14 @@ on:
 jobs:
   test-windows:
     name: Run tests (windows)
-    runs-on: [self-hosted, windows]
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
       - run: uv run pytest tests/unit/ -v -s
   test-linux:
     name: Run tests (linux)
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
