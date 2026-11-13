@@ -269,6 +269,73 @@ The ``json_body`` parameter accepts a dictionary with the following structure:
        ]
    })
 
+Change Tracking
+---------------
+
+last_updated()
+~~~~~~~~~~~~~~
+
+List each day of a table that holds data, with the last time any of its rows was
+written. Use it to fetch again only the days that changed since you fetched them.
+
+**Signature:**
+
+.. code-block:: python
+
+   def last_updated(
+       table_name: str,
+       since: str | date,
+       until: str | date,
+   ) -> pd.DataFrame
+
+**Parameters:**
+
+* ``table_name`` (str) - Table name in snake_case or PascalCase (e.g., ``"ons_power_plant_hourly_generation"``)
+* ``since`` (str | date) - First day to look at (inclusive), e.g., ``"2025-10-01"``
+* ``until`` (str | date) - Last day to look at (inclusive), e.g., ``"2025-10-31"``
+
+**Returns:**
+
+* ``pd.DataFrame`` - One row per day holding data, sorted by date. Days without data are left out.
+
+  * ``date`` - The day, read in the table's local time zone
+  * ``last_updated_at`` - The last time any row of the day was written or deleted, in UTC
+  * ``rows`` (int) - How many rows the day holds, counting every stored version
+
+**Notes:**
+
+* Keep ``last_updated_at`` and ``rows`` for each day you fetched, and fetch a day
+  again when either changes: it has a revised value, a new datapoint or a deleted
+  one since. Compare with these values, not with when you fetched: rows are
+  stamped before they are committed, so rows committed late can carry an older
+  stamp, which only ``rows`` shows.
+* The API answers at most 90 days per call; longer ranges are requested in
+  90-day pieces.
+* Each day returned counts as one row towards the weekly row quota.
+
+**Raises:**
+
+* ``LakehouseError`` - If ``since`` is after ``until``, or if the table has no days
+  to track: it has no date in its key, or each publication replaces it whole (the
+  error names the column to watch instead)
+
+**Example:**
+
+.. code-block:: python
+
+   days = client.last_updated(
+       "ons_power_plant_hourly_generation",
+       since="2025-10-01",
+       until="2025-10-31",
+   )
+
+.. code-block:: text
+
+            date           last_updated_at  rows
+   0  2025-10-01 2025-12-19 03:00:00+00:00  9840
+   1  2025-10-02 2025-12-19 03:00:00+00:00  9840
+   ...
+
 Schema Discovery Methods
 -------------------------
 

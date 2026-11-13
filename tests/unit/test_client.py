@@ -1382,3 +1382,53 @@ class TestSchemaEndpoints:
         assert "spot_price" in columns
         assert "id" in columns
         assert "updated_at" in columns
+
+
+class TestLastUpdated:
+    URL = "https://test-api.example.com/query/last-updated/ONSPowerPlantHourlyGeneration"
+
+    @responses.activate
+    def test_last_updated(self):
+        """One call for a short range, on the model name, returned as typed columns."""
+        responses.add(
+            responses.GET,
+            self.URL,
+            json={
+                "table": "ONSPowerPlantHourlyGeneration",
+                "since": "2025-10-01",
+                "until": "2025-10-31",
+                "days": [
+                    {"date": "2025-10-01", "last_updated_at": "2025-12-19T03:00:00Z", "rows": 9840},
+                    {"date": "2025-10-02", "last_updated_at": "2025-12-19T03:00:00Z", "rows": 9840},
+                ],
+            },
+        )
+
+        df = psr.lakehouse.client.last_updated("ons_power_plant_hourly_generation", "2025-10-01", "2025-10-31")
+
+        assert responses.calls[0].request.params == {"since": "2025-10-01", "until": "2025-10-31"}
+        assert list(df.columns) == ["date", "last_updated_at", "rows"]
+        assert df["date"].iloc[0] == pd.Timestamp("2025-10-01")
+        assert df["last_updated_at"].iloc[0] == pd.Timestamp("2025-12-19T03:00:00", tz="UTC")
+        assert df["rows"].tolist() == [9840, 9840]
+
+    @responses.activate
+    def test_last_updated_splits_long_ranges_into_90_days(self):
+        """The API refuses more than 90 days per call, so a year takes five."""
+        responses.add(responses.GET, self.URL, json={"days": []})
+
+        df = psr.lakehouse.client.last_updated("ons_power_plant_hourly_generation", "2025-01-01", "2025-12-31")
+
+        assert [call.request.params for call in responses.calls] == [
+            {"since": "2025-01-01", "until": "2025-03-31"},
+            {"since": "2025-04-01", "until": "2025-06-29"},
+            {"since": "2025-06-30", "until": "2025-09-27"},
+            {"since": "2025-09-28", "until": "2025-12-26"},
+            {"since": "2025-12-27", "until": "2025-12-31"},
+        ]
+        assert df.empty
+        assert list(df.columns) == ["date", "last_updated_at", "rows"]
+
+    def test_last_updated_since_after_until_raises(self):
+        with pytest.raises(LakehouseError, match="after 'until'"):
+            psr.lakehouse.client.last_updated("ons_power_plant_hourly_generation", "2025-10-31", "2025-10-01")
