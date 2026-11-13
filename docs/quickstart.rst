@@ -159,20 +159,29 @@ Fetching Only What Changed
 
 Data is revised after it is published. Instead of fetching a whole range again,
 ask which days changed with ``last_updated()``. It returns one row per day with
-the last time the day was written and how many rows it holds:
+the last time the day was written and how many rows it holds. Call it before
+fetching the data, not after: a write landing in between would be in ``seen``
+but not in your data, and would never be fetched again.
 
 .. code-block:: python
 
-   seen = client.last_updated("ons_power_plant_hourly_generation", since="2025-10-01", until="2025-10-31")
+   table = "ons_power_plant_hourly_generation"
+   seen = client.last_updated(table, since="2025-10-01", until="2025-10-31")
+   df = client.fetch_dataframe(table, start_reference_date="2025-10-01", end_reference_date="2025-10-31")
 
-Keep ``seen`` next to the data you fetched. Later, ask again: a day whose
-``last_updated_at`` or ``rows`` differs, or that is new, has changed since.
+Keep ``seen`` next to the data (parquet keeps its types; read back from CSV the
+merge below fails). Later, ask again: a day whose ``last_updated_at`` or ``rows``
+differs, or that is new, has changed since. Fetch those days again, then keep the
+new answer as ``seen``:
 
 .. code-block:: python
 
-   now = client.last_updated("ons_power_plant_hourly_generation", since="2025-10-01", until="2025-10-31")
+   now = client.last_updated(table, since="2025-10-01", until="2025-10-31")
    changed = now.merge(seen, how="left", indicator=True).query("_merge == 'left_only'")["date"]
-   # fetch the days in `changed` again with fetch_dataframe
+   for day in changed.dt.strftime("%Y-%m-%d"):
+       day_df = client.fetch_dataframe(table, start_reference_date=day, end_reference_date=day)
+       # replace that day in df with day_df
+   seen = now
 
 Each day returned counts as one row towards the weekly row quota.
 

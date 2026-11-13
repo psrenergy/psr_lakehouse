@@ -332,6 +332,9 @@ class Client:
         """
         List each day between `since` and `until` holding data in a table, with when it was last written.
 
+        Call this before fetching the days, not after: a write landing in between would show
+        here but not in your data, and would never be fetched again.
+
         Keep `last_updated_at` and `rows` for each day you fetched, and fetch a day again when
         either changes: it has a revised value, a new datapoint or a deleted one since. Compare
         with these values, not with when you fetched: rows are stamped before they are committed,
