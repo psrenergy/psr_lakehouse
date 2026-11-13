@@ -337,7 +337,9 @@ class Client:
         with these values, not with when you fetched: rows are stamped before they are committed,
         so rows committed late can carry an older stamp, which only `rows` shows.
 
-        Each day returned counts as one row towards the weekly row quota.
+        Each day returned counts as one row towards the weekly row quota. If the quota runs out
+        partway through a long range this raises rather than return part of it, since a day left
+        out would look unchanged.
 
         Args:
             table_name: Name of the table (e.g., "ons_power_plant_hourly_generation")
@@ -350,7 +352,8 @@ class Client:
             Days without data are left out.
 
         Raises:
-            LakehouseError: If `since` is after `until`, or if the table has no days to track
+            LakehouseError: If `since` is after `until`, if the table does not exist or is not in
+                your plan, if the weekly row quota runs out, or if the table has no days to track
                 (no date in its key, or each publication replaces it whole).
         """
         since, until = pd.Timestamp(since).date(), pd.Timestamp(until).date()

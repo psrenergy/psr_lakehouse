@@ -311,13 +311,16 @@ written. Use it to fetch again only the days that changed since you fetched them
   stamp, which only ``rows`` shows.
 * The API answers at most 90 days per call; longer ranges are requested in
   90-day pieces.
-* Each day returned counts as one row towards the weekly row quota.
+* Each day returned counts as one row towards the weekly row quota. Unlike
+  ``fetch_dataframe()``, if the quota runs out partway through a long range this
+  raises instead of returning part of it: a day left out would look unchanged.
 
 **Raises:**
 
-* ``LakehouseError`` - If ``since`` is after ``until``, or if the table has no days
-  to track: it has no date in its key, or each publication replaces it whole (the
-  error names the column to watch instead)
+* ``LakehouseError`` - If ``since`` is after ``until``, if the table does not exist
+  or is not in your plan, if the weekly row quota runs out, or if the table has no
+  days to track: it has no date in its key, or each publication replaces it whole
+  (the error names the column to watch instead)
 
 **Example:**
 
