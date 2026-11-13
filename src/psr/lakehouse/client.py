@@ -359,13 +359,11 @@ class Client:
 
         endpoint = f"/query/last-updated/{get_model_name(table_name)}"
         days = []
-        start = since
-        while start <= until:
-            # The API answers at most 90 days per call, to keep a large table under its statement timeout.
+        # The API answers at most 90 days per call.
+        for start in pd.date_range(since, until, freq="90D").date:
             end = min(start + timedelta(days=89), until)
             response = connector.get(endpoint, params={"since": start.isoformat(), "until": end.isoformat()})
             days.extend(response["days"])
-            start = end + timedelta(days=1)
 
         df = pd.DataFrame(days, columns=["date", "last_updated_at", "rows"])
         df["date"] = pd.to_datetime(df["date"])

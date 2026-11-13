@@ -1394,9 +1394,6 @@ class TestLastUpdated:
             responses.GET,
             self.URL,
             json={
-                "table": "ONSPowerPlantHourlyGeneration",
-                "since": "2025-10-01",
-                "until": "2025-10-31",
                 "days": [
                     {"date": "2025-10-01", "last_updated_at": "2025-12-19T03:00:00Z", "rows": 9840},
                     {"date": "2025-10-02", "last_updated_at": "2025-12-19T03:00:00Z", "rows": 9840},
