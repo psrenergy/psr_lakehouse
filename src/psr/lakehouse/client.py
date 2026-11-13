@@ -1,6 +1,6 @@
 import re
 import sys
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 import pandas as pd
 
@@ -326,6 +326,62 @@ class Client:
         if date_cols:
             df[date_cols] = df[date_cols].apply(pd.to_datetime, format="ISO8601")
 
+        return df
+
+    def last_updated(self, table_name: str, since: str | date, until: str | date) -> pd.DataFrame:
+        """
+        List each day between `since` and `until` holding data in a table, with when it was last written.
+
+        Call this before fetching the days, not after: a write landing in between would show
+        here but not in your data, and would never be fetched again.
+
+        Keep `last_updated_at` and `rows` for each day you fetched, and fetch a day again when
+        either changes: it has a revised value, a new datapoint or a deleted one since. Compare
+        with these values, not with when you fetched: rows are stamped before they are committed,
+        so rows committed late can carry an older stamp, which only `rows` shows.
+
+        A day is one of the column `df.attrs["column"]` (not always `reference_date`), cut in
+        the table's zone `df.attrs["timezone"]`. Fetch it again on that column and in that zone
+        (`output_timezone`), or its edges move by hours.
+
+        Each day returned counts as one row towards the weekly row quota. If the quota runs out
+        partway through a long range this raises rather than return part of it, since a day left
+        out would look unchanged.
+
+        Args:
+            table_name: Name of the table (e.g., "ons_power_plant_hourly_generation")
+            since: First day to look at, inclusive (e.g., "2025-10-01")
+            until: Last day to look at, inclusive (e.g., "2025-10-31")
+
+        Returns:
+            pandas DataFrame with one row per day holding data, sorted by date: `date` (when the
+            day starts in the table's zone, 01:00 where the clocks skip midnight; naive for a table
+            of plain dates), `last_updated_at` (UTC) and `rows` (every stored version). Days without
+            data are left out.
+
+        Raises:
+            LakehouseError: If `since` is after `until`, if the table does not exist or is not in
+                your plan, if the weekly row quota runs out, or if the table has no days to track
+                (no date in its key, or each publication replaces it whole).
+        """
+        since, until = pd.Timestamp(since).date(), pd.Timestamp(until).date()
+        if since > until:
+            raise LakehouseError(f"'since' ({since}) is after 'until' ({until}).")
+
+        endpoint = f"/query/last-updated/{get_model_name(table_name)}"
+        days = []
+        # The API answers at most 90 days per call.
+        for start in pd.date_range(since, until, freq="90D").date:
+            end = min(start + timedelta(days=89), until)
+            response = connector.get(endpoint, params={"since": start.isoformat(), "until": end.isoformat()})
+            days.extend(response["days"])
+
+        df = pd.DataFrame(days, columns=["date", "last_updated_at", "rows"])
+        # utc=True reads days whose offsets differ across a clock change; tz_convert(None) leaves
+        # a table of plain dates, with no zone, naive.
+        df["date"] = pd.to_datetime(df["date"], format="ISO8601", utc=True).dt.tz_convert(response["timezone"])
+        df["last_updated_at"] = pd.to_datetime(df["last_updated_at"], format="ISO8601", utc=True)
+        df.attrs = {"column": response["column"], "timezone": response["timezone"]}
         return df
 
     def _fetch_openapi_schema(self) -> dict:

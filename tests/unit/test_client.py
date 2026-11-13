@@ -1382,3 +1382,78 @@ class TestSchemaEndpoints:
         assert "spot_price" in columns
         assert "id" in columns
         assert "updated_at" in columns
+
+
+class TestLastUpdated:
+    URL = "https://test-api.example.com/query/last-updated/ONSPowerPlantHourlyGeneration"
+
+    @responses.activate
+    def test_last_updated(self):
+        """One call for a short range, on the model name, each day as its local midnight in the table's zone."""
+        responses.add(
+            responses.GET,
+            self.URL,
+            json={
+                "column": "reference_date",
+                "timezone": "America/Santiago",
+                "days": [
+                    # Chile moves its clocks forward at 2025-09-07's midnight, so the days carry different
+                    # offsets, and that day starts at 01:00: the server names it with the offset before
+                    {"date": "2025-09-06T00:00:00-04:00", "last_updated_at": "2025-12-19T03:00:00Z", "rows": 24},
+                    {"date": "2025-09-07T00:00:00-04:00", "last_updated_at": "2025-12-19T03:00:00Z", "rows": 23},
+                    {"date": "2025-09-08T00:00:00-03:00", "last_updated_at": "2025-12-19T03:00:00Z", "rows": 24},
+                ],
+            },
+        )
+
+        df = psr.lakehouse.client.last_updated("ons_power_plant_hourly_generation", "2025-09-01", "2025-09-30")
+
+        assert responses.calls[0].request.params == {"since": "2025-09-01", "until": "2025-09-30"}
+        assert list(df.columns) == ["date", "last_updated_at", "rows"]
+        assert df["date"].tolist() == [
+            pd.Timestamp("2025-09-06", tz="America/Santiago"),
+            pd.Timestamp("2025-09-07 01:00", tz="America/Santiago"),
+            pd.Timestamp("2025-09-08", tz="America/Santiago"),
+        ]
+        assert df["last_updated_at"].iloc[0] == pd.Timestamp("2025-12-19T03:00:00", tz="UTC")
+        assert df["rows"].tolist() == [24, 23, 24]
+        assert df.attrs == {"column": "reference_date", "timezone": "America/Santiago"}
+
+    @responses.activate
+    def test_last_updated_plain_dates_stay_naive(self):
+        """A table of plain dates has no zone to cut its days in."""
+        responses.add(
+            responses.GET,
+            self.URL,
+            json={
+                "column": "delivery_date",
+                "timezone": None,
+                "days": [{"date": "2025-10-01", "last_updated_at": "2025-12-19T03:00:00Z", "rows": 3}],
+            },
+        )
+
+        df = psr.lakehouse.client.last_updated("ons_power_plant_hourly_generation", "2025-10-01", "2025-10-31")
+
+        assert df["date"].tolist() == [pd.Timestamp("2025-10-01")]
+        assert df.attrs == {"column": "delivery_date", "timezone": None}
+
+    @responses.activate
+    def test_last_updated_splits_long_ranges_into_90_days(self):
+        """The API refuses more than 90 days per call, so a year takes five."""
+        responses.add(responses.GET, self.URL, json={"column": "reference_date", "timezone": "UTC", "days": []})
+
+        df = psr.lakehouse.client.last_updated("ons_power_plant_hourly_generation", "2025-01-01", "2025-12-31")
+
+        assert [call.request.params for call in responses.calls] == [
+            {"since": "2025-01-01", "until": "2025-03-31"},
+            {"since": "2025-04-01", "until": "2025-06-29"},
+            {"since": "2025-06-30", "until": "2025-09-27"},
+            {"since": "2025-09-28", "until": "2025-12-26"},
+            {"since": "2025-12-27", "until": "2025-12-31"},
+        ]
+        assert df.empty
+        assert list(df.columns) == ["date", "last_updated_at", "rows"]
+
+    def test_last_updated_since_after_until_raises(self):
+        with pytest.raises(LakehouseError, match="after 'until'"):
+            psr.lakehouse.client.last_updated("ons_power_plant_hourly_generation", "2025-10-31", "2025-10-01")
