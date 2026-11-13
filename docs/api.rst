@@ -298,14 +298,22 @@ written. Use it to fetch again only the days that changed since you fetched them
 
 * ``pd.DataFrame`` - One row per day holding data, sorted by date. Days without data are left out.
 
-  * ``date`` - The day, read in the table's local time zone
+  * ``date`` - When the day starts in the table's time zone: its midnight, or 01:00 where the
+    clocks skip midnight. Naive for a table of plain dates
   * ``last_updated_at`` - The last time any row of the day was written or deleted, in UTC
   * ``rows`` (int) - How many rows the day holds, counting every stored version
+
+  ``attrs["column"]`` names the column the days are of (not always ``reference_date``),
+  and ``attrs["timezone"]`` the zone they are cut in (``None`` for a table of plain dates).
 
 **Notes:**
 
 * Call this before fetching the days, not after: a write landing in between
   would show here but not in your data, and would never be fetched again.
+* Fetch a day again on ``attrs["column"]`` and in ``attrs["timezone"]``, passed as
+  ``output_timezone``: in another zone its edges move by hours. ``fetch_dataframe()``
+  filters ``reference_date``; for a table tracked on another column, filter that
+  one with ``fetch_dataframe_from_query()``.
 * Keep ``last_updated_at`` and ``rows`` for each day you fetched, and fetch a day
   again when either changes: it has a revised value, a new datapoint or a deleted
   one since. Compare with these values, not with when you fetched: rows are
@@ -336,9 +344,9 @@ written. Use it to fetch again only the days that changed since you fetched them
 
 .. code-block:: text
 
-            date           last_updated_at  rows
-   0  2025-10-01 2025-12-19 03:00:00+00:00  9840
-   1  2025-10-02 2025-12-19 03:00:00+00:00  9840
+                          date           last_updated_at  rows
+   0 2025-10-01 00:00:00-03:00 2025-12-19 03:00:00+00:00  9840
+   1 2025-10-02 00:00:00-03:00 2025-12-19 03:00:00+00:00  9840
    ...
 
 Schema Discovery Methods

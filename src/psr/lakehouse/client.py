@@ -340,6 +340,10 @@ class Client:
         with these values, not with when you fetched: rows are stamped before they are committed,
         so rows committed late can carry an older stamp, which only `rows` shows.
 
+        A day is one of the column `df.attrs["column"]` (not always `reference_date`), cut in
+        the table's zone `df.attrs["timezone"]`. Fetch it again on that column and in that zone
+        (`output_timezone`), or its edges move by hours.
+
         Each day returned counts as one row towards the weekly row quota. If the quota runs out
         partway through a long range this raises rather than return part of it, since a day left
         out would look unchanged.
@@ -350,9 +354,10 @@ class Client:
             until: Last day to look at, inclusive (e.g., "2025-10-31")
 
         Returns:
-            pandas DataFrame with one row per day holding data, sorted by date: `date` (read in
-            the table's local time zone), `last_updated_at` (UTC) and `rows` (every stored version).
-            Days without data are left out.
+            pandas DataFrame with one row per day holding data, sorted by date: `date` (when the
+            day starts in the table's zone, 01:00 where the clocks skip midnight; naive for a table
+            of plain dates), `last_updated_at` (UTC) and `rows` (every stored version). Days without
+            data are left out.
 
         Raises:
             LakehouseError: If `since` is after `until`, if the table does not exist or is not in
@@ -372,8 +377,11 @@ class Client:
             days.extend(response["days"])
 
         df = pd.DataFrame(days, columns=["date", "last_updated_at", "rows"])
-        df["date"] = pd.to_datetime(df["date"])
+        # utc=True reads days whose offsets differ across a clock change; tz_convert(None) leaves
+        # a table of plain dates, with no zone, naive.
+        df["date"] = pd.to_datetime(df["date"], format="ISO8601", utc=True).dt.tz_convert(response["timezone"])
         df["last_updated_at"] = pd.to_datetime(df["last_updated_at"], format="ISO8601", utc=True)
+        df.attrs = {"column": response["column"], "timezone": response["timezone"]}
         return df
 
     def _fetch_openapi_schema(self) -> dict:

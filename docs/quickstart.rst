@@ -161,13 +161,15 @@ Data is revised after it is published. Instead of fetching a whole range again,
 ask which days changed with ``last_updated()``. It returns one row per day with
 the last time the day was written and how many rows it holds. Call it before
 fetching the data, not after: a write landing in between would be in ``seen``
-but not in your data, and would never be fetched again.
+but not in your data, and would never be fetched again. Fetch in the zone the
+table's days are cut in, ``attrs["timezone"]``, or a day's edges move by hours:
 
 .. code-block:: python
 
    table = "ons_power_plant_hourly_generation"
    seen = client.last_updated(table, since="2025-10-01", until="2025-10-31")
-   df = client.fetch_dataframe(table, start_reference_date="2025-10-01", end_reference_date="2025-10-31")
+   tz = seen.attrs["timezone"]
+   df = client.fetch_dataframe(table, start_reference_date="2025-10-01", end_reference_date="2025-10-31", output_timezone=tz)
 
 Keep ``seen`` next to the data (parquet keeps its types; read back from CSV the
 merge below fails). Later, ask again: a day whose ``last_updated_at`` or ``rows``
@@ -179,9 +181,14 @@ new answer as ``seen``:
    now = client.last_updated(table, since="2025-10-01", until="2025-10-31")
    changed = now.merge(seen, how="left", indicator=True).query("_merge == 'left_only'")["date"]
    for day in changed.dt.strftime("%Y-%m-%d"):
-       day_df = client.fetch_dataframe(table, start_reference_date=day, end_reference_date=day)
+       day_df = client.fetch_dataframe(table, start_reference_date=day, end_reference_date=day, output_timezone=tz)
        # replace that day in df with day_df
    seen = now
+
+The days are of the column in ``attrs["column"]``, while ``fetch_dataframe()``
+filters ``reference_date``. For a table tracked on another column, such as
+``bbce_forward_curve`` on ``delivery_date``, filter that one with
+``fetch_dataframe_from_query()`` instead.
 
 Each day returned counts as one row towards the weekly row quota.
 
