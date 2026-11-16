@@ -73,6 +73,7 @@ Features include:
 - Data filtering and aggregation
 - Temporal aggregation with datetime granularity
 - Complex queries with table joins
+- Change tracking: which days changed since you fetched them
 - Schema discovery and exploration
 - Custom ordering and timezone support
 
