@@ -495,6 +495,8 @@ Base exception class for all PSR Lakehouse errors.
 * Missing required parameters (e.g., ``group_by`` without ``aggregation_method``)
 * API connection errors
 * Authentication failures
+* A query the server cancelled for running too long (``HTTP 504``). It is not
+  retried: the message says how to narrow the query
 
 **Example:**
 

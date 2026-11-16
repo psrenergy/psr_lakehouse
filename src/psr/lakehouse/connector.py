@@ -37,8 +37,12 @@ class Connector:
                 # 503 is retried because the usual cause is transient. A 503 that
                 # persists past the backoff is a server-side misconfiguration and
                 # is reported as such rather than as a bad token. 401 and 403 are
-                # deliberately absent: a bad token must fail fast.
-                status_forcelist=[502, 503, 504],
+                # deliberately absent: a bad token must fail fast. So is 504: it
+                # is the server cancelling the query at its statement timeout,
+                # so the same query fails the same way, and retrying runs it
+                # again only to swap the server's advice on narrowing it for
+                # "too many 504 error responses".
+                status_forcelist=[502, 503],
                 allowed_methods=["GET", "POST"],
                 # Without this, urllib3 also retries any 429 that carries a
                 # Retry-After, and sleeps for it: a spent weekly row quota
