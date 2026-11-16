@@ -335,10 +335,9 @@ class Client:
         Call this before fetching the days, not after: a write landing in between would show
         here but not in your data, and would never be fetched again.
 
-        Keep `last_updated_at` and `rows` for each day you fetched, and fetch a day again when
-        either changes: it has a revised value, a new datapoint or a deleted one since. Compare
-        with these values, not with when you fetched: rows are stamped before they are committed,
-        so rows committed late can carry an older stamp, which only `rows` shows.
+        Keep `last_updated_at` for each day you fetched, and fetch a day again when it changes:
+        it has a revised value, a new datapoint or a deleted one since. Compare with this value,
+        not with when you fetched: rows are stamped before they are committed.
 
         A day is one of the column `df.attrs["column"]` (not always `reference_date`), cut in
         the table's zone `df.attrs["timezone"]`. Fetch it again on that column and in that zone
@@ -356,8 +355,7 @@ class Client:
         Returns:
             pandas DataFrame with one row per day holding data, sorted by date: `date` (when the
             day starts in the table's zone, 01:00 where the clocks skip midnight; naive for a table
-            of plain dates), `last_updated_at` (UTC) and `rows` (every stored version). Days without
-            data are left out.
+            of plain dates) and `last_updated_at` (UTC). Days without data are left out.
 
         Raises:
             LakehouseError: If `since` is after `until`, if the table does not exist or is not in
@@ -376,7 +374,7 @@ class Client:
             response = connector.get(endpoint, params={"since": start.isoformat(), "until": end.isoformat()})
             days.extend(response["days"])
 
-        df = pd.DataFrame(days, columns=["date", "last_updated_at", "rows"])
+        df = pd.DataFrame(days, columns=["date", "last_updated_at"])
         # utc=True reads days whose offsets differ across a clock change; tz_convert(None) leaves
         # a table of plain dates, with no zone, naive.
         df["date"] = pd.to_datetime(df["date"], format="ISO8601", utc=True).dt.tz_convert(response["timezone"])

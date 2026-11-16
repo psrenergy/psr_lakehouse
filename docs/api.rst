@@ -301,7 +301,6 @@ written. Use it to fetch again only the days that changed since you fetched them
   * ``date`` - When the day starts in the table's time zone: its midnight, or 01:00 where the
     clocks skip midnight. Naive for a table of plain dates
   * ``last_updated_at`` - The last time any row of the day was written or deleted, in UTC
-  * ``rows`` (int) - How many rows the day holds, counting every stored version
 
   ``attrs["column"]`` names the column the days are of (not always ``reference_date``),
   and ``attrs["timezone"]`` the zone they are cut in (``None`` for a table of plain dates).
@@ -314,11 +313,10 @@ written. Use it to fetch again only the days that changed since you fetched them
   ``output_timezone``: in another zone its edges move by hours. ``fetch_dataframe()``
   filters ``reference_date``; for a table tracked on another column, filter that
   one with ``fetch_dataframe_from_query()``.
-* Keep ``last_updated_at`` and ``rows`` for each day you fetched, and fetch a day
-  again when either changes: it has a revised value, a new datapoint or a deleted
-  one since. Compare with these values, not with when you fetched: rows are
-  stamped before they are committed, so rows committed late can carry an older
-  stamp, which only ``rows`` shows.
+* Keep ``last_updated_at`` for each day you fetched, and fetch a day again when
+  it changes: it has a revised value, a new datapoint or a deleted one since.
+  Compare with this value, not with when you fetched: rows are stamped before
+  they are committed.
 * The API answers at most 90 days per call; longer ranges are requested in
   90-day pieces.
 * Each day returned counts as one row towards the weekly row quota. Unlike
@@ -344,9 +342,9 @@ written. Use it to fetch again only the days that changed since you fetched them
 
 .. code-block:: text
 
-                          date           last_updated_at  rows
-   0 2025-10-01 00:00:00-03:00 2025-12-19 03:00:00+00:00  9840
-   1 2025-10-02 00:00:00-03:00 2025-12-19 03:00:00+00:00  9840
+                          date           last_updated_at
+   0 2025-10-01 00:00:00-03:00 2025-12-19 03:00:00+00:00
+   1 2025-10-02 00:00:00-03:00 2025-12-19 03:00:00+00:00
    ...
 
 Schema Discovery Methods
