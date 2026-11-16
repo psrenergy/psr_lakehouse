@@ -95,6 +95,7 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#sort-by-multiple-columns">Sort By Multiple Columns</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#fetching-only-what-changed">Fetching Only What Changed</a></li>
 <li><a class="reference internal" href="#schema-discovery">Schema Discovery</a><ul>
 <li><a class="reference internal" href="#list-available-tables">List Available Tables</a></li>
 <li><a class="reference internal" href="#get-table-schema">Get Table Schema</a></li>
@@ -326,6 +327,38 @@ error that says when the quota frees.</p>
 </span></pre></div>
 </div>
 </section>
+</section>
+<section id="fetching-only-what-changed">
+<h2>Fetching Only What Changed<a class="headerlink" href="#fetching-only-what-changed" title="Link to this heading">#</a></h2>
+<p>Data is revised after it is published. Instead of fetching a whole range again,
+ask which days changed with <code class="docutils literal notranslate"><span class="pre">last_updated()</span></code>. It returns one row per day with
+the last time the day was written. Call it before
+fetching the data, not after: a write landing in between would be in <code class="docutils literal notranslate"><span class="pre">seen</span></code>
+but not in your data, and would never be fetched again. Fetch in the zone the
+table’s days are cut in, <code class="docutils literal notranslate"><span class="pre">attrs[&quot;timezone&quot;]</span></code>, or a day’s edges move by hours:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">table</span> <span class="o">=</span> <span class="s2">"ons_power_plant_hourly_generation"</span>
+</span><span data-line="2"><span class="n">seen</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">last_updated</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"2025-10-01"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2025-10-31"</span><span class="p">)</span>
+</span><span data-line="3"><span class="n">tz</span> <span class="o">=</span> <span class="n">seen</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"timezone"</span><span class="p">]</span>
+</span><span data-line="4"><span class="n">df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2025-10-01"</span><span class="p">,</span> <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2025-10-31"</span><span class="p">,</span> <span class="n">output_timezone</span><span class="o">=</span><span class="n">tz</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>Keep <code class="docutils literal notranslate"><span class="pre">seen</span></code> next to the data (parquet keeps its types; read back from CSV the
+merge below fails). Later, ask again: a day whose <code class="docutils literal notranslate"><span class="pre">last_updated_at</span></code>
+differs, or that is new, has changed since. Fetch those days again, then keep the
+new answer as <code class="docutils literal notranslate"><span class="pre">seen</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">now</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">last_updated</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">since</span><span class="o">=</span><span class="s2">"2025-10-01"</span><span class="p">,</span> <span class="n">until</span><span class="o">=</span><span class="s2">"2025-10-31"</span><span class="p">)</span>
+</span><span data-line="2"><span class="n">changed</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">seen</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"_merge == 'left_only'"</span><span class="p">)[</span><span class="s2">"date"</span><span class="p">]</span>
+</span><span data-line="3"><span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">changed</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">"</span><span class="p">):</span>
+</span><span data-line="4">    <span class="n">day_df</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fetch_dataframe</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">start_reference_date</span><span class="o">=</span><span class="n">day</span><span class="p">,</span> <span class="n">end_reference_date</span><span class="o">=</span><span class="n">day</span><span class="p">,</span> <span class="n">output_timezone</span><span class="o">=</span><span class="n">tz</span><span class="p">)</span>
+</span><span data-line="5">    <span class="c1"># replace that day in df with day_df</span>
+</span><span data-line="6"><span class="n">seen</span> <span class="o">=</span> <span class="n">now</span>
+</span></pre></div>
+</div>
+<p>The days are of the column in <code class="docutils literal notranslate"><span class="pre">attrs[&quot;column&quot;]</span></code>, while <code class="docutils literal notranslate"><span class="pre">fetch_dataframe()</span></code>
+filters <code class="docutils literal notranslate"><span class="pre">reference_date</span></code>. For a table tracked on another column, such as
+<code class="docutils literal notranslate"><span class="pre">bbce_forward_curve</span></code> on <code class="docutils literal notranslate"><span class="pre">delivery_date</span></code>, filter that one with
+<code class="docutils literal notranslate"><span class="pre">fetch_dataframe_from_query()</span></code> instead.</p>
+<p>Each day returned counts as one row towards the weekly row quota.</p>
 </section>
 <section id="schema-discovery">
 <h2>Schema Discovery<a class="headerlink" href="#schema-discovery" title="Link to this heading">#</a></h2>

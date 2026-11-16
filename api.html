@@ -87,6 +87,10 @@ data-aria-dark="Switch to auto color mode">
 <li><a class="reference internal" href="#fetch-dataframe-from-query">fetch_dataframe_from_query()</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#change-tracking">Change Tracking</a><ul>
+<li><a class="reference internal" href="#last-updated">last_updated()</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#schema-discovery-methods">Schema Discovery Methods</a><ul>
 <li><a class="reference internal" href="#list-tables">list_tables()</a></li>
 <li><a class="reference internal" href="#get-schema">get_schema()</a></li>
@@ -429,6 +433,79 @@ if the weekly row quota runs out, as with <code class="docutils literal notransl
 </span><span data-line="20">        <span class="p">}</span>
 </span><span data-line="21">    <span class="p">]</span>
 </span><span data-line="22"><span class="p">})</span>
+</span></pre></div>
+</div>
+</section>
+</section>
+<section id="change-tracking">
+<h2>Change Tracking<a class="headerlink" href="#change-tracking" title="Link to this heading">#</a></h2>
+<section id="last-updated">
+<h3>last_updated()<a class="headerlink" href="#last-updated" title="Link to this heading">#</a></h3>
+<p>List each day of a table that holds data, with the last time any of its rows was
+written. Use it to fetch again only the days that changed since you fetched them.</p>
+<p><strong>Signature:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">last_updated</span><span class="p">(</span>
+</span><span data-line="2">    <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">since</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">date</span><span class="p">,</span>
+</span><span data-line="4">    <span class="n">until</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">date</span><span class="p">,</span>
+</span><span data-line="5"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+</span></pre></div>
+</div>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">table_name</span></code> (str) - Table name in snake_case or PascalCase (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;ons_power_plant_hourly_generation&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">since</span></code> (str | date) - First day to look at (inclusive), e.g., <code class="docutils literal notranslate"><span class="pre">&quot;2025-10-01&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">until</span></code> (str | date) - Last day to look at (inclusive), e.g., <code class="docutils literal notranslate"><span class="pre">&quot;2025-10-31&quot;</span></code></p></li>
+</ul>
+<p><strong>Returns:</strong></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code> - One row per day holding data, sorted by date. Days without data are left out.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">date</span></code> - When the day starts in the table’s time zone: its midnight, or 01:00 where the
+clocks skip midnight. Naive for a table of plain dates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">last_updated_at</span></code> - The last time any row of the day was written or deleted, in UTC</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">attrs[&quot;column&quot;]</span></code> names the column the days are of (not always <code class="docutils literal notranslate"><span class="pre">reference_date</span></code>),
+and <code class="docutils literal notranslate"><span class="pre">attrs[&quot;timezone&quot;]</span></code> the zone they are cut in (<code class="docutils literal notranslate"><span class="pre">None</span></code> for a table of plain dates).</p>
+</li>
+</ul>
+<p><strong>Notes:</strong></p>
+<ul class="simple">
+<li><p>Call this before fetching the days, not after: a write landing in between
+would show here but not in your data, and would never be fetched again.</p></li>
+<li><p>Fetch a day again on <code class="docutils literal notranslate"><span class="pre">attrs[&quot;column&quot;]</span></code> and in <code class="docutils literal notranslate"><span class="pre">attrs[&quot;timezone&quot;]</span></code>, passed as
+<code class="docutils literal notranslate"><span class="pre">output_timezone</span></code>: in another zone its edges move by hours. <code class="docutils literal notranslate"><span class="pre">fetch_dataframe()</span></code>
+filters <code class="docutils literal notranslate"><span class="pre">reference_date</span></code>; for a table tracked on another column, filter that
+one with <code class="docutils literal notranslate"><span class="pre">fetch_dataframe_from_query()</span></code>.</p></li>
+<li><p>Keep <code class="docutils literal notranslate"><span class="pre">last_updated_at</span></code> for each day you fetched, and fetch a day again when
+it changes: it has a revised value, a new datapoint or a deleted one since.
+Compare with this value, not with when you fetched: rows are stamped before
+they are committed.</p></li>
+<li><p>The API answers at most 90 days per call; longer ranges are requested in
+90-day pieces.</p></li>
+<li><p>Each day returned counts as one row towards the weekly row quota. Unlike
+<code class="docutils literal notranslate"><span class="pre">fetch_dataframe()</span></code>, if the quota runs out partway through a long range this
+raises instead of returning part of it: a day left out would look unchanged.</p></li>
+</ul>
+<p><strong>Raises:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LakehouseError</span></code> - If <code class="docutils literal notranslate"><span class="pre">since</span></code> is after <code class="docutils literal notranslate"><span class="pre">until</span></code>, if the table does not exist
+or is not in your plan, if the weekly row quota runs out, or if the table has no
+days to track: it has no date in its key, or each publication replaces it whole
+(the error names the column to watch instead)</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="n">days</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">last_updated</span><span class="p">(</span>
+</span><span data-line="2">    <span class="s2">"ons_power_plant_hourly_generation"</span><span class="p">,</span>
+</span><span data-line="3">    <span class="n">since</span><span class="o">=</span><span class="s2">"2025-10-01"</span><span class="p">,</span>
+</span><span data-line="4">    <span class="n">until</span><span class="o">=</span><span class="s2">"2025-10-31"</span><span class="p">,</span>
+</span><span data-line="5"><span class="p">)</span>
+</span></pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span><span data-line="1">                       date           last_updated_at
+</span><span data-line="2">0 2025-10-01 00:00:00-03:00 2025-12-19 03:00:00+00:00
+</span><span data-line="3">1 2025-10-02 00:00:00-03:00 2025-12-19 03:00:00+00:00
+</span><span data-line="4">...
 </span></pre></div>
 </div>
 </section>
