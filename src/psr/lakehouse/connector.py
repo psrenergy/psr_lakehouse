@@ -48,6 +48,10 @@ class Connector:
                 # Retry-After, and sleeps for it: a spent weekly row quota
                 # answers with days, so the call hangs instead of raising.
                 respect_retry_after_header=False,
+                # Once the retries run out, hand back the last response rather
+                # than raise "too many 503 error responses": raise_for_status()
+                # then reports its status and the server's detail.
+                raise_on_status=False,
             )
         )
         session.mount("https://", adapter)
@@ -137,6 +141,8 @@ class Connector:
                 headers={"X-PSR-Lakehouse-Version": installed},
                 timeout=10,
             )
+            # An error answer is JSON too, and truthy.
+            response.raise_for_status()
             if not response.json():
                 raise LakehouseError("Health check failed: API returned a non-truthy response.")
         except requests.exceptions.RequestException as e:
