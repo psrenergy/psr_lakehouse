@@ -640,6 +640,8 @@ days to track: it has no date in its key, or each publication replaces it whole
 <li><p>Missing required parameters (e.g., <code class="docutils literal notranslate"><span class="pre">group_by</span></code> without <code class="docutils literal notranslate"><span class="pre">aggregation_method</span></code>)</p></li>
 <li><p>API connection errors</p></li>
 <li><p>Authentication failures</p></li>
+<li><p>A query the server cancelled for running too long (<code class="docutils literal notranslate"><span class="pre">HTTP</span> <span class="pre">504</span></code>). It is not
+retried: the message says how to narrow the query</p></li>
 </ul>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="kn">from</span><span class="w"> </span><span class="nn">psr.lakehouse.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">LakehouseError</span>
