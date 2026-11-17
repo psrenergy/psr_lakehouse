@@ -38,10 +38,8 @@ class Connector:
                 # persists past the backoff is a server-side misconfiguration and
                 # is reported as such rather than as a bad token. 401 and 403 are
                 # deliberately absent: a bad token must fail fast. So is 504: it
-                # is the server cancelling the query at its statement timeout,
-                # so the same query fails the same way, and retrying runs it
-                # again only to swap the server's advice on narrowing it for
-                # "too many 504 error responses".
+                # is the server cancelling the query at its statement timeout, so
+                # a retry only runs the same query again to fail the same way.
                 status_forcelist=[502, 503],
                 allowed_methods=["GET", "POST"],
                 # Without this, urllib3 also retries any 429 that carries a
@@ -266,7 +264,9 @@ class Connector:
             response = self._session.get(
                 url,
                 params=params,
-                timeout=60,
+                # Longer than the server's 60 s statement timeout, so its 504
+                # arrives before the read timeout, which is retried.
+                timeout=90,
             )
             response.raise_for_status()
             return response.json()
