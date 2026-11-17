@@ -112,9 +112,28 @@ class TestConnectorInitialization:
         retries = connector._session.get_adapter("https://api.example.com").max_retries
         assert retries.total == 3
         assert retries.backoff_factor == 1
-        assert set(retries.status_forcelist) == {502, 503, 504}
+        assert set(retries.status_forcelist) == {502, 503}
         assert set(retries.allowed_methods) == {"GET", "POST"}
         assert retries.respect_retry_after_header is False
+        assert retries.raise_on_status is False
+
+    @responses.activate
+    def test_initialize_health_check_failure_error_status(self):
+        """An error body is JSON too, and truthy: the status is what says the API is down."""
+        connector = Connector.__new__(Connector)
+        connector._is_initialized = False
+
+        responses.add(
+            responses.GET,
+            "https://api.example.com/health-check",
+            json={"detail": "Service unavailable."},
+            status=503,
+        )
+
+        with pytest.raises(LakehouseError, match="Health check failed"):
+            connector.initialize(base_url="https://api.example.com")
+
+        assert connector._is_initialized is False
 
     @responses.activate
     def test_initialize_health_check_failure_non_truthy(self):
@@ -282,6 +301,50 @@ class TestConnectorRequests:
 
         with pytest.raises(LakehouseError, match="HTTP"):
             connector.get("/query/schema/InvalidModel")
+
+    @pytest.mark.parametrize("method", ["POST", "GET"])
+    @responses.activate
+    def test_a_504_is_raised_once_with_the_server_detail(self, method):
+        """A 504 is the server cancelling the query at its statement timeout:
+        the same query fails the same way, and the detail says how to narrow it."""
+        from psr.lakehouse.connector import connector
+
+        responses.add(
+            method,
+            "https://test-api.example.com/query/",
+            json={"detail": "The query took longer than 60 seconds and was cancelled."},
+            status=504,
+        )
+
+        with pytest.raises(LakehouseError, match="HTTP 504 .* took longer than 60 seconds and was cancelled"):
+            connector.post("/query/", {}) if method == "POST" else connector.get("/query/")
+
+        assert len(responses.calls) == 1
+
+    @pytest.mark.parametrize("status", [502, 503])
+    @responses.activate
+    def test_a_502_or_503_is_still_retried(self, status):
+        from psr.lakehouse.connector import connector
+
+        responses.add(responses.POST, "https://test-api.example.com/query/", status=status)
+        responses.add(responses.POST, "https://test-api.example.com/query/", json={"data": []}, status=200)
+
+        assert connector.post("/query/", {}) == {"data": []}
+        assert len(responses.calls) == 2
+
+    @pytest.mark.parametrize("status", [502, 503])
+    @responses.activate
+    def test_a_502_or_503_that_persists_carries_the_server_detail(self, status):
+        from psr.lakehouse.connector import connector
+
+        responses.add(
+            responses.POST, "https://test-api.example.com/query/", json={"detail": "Warming up."}, status=status
+        )
+
+        with pytest.raises(LakehouseError, match=f"HTTP {status} .* Warming up"):
+            connector.post("/query/", {})
+
+        assert len(responses.calls) == 4  # the first attempt and three retries
 
     @responses.activate
     def test_auto_initialize_on_post(self, monkeypatch):

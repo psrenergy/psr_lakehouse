@@ -37,13 +37,19 @@ class Connector:
                 # 503 is retried because the usual cause is transient. A 503 that
                 # persists past the backoff is a server-side misconfiguration and
                 # is reported as such rather than as a bad token. 401 and 403 are
-                # deliberately absent: a bad token must fail fast.
-                status_forcelist=[502, 503, 504],
+                # deliberately absent: a bad token must fail fast. So is 504: it
+                # is the server cancelling the query at its statement timeout, so
+                # a retry only runs the same query again to fail the same way.
+                status_forcelist=[502, 503],
                 allowed_methods=["GET", "POST"],
                 # Without this, urllib3 also retries any 429 that carries a
                 # Retry-After, and sleeps for it: a spent weekly row quota
                 # answers with days, so the call hangs instead of raising.
                 respect_retry_after_header=False,
+                # Once the retries run out, hand back the last response rather
+                # than raise "too many 503 error responses": raise_for_status()
+                # then reports its status and the server's detail.
+                raise_on_status=False,
             )
         )
         session.mount("https://", adapter)
@@ -133,6 +139,8 @@ class Connector:
                 headers={"X-PSR-Lakehouse-Version": installed},
                 timeout=10,
             )
+            # An error answer is JSON too, and truthy.
+            response.raise_for_status()
             if not response.json():
                 raise LakehouseError("Health check failed: API returned a non-truthy response.")
         except requests.exceptions.RequestException as e:
@@ -256,7 +264,9 @@ class Connector:
             response = self._session.get(
                 url,
                 params=params,
-                timeout=60,
+                # Longer than the server's 60 s statement timeout, so its 504
+                # arrives before the read timeout, which is retried.
+                timeout=90,
             )
             response.raise_for_status()
             return response.json()
