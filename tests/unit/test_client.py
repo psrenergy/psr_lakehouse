@@ -265,77 +265,6 @@ class TestFetchDataframe:
         assert request_body["latest_only"] is False
         assert request_body["output_timezone"] == "UTC"
 
-    @responses.activate
-    def test_fetch_dataframe_from_query_appends_id_tiebreaker(self):
-        """Test that a non-unique order_by gets `id` appended so pagination is deterministic."""
-
-        import json
-
-        mock_data = [
-            {
-                "ONSWindCurtailment.id": 1,
-                "ONSWindCurtailment.reference_date": "2026-07-01T00:00:00-03:00",
-            },
-        ]
-
-        responses.add(
-            responses.POST,
-            "https://test-api.example.com/query/",
-            json=make_query_response(mock_data),
-            status=200,
-        )
-
-        psr.lakehouse.client.fetch_dataframe_from_query(
-            {
-                "query_data": ["ONSWindCurtailment.id", "ONSWindCurtailment.reference_date"],
-                "order_by": [{"column": "ONSWindCurtailment.reference_date", "direction": "asc"}],
-            }
-        )
-        request_body = json.loads(responses.calls[0].request.body)
-        assert request_body["order_by"] == [
-            {"column": "ONSWindCurtailment.reference_date", "direction": "asc"},
-            {"column": "ONSWindCurtailment.id", "direction": "asc"},
-        ]
-
-    @responses.activate
-    def test_fetch_dataframe_from_query_skips_tiebreaker_when_not_applicable(self):
-        """Test that the `id` tiebreaker is skipped without an id column, on group_by, or if present."""
-
-        import json
-
-        mock_data = [{"ONSWindCurtailment.reference_date": "2026-07-01T00:00:00-03:00"}]
-
-        for _ in range(3):
-            responses.add(
-                responses.POST,
-                "https://test-api.example.com/query/",
-                json=make_query_response(mock_data),
-                status=200,
-            )
-
-        order_by = [{"column": "ONSWindCurtailment.reference_date", "direction": "asc"}]
-
-        # `id` was not requested, so it cannot be ordered on
-        psr.lakehouse.client.fetch_dataframe_from_query(
-            {"query_data": ["ONSWindCurtailment.reference_date"], "order_by": order_by}
-        )
-        assert json.loads(responses.calls[0].request.body)["order_by"] == order_by
-
-        # aggregated queries have no per-row id
-        psr.lakehouse.client.fetch_dataframe_from_query(
-            {
-                "query_data": ["ONSWindCurtailment.id", "ONSWindCurtailment.reference_date"],
-                "group_by": ["ONSWindCurtailment.reference_date"],
-                "order_by": order_by,
-            }
-        )
-        assert json.loads(responses.calls[1].request.body)["order_by"] == order_by
-
-        # already ordered on id, do not duplicate it
-        explicit = [{"column": "ONSWindCurtailment.id", "direction": "desc"}]
-        psr.lakehouse.client.fetch_dataframe_from_query({"query_data": ["ONSWindCurtailment.id"], "order_by": explicit})
-        assert json.loads(responses.calls[2].request.body)["order_by"] == explicit
-
     def test_fetch_dataframe_with_empty_list_filter_raises_error(self):
         """Test that an empty list filter value raises an error."""
 
@@ -408,6 +337,56 @@ class TestFetchDataframe:
 
         assert len(df) == 2
         assert len(responses.calls) == 2
+        # This server sends no cursor, so the next page is asked for by number.
+        assert "page=2" in responses.calls[1].request.url
+
+    @responses.activate
+    def test_fetch_dataframe_follows_the_cursor(self):
+        """A cursor page costs what page 1 does; asking for page 2 re-reads page 1."""
+        page1 = make_query_response([{"ONSEnergyLoadDaily.value": 1}], has_next=True)
+        page1["pagination"]["next_cursor"] = "abc"
+        responses.add(responses.POST, "https://test-api.example.com/query/", json=page1, status=200)
+        responses.add(
+            responses.POST,
+            "https://test-api.example.com/query/",
+            json=make_query_response([{"ONSEnergyLoadDaily.value": 2}]),
+            status=200,
+        )
+
+        df = psr.lakehouse.client.fetch_dataframe(table_name="ons_energy_load_daily", data_columns=["value"])
+
+        assert df["ONSEnergyLoadDaily.value"].tolist() == [1, 2]
+        second = responses.calls[1].request
+        assert "cursor=abc" in second.url and "page=" not in second.url
+        assert second.body == responses.calls[0].request.body
+
+    @responses.activate
+    def test_reference_dates_across_a_clock_change(self):
+        """Offsets differ on either side of a DST change; a plain date has none and stays naive."""
+        rows = [
+            {"T.reference_date": "2018-02-17T23:00:00-02:00", "T.date_reference_date": "2018-02-17"},
+            {"T.reference_date": "2018-02-18T23:00:00-03:00", "T.date_reference_date": "2018-02-18"},
+        ]
+        responses.add(responses.POST, "https://test-api.example.com/query/", json=make_query_response(rows), status=200)
+
+        df = psr.lakehouse.client.fetch_dataframe_from_query({"query_data": ["T.reference_date"]})
+
+        assert str(df["T.reference_date"].dt.tz) == "America/Sao_Paulo"
+        assert df["T.reference_date"].dt.hour.tolist() == [23, 23]
+        assert df["T.date_reference_date"].dt.tz is None
+        assert df["T.date_reference_date"].dt.day.tolist() == [17, 18]
+
+        # Without a zone the server sends UTC, a truncated bucket with no offset at all.
+        responses.add(
+            responses.POST,
+            "https://test-api.example.com/query/",
+            json=make_query_response([{"T.reference_date": "2018-02-17T00:00:00"}]),
+            status=200,
+        )
+        df = psr.lakehouse.client.fetch_dataframe_from_query(
+            {"query_data": ["T.reference_date"], "output_timezone": None}
+        )
+        assert df["T.reference_date"].tolist() == [pd.Timestamp("2018-02-17", tz="UTC")]
 
     @responses.activate
     def test_fetch_dataframe_stops_at_the_page_that_spends_the_quota(self, capsys):
@@ -451,7 +430,6 @@ class TestFetchDataframe:
         assert len(responses.calls) == 1
         request_url = responses.calls[0].request.url
         assert "page_size=500" in request_url
-        assert "page=1" in request_url
         assert "response_format=columnar" in request_url
 
     @responses.activate
@@ -1156,7 +1134,7 @@ class TestFetchFailureMidPagination:
         )
 
         def mock_post(url, json_body, params=None, timeout=None):
-            if params and params.get("page") == 1:
+            if "page" not in params:
                 return page1_response
             raise LakehouseError("Request timed out")
 
@@ -1227,6 +1205,10 @@ class TestSchemaEndpoints:
         assert schema["reference_date"]["type"] == "string"
         assert schema["reference_date"]["description"] == "Timestamp of the spot price"
         assert schema["spot_price"]["type"] == "number"
+
+        # A table outside the plan is missing from the schema, not a KeyError.
+        with pytest.raises(LakehouseError, match="list_tables"):
+            psr.lakehouse.client.get_schema("ons_load_curve")
 
     @responses.activate
     def test_get_model_schema(self):

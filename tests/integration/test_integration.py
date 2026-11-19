@@ -1,12 +1,12 @@
 import pytest
 
 from psr.lakehouse import client
-from psr.lakehouse.metadata import get_model_name
 
 pytestmark = pytest.mark.integration
 
 TABLE_NAME = "ccee_spot_price"
-MODEL_NAME = get_model_name(TABLE_NAME)
+# Written out: resolving it would contact the API at import, before the fixture can skip.
+MODEL_NAME = "CCEESpotPrice"
 
 
 # ── Schema & discovery ──────────────────────────────────────────────
@@ -36,7 +36,7 @@ class TestSchemaDiscovery:
         assert subsystem_field is not None, "Field 'subsystem' not found in schema"
         assert subsystem_field["type"] == "enum", "Field 'subsystem' is not of type 'enum'"
         assert "enum_values" in subsystem_field, "Field 'subsystem' missing 'enum_values'"
-        assert all(s in subsystem_field["enum_values"] for s in ["NORTE", "NORDESTE", "SUL", "SUDESTE"])
+        assert all(s in subsystem_field["enum_values"] for s in ["NORTH", "NORTHEAST", "SOUTH", "SOUTHEAST"])
 
 
 # ── Data fetching ────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ class TestFilters:
             data_columns=["spot_price", "subsystem"],
             start_reference_date="2024-01-01",
             end_reference_date="2024-01-02",
-            filters={"subsystem": "SUDESTE"},
+            filters={"subsystem": "SOUTHEAST"},
         )
         assert not df.empty
         assert len(df) > 0

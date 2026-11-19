@@ -1,6 +1,12 @@
+from psr.lakehouse.connector import connector
+
+
 def get_model_name(table_name: str) -> str:
     """
     Convert a table name to the corresponding API model name.
+
+    Reads the names from the caller's plan (/query/whoami), initializing the connector on first
+    use, so it needs LAKEHOUSE_API_URL and a token. A name outside the plan is guessed.
 
     Args:
         table_name: Snake_case table name (e.g., "ccee_spot_price")
@@ -12,7 +18,14 @@ def get_model_name(table_name: str) -> str:
     if "_" not in table_name:
         return table_name
 
-    # Fallback: convert snake_case to PascalCase
+    # The plan lists the real model names, whose acronyms are not spelled one way
+    # (ABCPowerPlant beside AbcSpotPrice), so match on letters alone.
+    key = table_name.replace("_", "").lower()
+    for model_name in connector.whoami().get("tables") or []:
+        if model_name.lower() == key:
+            return model_name
+
+    # A table outside the plan is a 404 whatever the guess; the guess only names it in that message.
     # Special handling for organization/source acronyms that should remain uppercase
     UPPERCASE_PREFIXES = {
         "ons",

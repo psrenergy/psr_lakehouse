@@ -224,48 +224,6 @@ def ons_exchange_subsystem(self, **kwargs):
     )
 
 
-def ons_generator_data(self, **kwargs):
-    return self.fetch_dataframe(
-        table_name="ons_generator_data",
-        data_columns=[
-            "generator_id",
-            "ons_set_id",
-            "plant_set_id",
-            "name",
-            "state_code",
-            "subsystem",
-            "operation_mode",
-            "proprietary_agent",
-            "operator_agent",
-            "plant_type",
-            "fuel_type",
-        ],
-        **kwargs,
-    )
-
-
-def ons_generator_unit_data(self, **kwargs):
-    return self.fetch_dataframe(
-        table_name="ons_generator_unit_data",
-        data_columns=[
-            "name",
-            "unit_id",
-            "aneel_status",
-            "operation_center_code",
-            "authorized_capacity",
-            "connection_point",
-            "generator_unit_name",
-            "generator_unit_number",
-            "commissioning_date",
-            "operation_date",
-            "decommissioning_date",
-            "nominal_capacity",
-            "is_active",
-        ],
-        **kwargs,
-    )
-
-
 def ons_hydrological_reservoir_data_daily(self, **kwargs):
     return self.fetch_dataframe(
         table_name="ons_hydrological_reservoir_data_daily",
@@ -799,8 +757,6 @@ def register_aliases():
     Client.ons_exchange_international = ons_exchange_international
     Client.ons_exchange_modality = ons_exchange_modality
     Client.ons_exchange_subsystem = ons_exchange_subsystem
-    Client.ons_generator_data = ons_generator_data
-    Client.ons_generator_unit_data = ons_generator_unit_data
     Client.ons_hydrological_reservoir_data_daily = ons_hydrological_reservoir_data_daily
     Client.ons_hydrological_reservoir_data_hourly = ons_hydrological_reservoir_data_hourly
     Client.ons_inflow_energy_basin = ons_inflow_energy_basin

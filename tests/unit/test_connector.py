@@ -1,3 +1,5 @@
+import time
+
 import pytest
 import requests
 import responses
@@ -347,6 +349,27 @@ class TestConnectorRequests:
         assert len(responses.calls) == 4  # the first attempt and three retries
 
     @responses.activate
+    def test_only_a_short_429_is_waited_out(self, monkeypatch):
+        """The concurrency limit asks for seconds; a spent weekly quota asks for
+        days, and must raise rather than hang."""
+        from psr.lakehouse.connector import connector
+
+        sleeps = []
+        monkeypatch.setattr(time, "sleep", sleeps.append)
+        url = "https://test-api.example.com/query/"
+        responses.add(responses.POST, url, headers={"Retry-After": "2"}, status=429)
+        responses.add(responses.POST, url, json={"data": []}, status=200)
+        assert connector.post("/query/", {}) == {"data": []}
+        assert sleeps == [2]
+
+        responses.add(
+            responses.POST, url, json={"detail": "Quota spent."}, headers={"Retry-After": "86400"}, status=429
+        )
+        with pytest.raises(LakehouseError, match="Quota spent"):
+            connector.post("/query/", {})
+        assert sleeps == [2]
+
+    @responses.activate
     def test_auto_initialize_on_post(self, monkeypatch):
         """Test that connector auto-initializes on first POST request."""
         monkeypatch.setenv("LAKEHOUSE_API_URL", "https://auto-init-api.example.com")
@@ -430,7 +453,8 @@ class TestConnectorAuthentication:
 
     @responses.activate
     def test_token_falls_back_to_the_environment(self, monkeypatch):
-        monkeypatch.setenv("LAKEHOUSE_PAT", "psr_from_env")
+        # Stripped: a token read from a file ends in a newline, which requests would echo whole.
+        monkeypatch.setenv("LAKEHOUSE_PAT", "psr_from_env\n")
 
         connector = Connector.__new__(Connector)
         connector._is_initialized = False
@@ -441,23 +465,18 @@ class TestConnectorAuthentication:
         assert responses.calls[0].request.headers["Authorization"] == "Bearer psr_from_env"
 
     @responses.activate
-    def test_missing_token_warns_but_still_works(self, monkeypatch, capsys):
-        """The upgrade window. Existing scripts must keep running, so a missing
-        token warns today and errors only once the API is gated - and nothing
-        half-authenticated goes out in the meantime."""
+    def test_missing_token_fails_at_initialize(self, monkeypatch):
+        """The API refuses every query without a token, so say so on the line
+        that set the client up, before any request goes out."""
         monkeypatch.delenv("LAKEHOUSE_PAT", raising=False)
 
         connector = Connector.__new__(Connector)
         connector._is_initialized = False
 
-        _mock_health_check("https://api.example.com")
-        connector.initialize(base_url="https://api.example.com")
+        with pytest.raises(LakehouseAuthError, match="LAKEHOUSE_PAT"):
+            connector.initialize(base_url="https://api.example.com")
 
-        assert "cockpit.psr-inc.com" in capsys.readouterr().err
-        assert connector._is_initialized is True
-        assert "Authorization" not in connector._session.headers
-        # Health check only: no whoami probe that could only 401.
-        assert len(responses.calls) == 1
+        assert len(responses.calls) == 0
 
     @responses.activate
     def test_a_rejected_token_fails_at_initialize_without_naming_itself(self):
@@ -489,31 +508,6 @@ class TestConnectorAuthentication:
         # plan from having no account at all.
         with pytest.raises(LakehouseAuthError, match="No active plan"):
             connector.initialize(base_url="https://api.example.com", pat="psr_valid")
-
-    @responses.activate
-    def test_a_401_without_a_token_does_not_blame_the_token(self, monkeypatch):
-        """The common case once the API is gated: a script that never had one.
-        Telling those people to check LAKEHOUSE_PAT sends them hunting for a bug
-        instead of to the page that issues tokens."""
-        monkeypatch.delenv("LAKEHOUSE_PAT", raising=False)
-
-        connector = Connector.__new__(Connector)
-        connector._is_initialized = False
-
-        _mock_health_check("https://api.example.com")
-        connector.initialize(base_url="https://api.example.com")
-
-        responses.add(
-            responses.POST,
-            "https://api.example.com/query/",
-            json={"detail": "A PSR personal access token is required"},
-            status=401,
-        )
-
-        with pytest.raises(LakehouseAuthError, match="No personal access token was sent") as error:
-            connector.post("/query/", {"query_data": []})
-
-        assert "rejected" not in str(error.value)
 
 
 class TestConnectorUsage:
@@ -575,11 +569,3 @@ class TestConnectorUsage:
                 "DcideCompiledCurve",
             ]
         ) == {"CLCEN": 2, "Dcide": 1, "ONS": 2}
-
-    def test_usage_without_a_token_raises(self, monkeypatch):
-        from psr.lakehouse.connector import connector
-
-        monkeypatch.setattr(connector, "_pat", None)
-
-        with pytest.raises(LakehouseAuthError):
-            connector.usage()

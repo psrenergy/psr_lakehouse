@@ -36,12 +36,9 @@ export LAKEHOUSE_PAT="psr_..."
 
 Generate a token at **[cockpit.psr-inc.com](https://cockpit.psr-inc.com)**.
 
-> ⚠️ **A token will soon be required.** Queries still work without one today,
-> but the API is being gated: once it is, a script with no `LAKEHOUSE_PAT` will
-> stop working. The client warns on every `initialize()` until you set one.
-> Querying will then need the token *and* an active Lakehouse plan on the
-> account that owns it. Treat the token like a password — queries run with it
-> are attributed to you.
+> ⚠️ **A token is required.** Querying needs the token *and* an active Lakehouse
+> plan on the account that owns it; `initialize()` raises without either. Treat
+> the token like a password — queries run with it are attributed to you.
 
 Check which account the token belongs to:
 

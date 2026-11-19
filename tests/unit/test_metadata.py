@@ -41,3 +41,12 @@ class TestGetModelName:
     def test_camel_case_input(self):
         """Test that CamelCase input remains unchanged."""
         assert get_model_name("ONSEnergyLoadDaily") == "ONSEnergyLoadDaily"
+
+    def test_names_are_read_from_the_plan(self, monkeypatch):
+        """Acronyms are spelled more than one way, so the plan's own names win over a guess."""
+        from psr.lakehouse.connector import connector
+
+        monkeypatch.setattr(connector, "_identity", {"tables": ["XYZPowerPlant", "XYzSpotPrice"]})
+
+        assert get_model_name("xyz_power_plant") == "XYZPowerPlant"
+        assert get_model_name("xyz_spot_price") == "XYzSpotPrice"

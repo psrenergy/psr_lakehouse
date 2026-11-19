@@ -132,15 +132,10 @@ class Client:
         """
         columns = None
         all_rows = []
-        page = 1
+        params = {"page_size": page_size, "response_format": "columnar"}
 
         while True:
-            response = connector.post(
-                "/query/",
-                json_body,
-                params={"page": page, "page_size": page_size, "response_format": "columnar"},
-                timeout=timeout,
-            )
+            response = connector.post("/query/", json_body, params=params, timeout=timeout)
             data = response["data"]
             if isinstance(data, list):
                 all_rows.extend(data)
@@ -149,13 +144,14 @@ class Client:
                     columns = data["columns"]
                 all_rows.extend(data["rows"])
 
-            if response["pagination"].get("quota_exhausted"):
+            pagination = response["pagination"]
+            if pagination.get("quota_exhausted"):
                 # This page spent the last of the weekly row quota, cut to what
                 # was left or ending on it exactly, and the next request would be
                 # a 429. Returning what arrived is more useful than raising and
                 # discarding it; the rows are the first N of the full result, so
                 # nothing in the middle is missing.
-                # Printed rather than warned, like the connector's PAT nudge.
+                # Printed rather than warned, so a notebook shows it without a file:line prefix.
                 print(
                     f"psr-lakehouse: your plan's weekly row quota is used up; returning the "
                     f"first {len(all_rows):,} rows of a longer result.\n"
@@ -164,9 +160,15 @@ class Client:
                     file=sys.stderr,
                 )
                 break
-            if not response["pagination"]["has_next"]:
+            if not pagination["has_next"]:
                 break
-            page += 1
+            if pagination.get("next_cursor"):
+                # The next page starts right after this one's last row, so it costs
+                # what page 1 did and a row written meanwhile cannot shift it.
+                params = {**params, "cursor": pagination["next_cursor"]}
+            else:
+                # A server that predates cursors.
+                params = {**params, "page": params.get("page", 1) + 1}
 
         return columns, all_rows
 
@@ -197,12 +199,12 @@ class Client:
                 equality; a list of values filters with an SQL IN clause
                 (e.g., {"subsystem": ["NORTH", "SOUTH"]})
             start_reference_date: Optional start date filter (inclusive)
-            end_reference_date: Optional end date filter (exclusive)
+            end_reference_date: Optional end date filter (inclusive)
             group_by: Optional list of columns to group by
-            datetime_granularity: Optional datetime granularity for grouping (e.g., "day", "week", "month") - only applicable if group_by is set
+            datetime_granularity: Optional datetime granularity for grouping ("hour", "day", "month" or "year") - only applicable if group_by is set
             order_by: Optional list of dicts with "column" and "direction" keys for ordering results (e.g., [{"column": "reference_date", "direction": "desc"}])
             aggregation_method: Aggregation method (sum, avg, min, max) - required if group_by is set
-            joins: Optional list of dicts with "table", "on", and "type" keys for joining other tables
+            joins: Optional list of dicts with "join_model", "join_filters" and "is_outer_join" keys for joining other tables
             latest_only: If True (default), each table is deduplicated server-side to the latest
                 non-deleted version of each datapoint. Set to False to return the full version
                 history, including superseded and soft-deleted rows. Note: for tables whose
@@ -266,43 +268,15 @@ class Client:
 
         return self.fetch_dataframe_from_query(json_body, page_size=page_size, timeout=timeout)
 
-    def _with_stable_order(self, json_body: dict) -> dict:
-        """Append `<model>.id` as the last order_by key so pagination is deterministic.
-
-        Results are paginated by page/page_size. When the requested ordering is not unique --
-        `reference_date` alone repeats across every plant at the same half-hour -- rows can
-        repeat on one page and be dropped from another. An `id` tiebreaker makes the order
-        total. Skipped for aggregated queries and for models without an `id` column.
-        """
-        order_by = json_body.get("order_by")
-        if not order_by or json_body.get("group_by"):
-            return json_body
-
-        model_name = order_by[0]["column"].rsplit(".", 1)[0]
-        id_column = f"{model_name}.id"
-        if id_column not in json_body.get("query_data", []):
-            return json_body
-        if any(item["column"] == id_column for item in order_by):
-            return json_body
-
-        return {**json_body, "order_by": [*order_by, {"column": id_column, "direction": "asc"}]}
-
     def fetch_dataframe_from_query(
         self, json_body: dict, page_size: int = 10000, timeout: int | None = 600
     ) -> pd.DataFrame:
         """
         Fetch data from the API using a custom query JSON body and return as a pandas DataFrame.
 
-        Applies the same defaults as `fetch_dataframe` when the caller omits them, so a
-        hand-built query does not silently behave differently from the alias methods:
-
-        - `latest_only`: defaults to True (dedup server-side to the latest non-deleted version
-          of each datapoint). Without it the server returns the full version history, and each
-          revised datapoint shows up more than once.
-        - `output_timezone`: defaults to "America/Sao_Paulo". Without it the server returns UTC,
-          which yields the right timestamps carrying the wrong values.
-
-        Pass the keys explicitly to opt out; existing values are never overwritten.
+        Applies the same defaults as `fetch_dataframe` when the caller omits them:
+        `latest_only` True (only the latest non-deleted version of each datapoint) and
+        `output_timezone` "America/Sao_Paulo". Pass the keys explicitly to opt out.
 
         Args:
             json_body: JSON request body for the query
@@ -317,14 +291,16 @@ class Client:
             "output_timezone": DEFAULT_OUTPUT_TIMEZONE,
             **json_body,
         }
-        json_body = self._with_stable_order(json_body)
 
         columns, rows = self._fetch_all_pages(json_body, page_size=page_size, timeout=timeout)
         df = pd.DataFrame(rows, columns=columns) if columns is not None else pd.DataFrame(rows)
 
-        date_cols = [col for col in df.columns if col.endswith("reference_date")]
-        if date_cols:
-            df[date_cols] = df[date_cols].apply(pd.to_datetime, format="ISO8601")
+        for col in [col for col in df.columns if col.endswith("reference_date")]:
+            # utc=True reads a column whose offsets differ across a clock change.
+            parsed = pd.to_datetime(df[col], format="ISO8601", utc=True)
+            # A plain date has no time and no offset: keep it naive rather than shift it into a zone.
+            is_datetime = df[col].astype("string").str.contains("T").any()
+            df[col] = parsed.dt.tz_convert((json_body["output_timezone"] or "UTC") if is_datetime else None)
 
         return df
 
@@ -412,7 +388,12 @@ class Client:
         """Get clean schema for a given table."""
         table_name = get_model_name(table_name)
         schemas = self._fetch_openapi_schema()
-        model_schema = schemas[table_name]
+        model_schema = schemas.get(table_name)
+        if model_schema is None:
+            # The schema lists only the tables in the caller's plan.
+            raise LakehouseError(
+                f"No table named {table_name} is available to you. list_tables() lists the tables your plan includes."
+            )
         properties = model_schema["properties"]
         defs = model_schema.get("$defs", {})
 
