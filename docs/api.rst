@@ -51,6 +51,11 @@ whoami()
 Returns the account the configured token belongs to and its active plan. Inside
 ``scoped_token()`` it asks the API about the scoped token instead.
 
+**Raises:**
+
+* ``LakehouseAuthError`` - If no personal access token is configured, or, with
+  ``require_scoped_token=True``, if called outside ``scoped_token()``
+
 usage()
 ~~~~~~~
 
@@ -67,8 +72,7 @@ asks the API again, so the rows-used figure is current. Returns ``None``.
 **Raises:**
 
 * ``LakehouseAuthError`` - If no personal access token is configured, or, with
-  ``require_scoped_token=True``, if called outside ``scoped_token()``. The same
-  applies to ``whoami()``.
+  ``require_scoped_token=True``, if called outside ``scoped_token()``
 
 scoped_token()
 ~~~~~~~~~~~~~~
@@ -77,7 +81,9 @@ For a process serving several people, each with their own token. Every request
 made inside the block carries ``pat`` instead of the global token, and only
 there: the token is held in a context variable, so concurrent threads and asyncio
 tasks each see their own. When the block exits, even on an exception, the token
-is gone from every context, copies included. Blocks nest. ``whoami()`` and
+is gone from every context, copies included: work still running on a copy, such
+as a task started inside the block, raises rather than falling back to the
+global token. Blocks nest. ``whoami()`` and
 ``usage()`` inside a block report the scoped token's account.
 
 .. code-block:: python
@@ -103,11 +109,13 @@ or, with ``require_scoped_token=True``, raises. Start such work with
 ``contextvars.copy_context().run``. On Python 3.14 with thread context
 inheritance on (the free-threaded default), a thread instead copies the context
 it was started from, so a pool started inside a block runs everyone's unscoped
-work with that block's token until the block exits. Start pools outside any block.
+work with that block's token until the block exits, and refuses it after. Start
+pools outside any block.
 
 Never hold a block open across a ``yield``, in a generator or an async generator:
 while it is suspended, the caller's context sees the token. Open the block around
-each request instead. A block that exits out of order raises.
+each request instead. A block that exits out of order raises, and requests made
+outside a block in that context raise from then on.
 
 **Raises:**
 

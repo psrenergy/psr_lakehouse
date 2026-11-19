@@ -18,17 +18,10 @@ from psr.lakehouse.exceptions import LakehouseAuthError, LakehouseError
 # scoped_token(). A context variable rather than an attribute on the connector,
 # which every thread shares: each context sees only the token it set. It holds
 # a one-item list rather than the token, so that closing the block empties it
-# for every context that copied it: a worker thread, a suspended generator.
+# for every context that copied it: a task or thread started inside the block.
 _scoped_pat: contextvars.ContextVar[list[str | None] | None] = contextvars.ContextVar(
     "lakehouse_scoped_pat", default=None
 )
-
-
-def _scoped() -> str | None:
-    """The scoped token in effect here, if its block is still open."""
-    cell = _scoped_pat.get()
-    return cell[0] if cell else None
-
 
 _NO_TOKEN = (
     "No personal access token configured, so there is nobody to report. "
@@ -36,6 +29,22 @@ _NO_TOKEN = (
     "LAKEHOUSE_PAT environment variable."
 )
 _OUTSIDE_SCOPE = "This request was made outside scoped_token() while require_scoped_token is on, so it was not sent."
+_CLOSED_SCOPE = "This request was made after its scoped_token() block exited, so it was not sent."
+
+
+def _scoped() -> str | None:
+    """The scoped token in effect here, or None outside any block.
+
+    Raises when this context holds a block that has since exited, such as a
+    task started inside it that outlived it. Falling back to the global token
+    there would run that person's work as the process.
+    """
+    cell = _scoped_pat.get()
+    if cell is None:
+        return None
+    if cell[0] is None:
+        raise LakehouseAuthError(_CLOSED_SCOPE)
+    return cell[0]
 
 
 def _well_formed(pat: object) -> bool:
@@ -144,17 +153,9 @@ class Connector:
             A token is not yet mandatory. Without one this warns and carries on,
             so existing scripts keep running until the API starts requiring it.
         """
-        # First, before anything can raise, so that a failed initialize() in
-        # strict mode leaves no global token behind.
-        if require_scoped_token is not None:
-            self._require_scoped_token = require_scoped_token
-        if self._require_scoped_token:
-            self._pat = None
-            self._identity = None
-            if pat:
-                raise LakehouseError("pat cannot be given while require_scoped_token is on; use scoped_token().")
-            token = None
-        else:
+        strict = self._require_scoped_token if require_scoped_token is None else require_scoped_token
+        token = None
+        if not strict:
             # Surrounding whitespace, a trailing newline above all, is stripped.
             # Whitespace inside is refused here, before any state changes:
             # requests would reject the header with a message that quotes it.
@@ -164,6 +165,15 @@ class Connector:
                     "The personal access token holds whitespace or control characters. "
                     "Check the value passed to initialize() or LAKEHOUSE_PAT."
                 )
+        self._require_scoped_token = strict
+        if strict:
+            # Before anything else can raise, so that a failed initialize() in
+            # strict mode leaves no global token behind, on the session either.
+            self._pat = None
+            self._identity = None
+            self._session = self._create_session()
+            if pat:
+                raise LakehouseError("pat cannot be given while require_scoped_token is on; use scoped_token().")
 
         # Get base URL from parameter or environment variable
         self._base_url = base_url or os.getenv("LAKEHOUSE_API_URL")
@@ -260,7 +270,9 @@ class Connector:
         The token is held in a context variable, so concurrent threads and
         tasks each see only their own. Blocks nest; the inner one wins until
         it exits. When a block exits, exception or not, its token is gone from
-        every context, copies included.
+        every context, copies included: work still running on a copy, such as
+        a task started inside the block, raises rather than falling back to
+        the global token.
 
         Context variables follow asyncio tasks and anyio's `to_thread`, which
         copy the context. A `threading.Thread` or a
@@ -271,13 +283,14 @@ class Connector:
         instead of falling back. On Python 3.14 with thread context
         inheritance on (the free-threaded default), a thread instead copies the
         context it was started from, so a pool started inside a block runs
-        everyone's unscoped work with that block's token until it exits.
-        Start pools outside any block.
+        everyone's unscoped work with that block's token until it exits, and
+        refuses it after. Start pools outside any block.
 
         Never hold a block open across a `yield`, in a generator or an async
         generator: while the generator is suspended its caller's context sees
         the token. Open the block around each request instead. A block that
-        exits out of order raises.
+        exits out of order raises, and requests made outside a block in that
+        context raise from then on.
 
         Raises:
             LakehouseAuthError: If `pat` is empty, not a string, or holds

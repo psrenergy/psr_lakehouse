@@ -871,6 +871,20 @@ class TestScopedToken:
             connector.initialize(require_scoped_token=True)
 
         assert connector._pat is None
+        assert "Authorization" not in connector._session.headers
+        with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+            connector.get("/query/schema")
+
+    @responses.activate
+    def test_a_malformed_pat_does_not_turn_strict_mode_off(self, monkeypatch):
+        """The token is checked before the flag changes, so a failed call
+        leaves the process failing closed, not sending unscoped requests."""
+        connector = self._strict(monkeypatch)
+
+        with pytest.raises(LakehouseAuthError, match="whitespace"):
+            connector.initialize(base_url=self.URL, pat="psr_a b", require_scoped_token=False)
+
+        assert connector._require_scoped_token is True
         with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
             connector.get("/query/schema")
 
@@ -922,8 +936,33 @@ class TestScopedToken:
         with scoped_token("psr_alice"):
             copied = contextvars.copy_context()
 
-        with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+        with pytest.raises(LakehouseAuthError, match="block exited"):
             copied.run(connector.get, "/query/schema")
+        assert len(responses.calls) == 0
+
+    @responses.activate
+    def test_a_task_that_outlives_its_block_does_not_fall_back_to_the_global_token(self):
+        """Without strict mode too: the task was started for Alice, so sending
+        the process's own token would run her work as someone else."""
+        import asyncio
+
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        async def main():
+            gate = asyncio.Event()
+
+            async def background():
+                await gate.wait()
+                connector.get("/query/schema")
+
+            with scoped_token("psr_alice"):
+                task = asyncio.create_task(background())
+            gate.set()
+            await task
+
+        with pytest.raises(LakehouseAuthError, match="block exited"):
+            asyncio.run(main())
         assert len(responses.calls) == 0
 
     def test_a_scope_held_across_a_yield_is_not_handed_on(self):
@@ -944,4 +983,6 @@ class TestScopedToken:
         assert _scoped() == "psr_bob"
         next(bob, None)
 
-        assert _scoped() is None
+        # What comes back is Alice's emptied cell, which refuses unscoped work.
+        with pytest.raises(LakehouseAuthError, match="block exited"):
+            _scoped()
