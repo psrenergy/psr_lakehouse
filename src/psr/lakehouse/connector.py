@@ -34,6 +34,7 @@ _NO_TOKEN = (
     "Generate one at https://cockpit.psr-inc.com and set it in the "
     "LAKEHOUSE_PAT environment variable."
 )
+_OUTSIDE_SCOPE = "This request was made outside scoped_token() while require_scoped_token is on, so it was not sent."
 
 
 def _well_formed(pat: object) -> bool:
@@ -50,6 +51,7 @@ class Connector:
     _session: requests.Session
     _identity: dict | None = None
     _pat: str | None = None
+    _require_scoped_token: bool = False
     _warned_about_missing_pat: bool = False
 
     def __new__(cls):
@@ -91,6 +93,7 @@ class Connector:
         self,
         base_url: str | None = None,
         pat: str | None = None,
+        require_scoped_token: bool | None = None,
     ):
         """
         Initialize the connector with the API URL and a personal access token.
@@ -105,16 +108,33 @@ class Connector:
                 Passing a token read from somewhere else - `os.environ`, a secret
                 manager - is fine, because the traceback shows the expression
                 rather than its value.
+            require_scoped_token: For a process serving several people. When
+                True there is no process-wide token: LAKEHOUSE_PAT is
+                ignored, passing `pat` raises, and any request made outside
+                scoped_token() raises LakehouseAuthError before it is sent. It
+                stays on for later initialize() calls, the automatic one
+                included, until one passes False.
 
         Raises:
             LakehouseAuthError: If the token is rejected, or if its owner holds
                 no active Lakehouse plan.
-            LakehouseError: If the API URL is missing or the API is unreachable.
+            LakehouseError: If the API URL is missing, the API is unreachable,
+                or `pat` is given while require_scoped_token is on.
 
         Note:
             A token is not yet mandatory. Without one this warns and carries on,
             so existing scripts keep running until the API starts requiring it.
         """
+        # First, before anything can raise, so that a failed initialize() in
+        # strict mode leaves no global token behind.
+        if require_scoped_token is not None:
+            self._require_scoped_token = require_scoped_token
+        if self._require_scoped_token:
+            self._pat = None
+            self._identity = None
+            if pat:
+                raise LakehouseError("pat cannot be given while require_scoped_token is on; use scoped_token().")
+
         # Get base URL from parameter or environment variable
         self._base_url = base_url or os.getenv("LAKEHOUSE_API_URL")
         if not self._base_url:
@@ -123,7 +143,7 @@ class Connector:
             )
         self._base_url = self._base_url.rstrip("/")
 
-        self._pat = pat or os.getenv("LAKEHOUSE_PAT")
+        self._pat = None if self._require_scoped_token else pat or os.getenv("LAKEHOUSE_PAT")
         self._identity = None
 
         self._session = self._create_session()
@@ -131,7 +151,7 @@ class Connector:
             # Set on the session rather than per call, so no request can be
             # added later that forgets to carry it.
             self._session.headers["Authorization"] = f"Bearer {self._pat}"
-        else:
+        elif not self._require_scoped_token:
             # Deliberately a warning and not an error, for now. The API does not
             # reject anonymous queries yet, and turning this into an exception
             # before it does would break every existing script for no benefit -
@@ -216,11 +236,13 @@ class Connector:
         copy the context. A `threading.Thread` or a
         `concurrent.futures.ThreadPoolExecutor` does not: work handed to one
         runs without the scoped token and falls back to the global one, or to
-        none. Start such work with `contextvars.copy_context().run`. On
-        Python 3.14 with thread context inheritance on (the free-threaded
-        default), a thread instead copies the context it was started from, so
-        a pool started inside a block runs everyone's unscoped work with that
-        block's token until it exits. Start pools outside any block.
+        none. Start such work with `contextvars.copy_context().run`, and
+        initialize with `require_scoped_token=True` so that a lost scope raises
+        instead of falling back. On Python 3.14 with thread context
+        inheritance on (the free-threaded default), a thread instead copies the
+        context it was started from, so a pool started inside a block runs
+        everyone's unscoped work with that block's token until it exits.
+        Start pools outside any block.
 
         Never hold a block open across a `yield`, in a generator or an async
         generator: while the generator is suspended its caller's context sees
@@ -257,17 +279,20 @@ class Connector:
         scoped = _scoped()
         if scoped is not None:
             return scoped
-        return self._pat
+        return None if self._require_scoped_token else self._pat
 
     def _auth_headers(self) -> dict | None:
         """The per-call Authorization a scoped token rides on.
 
         requests merges it over the session's header, so it wins. Outside a
-        scope there is none and the session's header goes as before.
+        scope there is none and the session's header goes as before, unless
+        scoped tokens are required, when the request must not go at all.
         """
         scoped = _scoped()
         if scoped is not None:
             return {"Authorization": f"Bearer {scoped}"}
+        if self._require_scoped_token:
+            raise LakehouseAuthError(_OUTSIDE_SCOPE)
         return None
 
     def whoami(self) -> dict:
@@ -280,13 +305,14 @@ class Connector:
         Raises:
             LakehouseAuthError: If no token is configured. There is no anonymous
                 answer to this question, so unlike a query it cannot be served
-                during the upgrade window.
+                during the upgrade window. With require_scoped_token, if called
+                outside scoped_token().
         """
         if not self._is_initialized:
             self.initialize()
 
         if not self._token():
-            raise LakehouseAuthError(_NO_TOKEN)
+            raise LakehouseAuthError(_OUTSIDE_SCOPE if self._require_scoped_token else _NO_TOKEN)
         if _scoped() is not None:
             return self.get("/query/whoami")
         return self._identity or {}
@@ -299,13 +325,14 @@ class Connector:
         anyone wants to know how much quota is left.
 
         Raises:
-            LakehouseAuthError: If no token is configured.
+            LakehouseAuthError: If no token is configured, or, with
+                require_scoped_token, if called outside scoped_token().
         """
         if not self._is_initialized:
             self.initialize()
 
         if not self._token():
-            raise LakehouseAuthError(_NO_TOKEN)
+            raise LakehouseAuthError(_OUTSIDE_SCOPE if self._require_scoped_token else _NO_TOKEN)
         identity = self.get("/query/whoami")
         # What is held is the global token's identity; a scoped one is not kept.
         if _scoped() is None:

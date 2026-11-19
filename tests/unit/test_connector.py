@@ -589,8 +589,8 @@ class TestScopedToken:
     """One process serving several people, each request on its own token.
 
     What must hold: a scoped token overrides the global one on every request
-    in its block and nowhere else, and concurrent scopes never see each
-    other's token.
+    in its block and nowhere else, concurrent scopes never see each other's
+    token, and strict mode fails closed instead of falling back.
     """
 
     URL = "https://test-api.example.com"
@@ -600,6 +600,16 @@ class TestScopedToken:
         from psr.lakehouse.connector import connector
 
         monkeypatch.setattr(connector, "_pat", "psr_test_token")
+
+    def _strict(self, monkeypatch):
+        """Initialize as a multi-tenant server would: no process-wide token."""
+        from psr.lakehouse.connector import connector
+
+        monkeypatch.setenv("LAKEHOUSE_PAT", "psr_from_env")
+        _mock_health_check(self.URL)
+        connector.initialize(base_url=self.URL, require_scoped_token=True)
+        responses.calls.reset()
+        return connector
 
     @responses.activate
     def test_without_a_scope_the_session_header_goes_unchanged(self):
@@ -767,21 +777,88 @@ class TestScopedToken:
         assert _scoped_pat.get() is None
 
     @responses.activate
-    def test_a_context_copied_inside_a_block_loses_the_token_when_it_exits(self):
-        """What a worker thread or a suspended generator holds: once the block
-        exits, work left on it no longer sends the token."""
+    def test_strict_mode_ignores_the_environment_and_refuses_unscoped_requests(self, monkeypatch, capsys):
+        from psr.lakehouse import scoped_token
+
+        connector = self._strict(monkeypatch)
+
+        assert connector._pat is None
+        assert "Authorization" not in connector._session.headers
+        # Its advice, set LAKEHOUSE_PAT, is the wrong one for a server.
+        assert "cockpit" not in capsys.readouterr().err
+
+        with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+            connector.post("/query/", {})
+        with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+            connector.get("/query/schema")
+        with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+            connector.whoami()
+        with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+            connector.usage()
+        assert len(responses.calls) == 0
+
+        responses.add(responses.POST, f"{self.URL}/query/", json={})
+        with scoped_token("psr_alice"):
+            connector.post("/query/", {})
+        assert responses.calls[0].request.headers["Authorization"] == "Bearer psr_alice"
+
+    @responses.activate
+    def test_strict_mode_fails_closed_when_work_loses_its_scope(self, monkeypatch):
+        """The documented caveat: a ThreadPoolExecutor does not carry the scope."""
+        from concurrent.futures import ThreadPoolExecutor
+
+        from psr.lakehouse import scoped_token
+
+        connector = self._strict(monkeypatch)
+
+        with scoped_token("psr_alice"), ThreadPoolExecutor(1) as pool:
+            future = pool.submit(connector.get, "/query/schema")
+            with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+                future.result()
+        assert len(responses.calls) == 0
+
+    @responses.activate
+    def test_strict_mode_survives_reinitializing_and_refuses_a_global_pat(self, monkeypatch):
+        connector = self._strict(monkeypatch)
+
+        _mock_health_check(self.URL)
+        connector.initialize(base_url=self.URL)
+        assert connector._pat is None
+        with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+            connector.get("/query/schema")
+
+        with pytest.raises(LakehouseError, match="require_scoped_token") as error:
+            connector.initialize(base_url=self.URL, pat="psr_super_secret_value")
+        assert "psr_super_secret_value" not in str(error.value)
+        assert connector._pat is None
+
+    def test_a_failed_strict_initialize_leaves_no_global_token_behind(self, monkeypatch):
+        from psr.lakehouse.connector import connector
+
+        monkeypatch.delenv("LAKEHOUSE_API_URL")
+        with pytest.raises(LakehouseError, match="API base URL"):
+            connector.initialize(require_scoped_token=True)
+
+        assert connector._pat is None
+        with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+            connector.get("/query/schema")
+
+    @responses.activate
+    def test_a_context_copied_inside_a_block_loses_the_token_when_it_exits(self, monkeypatch):
+        """What a worker thread or a suspended generator holds. In strict mode,
+        work left on it after the block raises instead of sending the token."""
         import contextvars
 
         from psr.lakehouse import scoped_token
-        from psr.lakehouse.connector import connector
 
-        responses.add(responses.GET, f"{self.URL}/query/schema", json={})
+        connector = self._strict(monkeypatch)
 
         with scoped_token("psr_alice"):
             copied = contextvars.copy_context()
-        copied.run(connector.get, "/query/schema")
 
-        assert responses.calls[0].request.headers["Authorization"] == "Bearer psr_test_token"
+        with pytest.raises(LakehouseAuthError, match="outside scoped_token"):
+            copied.run(connector.get, "/query/schema")
+        assert len(responses.calls) == 0
 
     def test_a_scope_held_across_a_yield_is_not_handed_on(self):
         """Two generators interleaved in one context. Alice's block exits while

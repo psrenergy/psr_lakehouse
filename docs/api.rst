@@ -64,7 +64,9 @@ asks the API again, so the rows-used figure is current. Returns ``None``.
 
 **Raises:**
 
-* ``LakehouseAuthError`` - If no personal access token is configured
+* ``LakehouseAuthError`` - If no personal access token is configured, or, with
+  ``require_scoped_token=True``, if called outside ``scoped_token()``. The same
+  applies to ``whoami()``.
 
 scoped_token()
 ~~~~~~~~~~~~~~
@@ -78,20 +80,28 @@ is gone from every context, copies included. Blocks nest. ``whoami()`` and
 
 .. code-block:: python
 
-   from psr.lakehouse import client, scoped_token
+   from psr.lakehouse import client, initialize, scoped_token
+
+   initialize(require_scoped_token=True)
 
    def handle(request):
        with scoped_token(request.pat):
            return client.fetch_dataframe(...)
 
+With ``require_scoped_token=True`` there is no process-wide token:
+``LAKEHOUSE_PAT`` is ignored, passing ``pat`` raises ``LakehouseError``, and a
+request made outside a block raises ``LakehouseAuthError`` before it is sent,
+rather than going out with someone else's token. It stays on for later
+``initialize()`` calls until one passes ``require_scoped_token=False``.
+
 Asyncio tasks and anyio's ``to_thread`` copy the context, so the scope follows
 them. ``threading.Thread`` and ``concurrent.futures.ThreadPoolExecutor`` do not:
-work handed to them runs without the scope and falls back to the global token.
-Start such work with ``contextvars.copy_context().run``. On Python 3.14 with
-thread context inheritance on (the free-threaded default), a thread instead
-copies the context it was started from, so a pool started inside a block runs
-everyone's unscoped work with that block's token until the block exits. Start
-pools outside any block.
+work handed to them runs without the scope and falls back to the global token,
+or, with ``require_scoped_token=True``, raises. Start such work with
+``contextvars.copy_context().run``. On Python 3.14 with thread context
+inheritance on (the free-threaded default), a thread instead copies the context
+it was started from, so a pool started inside a block runs everyone's unscoped
+work with that block's token until the block exits. Start pools outside any block.
 
 Never hold a block open across a ``yield``, in a generator or an async generator:
 while it is suspended, the caller's context sees the token. Open the block around

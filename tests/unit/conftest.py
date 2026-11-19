@@ -19,6 +19,7 @@ def setup_unit_test():
     connector._session = connector._create_session()
     connector._session.headers["Authorization"] = "Bearer psr_test_token"
     connector._identity = None
+    connector._require_scoped_token = False
     # The missing-token notice is printed once per process; reset it so each
     # test sees it rather than only the first one to run.
     type(connector)._warned_about_missing_pat = False
