@@ -65,6 +65,26 @@ df = client.fetch_dataframe(
 print(df)
 ```
 
+## 👥 Serving several people from one process
+
+A server that queries on behalf of its users can give each request its own
+token. Initialize with no process-wide token, then wrap each request:
+
+```python
+from psr.lakehouse import client, initialize, scoped_token
+
+initialize(require_scoped_token=True)
+
+with scoped_token(user_pat):
+    df = client.fetch_dataframe(...)
+```
+
+Concurrent requests never see each other's token, and a request made outside
+`scoped_token()` raises instead of going out with someone else's. The scope
+follows asyncio tasks but not a `ThreadPoolExecutor`, and must not be held open
+across a `yield`; see the
+[API reference](https://psrenergy.github.io/psr_lakehouse/api.html).
+
 ## 📚 Documentation
 
 For complete documentation including advanced features, API reference, and examples, visit the [full documentation](https://psrenergy.github.io/psr_lakehouse/).
