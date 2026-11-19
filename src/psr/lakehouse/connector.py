@@ -1,7 +1,10 @@
+import contextvars
 import os
 import re
 import sys
 import textwrap
+from collections.abc import Iterator
+from contextlib import contextmanager, suppress
 from importlib import metadata
 
 import requests
@@ -9,6 +12,34 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from psr.lakehouse.exceptions import LakehouseAuthError, LakehouseError
+
+# The token of whoever the current thread or task is working for, set by
+# scoped_token(). A context variable rather than an attribute on the connector,
+# which every thread shares: each context sees only the token it set. It holds
+# a one-item list rather than the token, so that closing the block empties it
+# for every context that copied it: a worker thread, a suspended generator.
+_scoped_pat: contextvars.ContextVar[list[str | None] | None] = contextvars.ContextVar(
+    "lakehouse_scoped_pat", default=None
+)
+
+
+def _scoped() -> str | None:
+    """The scoped token in effect here, if its block is still open."""
+    cell = _scoped_pat.get()
+    return cell[0] if cell else None
+
+
+_NO_TOKEN = (
+    "No personal access token configured, so there is nobody to report. "
+    "Generate one at https://cockpit.psr-inc.com and set it in the "
+    "LAKEHOUSE_PAT environment variable."
+)
+
+
+def _well_formed(pat: object) -> bool:
+    """Visible ASCII only. Checked before a token goes in a header, because
+    requests rejects a malformed header with a message that quotes it."""
+    return isinstance(pat, str) and re.fullmatch(r"[!-~]+", pat) is not None
 
 
 class Connector:
@@ -93,6 +124,7 @@ class Connector:
         self._base_url = self._base_url.rstrip("/")
 
         self._pat = pat or os.getenv("LAKEHOUSE_PAT")
+        self._identity = None
 
         self._session = self._create_session()
         if self._pat:
@@ -152,7 +184,11 @@ class Connector:
         # token: against a gated API it would only 401, and against an ungated
         # one there is nothing to resolve.
         if self._pat:
-            self._identity = self.get("/query/whoami", _skip_init_check=True)
+            # With the scope cleared, so that an initialize() triggered inside
+            # scoped_token() resolves the global token, not the scoped one.
+            probe = contextvars.copy_context()
+            probe.run(_scoped_pat.set, None)
+            self._identity = probe.run(self.get, "/query/whoami", _skip_init_check=True)
             # Greeting the person by name is the shortest way to answer the two
             # questions a token raises - is it working, and whose is it. Reading
             # the wrong name here is how someone catches a stale LAKEHOUSE_PAT
@@ -162,11 +198,84 @@ class Connector:
 
         self._is_initialized = True
 
-    def whoami(self) -> dict:
-        """Return who the configured token belongs to, and the plan it carries.
+    @contextmanager
+    def scoped_token(self, pat: str) -> Iterator[None]:
+        """Send `pat` instead of the global token on every request in this block.
 
-        Resolved once at initialize() and held, so this is free to call. It is
-        the answer to "am I about to run this as the right person".
+        For a process serving several people, each with their own token::
+
+            with scoped_token(pat):
+                client.fetch_dataframe(...)
+
+        The token is held in a context variable, so concurrent threads and
+        tasks each see only their own. Blocks nest; the inner one wins until
+        it exits. When a block exits, exception or not, its token is gone from
+        every context, copies included.
+
+        Context variables follow asyncio tasks and anyio's `to_thread`, which
+        copy the context. A `threading.Thread` or a
+        `concurrent.futures.ThreadPoolExecutor` does not: work handed to one
+        runs without the scoped token and falls back to the global one, or to
+        none. Start such work with `contextvars.copy_context().run`. On
+        Python 3.14 with thread context inheritance on (the free-threaded
+        default), a thread instead copies the context it was started from, so
+        a pool started inside a block runs everyone's unscoped work with that
+        block's token until it exits. Start pools outside any block.
+
+        Never hold a block open across a `yield`, in a generator or an async
+        generator: while the generator is suspended its caller's context sees
+        the token. Open the block around each request instead. A block that
+        exits out of order raises.
+
+        Raises:
+            LakehouseAuthError: If `pat` is empty, not a string, or holds
+                whitespace or control characters, or if the block exits out
+                of order.
+        """
+        # A None, too, which would otherwise fall back to the global token.
+        if not _well_formed(pat):
+            raise LakehouseAuthError("The scoped personal access token is empty or malformed.")
+        cell = [pat]
+        reset_to = _scoped_pat.set(cell)
+        try:
+            yield
+        finally:
+            # Emptied first, so no context that copied the cell keeps the token.
+            cell[0] = None
+            # Another block's cell here means this one was held across a yield.
+            # That block is still open, so its token stays.
+            if _scoped_pat.get() is not cell:
+                raise LakehouseAuthError(
+                    "A scoped_token() block exited out of order, which happens when one is held open across a yield."
+                )
+            # Entered in another context: leaving the emptied cell in place is safe.
+            with suppress(ValueError):
+                _scoped_pat.reset(reset_to)
+
+    def _token(self) -> str | None:
+        """The token in effect here: the scoped one, else the global one."""
+        scoped = _scoped()
+        if scoped is not None:
+            return scoped
+        return self._pat
+
+    def _auth_headers(self) -> dict | None:
+        """The per-call Authorization a scoped token rides on.
+
+        requests merges it over the session's header, so it wins. Outside a
+        scope there is none and the session's header goes as before.
+        """
+        scoped = _scoped()
+        if scoped is not None:
+            return {"Authorization": f"Bearer {scoped}"}
+        return None
+
+    def whoami(self) -> dict:
+        """Return who the token in effect belongs to, and the plan it carries.
+
+        For the global token this is resolved once at initialize() and held,
+        so it is free to call. Inside scoped_token() it asks the API, for that
+        token. It is the answer to "am I about to run this as the right person".
 
         Raises:
             LakehouseAuthError: If no token is configured. There is no anonymous
@@ -176,12 +285,10 @@ class Connector:
         if not self._is_initialized:
             self.initialize()
 
-        if not self._pat:
-            raise LakehouseAuthError(
-                "No personal access token configured, so there is nobody to report. "
-                "Generate one at https://cockpit.psr-inc.com and set it in the "
-                "LAKEHOUSE_PAT environment variable."
-            )
+        if not self._token():
+            raise LakehouseAuthError(_NO_TOKEN)
+        if _scoped() is not None:
+            return self.get("/query/whoami")
         return self._identity or {}
 
     def usage(self) -> None:
@@ -194,9 +301,16 @@ class Connector:
         Raises:
             LakehouseAuthError: If no token is configured.
         """
-        self.whoami()
-        self._identity = self.get("/query/whoami")
-        print(_format_usage(self._identity, self._base_url))
+        if not self._is_initialized:
+            self.initialize()
+
+        if not self._token():
+            raise LakehouseAuthError(_NO_TOKEN)
+        identity = self.get("/query/whoami")
+        # What is held is the global token's identity; a scoped one is not kept.
+        if _scoped() is None:
+            self._identity = identity
+        print(_format_usage(identity, self._base_url))
 
     def post(self, endpoint: str, json_body: dict, params: dict | None = None, timeout: int = 600) -> dict:
         """
@@ -225,6 +339,7 @@ class Connector:
                 url,
                 json=json_body,
                 params=params,
+                headers=self._auth_headers(),
                 timeout=timeout,
             )
             response.raise_for_status()
@@ -264,6 +379,7 @@ class Connector:
             response = self._session.get(
                 url,
                 params=params,
+                headers=self._auth_headers(),
                 # Longer than the server's 60 s statement timeout, so its 504
                 # arrives before the read timeout, which is retried.
                 timeout=90,
@@ -298,11 +414,17 @@ class Connector:
         # Auth failures say one thing and say it once. The status, the URL and
         # the server's own wording all describe the same problem, so repeating
         # them buries the sentence that says what to do about it.
-        if status_code == 401 and not self._pat:
+        if status_code == 401 and not self._token():
             return LakehouseAuthError(
                 "No personal access token was sent, and the PSR Lakehouse requires one. "
                 "Generate a token at https://cockpit.psr-inc.com and set it in the "
                 "LAKEHOUSE_PAT environment variable."
+            )
+        if status_code == 401 and _scoped() is not None:
+            # Not "check LAKEHOUSE_PAT": the token came from whoever this
+            # process is serving, not from its environment.
+            return LakehouseAuthError(
+                "The personal access token was rejected. Generate a new token at https://cockpit.psr-inc.com."
             )
         if status_code == 401:
             return LakehouseAuthError(

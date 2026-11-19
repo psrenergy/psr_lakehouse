@@ -4,6 +4,7 @@ from .connector import connector as connector
 from .metadata import get_model_name
 
 initialize = connector.initialize
+scoped_token = connector.scoped_token
 whoami = connector.whoami
 usage = connector.usage
 
@@ -13,6 +14,7 @@ __all__ = [
     "client",
     "connector",
     "initialize",
+    "scoped_token",
     "whoami",
     "usage",
     "get_model_name",

@@ -583,3 +583,222 @@ class TestConnectorUsage:
 
         with pytest.raises(LakehouseAuthError):
             connector.usage()
+
+
+class TestScopedToken:
+    """One process serving several people, each request on its own token.
+
+    What must hold: a scoped token overrides the global one on every request
+    in its block and nowhere else, and concurrent scopes never see each
+    other's token.
+    """
+
+    URL = "https://test-api.example.com"
+
+    @pytest.fixture(autouse=True)
+    def global_pat(self, monkeypatch):
+        from psr.lakehouse.connector import connector
+
+        monkeypatch.setattr(connector, "_pat", "psr_test_token")
+
+    @responses.activate
+    def test_without_a_scope_the_session_header_goes_unchanged(self):
+        from psr.lakehouse.connector import connector
+
+        responses.add(responses.GET, f"{self.URL}/query/schema", json={})
+        responses.add(responses.POST, f"{self.URL}/query/", json={})
+
+        connector.get("/query/schema")
+        connector.post("/query/", {})
+
+        for call in responses.calls:
+            assert call.request.headers["Authorization"] == "Bearer psr_test_token"
+
+    @responses.activate
+    def test_a_scope_overrides_the_global_token_on_get_and_post(self):
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        responses.add(responses.GET, f"{self.URL}/query/schema", json={})
+        responses.add(responses.POST, f"{self.URL}/query/", json={})
+
+        with scoped_token("psr_alice"):
+            connector.get("/query/schema")
+            connector.post("/query/", {})
+
+        assert [c.request.headers["Authorization"] for c in responses.calls] == ["Bearer psr_alice"] * 2
+
+    @responses.activate
+    def test_the_scope_is_reset_on_exit_even_when_the_body_raises(self):
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        responses.add(responses.GET, f"{self.URL}/query/schema", json={})
+
+        with pytest.raises(RuntimeError), scoped_token("psr_alice"):
+            raise RuntimeError
+        connector.get("/query/schema")
+
+        assert responses.calls[0].request.headers["Authorization"] == "Bearer psr_test_token"
+
+    @responses.activate
+    def test_nested_scopes_restore_the_outer_token(self):
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        responses.add(responses.GET, f"{self.URL}/query/schema", json={})
+
+        with scoped_token("psr_outer"):
+            with scoped_token("psr_inner"):
+                connector.get("/query/schema")
+            connector.get("/query/schema")
+        connector.get("/query/schema")
+
+        assert [c.request.headers["Authorization"] for c in responses.calls] == [
+            "Bearer psr_inner",
+            "Bearer psr_outer",
+            "Bearer psr_test_token",
+        ]
+
+    @responses.activate
+    def test_concurrent_scopes_each_send_their_own_token(self):
+        """Both threads enter their scope before either builds its request, and
+        both requests are held in flight together, so a token kept on shared
+        state would be seen by the other thread."""
+        import contextvars
+        import threading
+
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        both_scoped = threading.Barrier(2, timeout=5)
+        both_in_flight = threading.Barrier(2, timeout=5)
+        seen = {}
+
+        def answer(request):
+            both_in_flight.wait()
+            seen[request.url.rsplit("/", 1)[1]] = request.headers["Authorization"]
+            return 200, {}, "{}"
+
+        responses.add_callback(responses.GET, f"{self.URL}/query/psr_alice", callback=answer)
+        responses.add_callback(responses.GET, f"{self.URL}/query/psr_bob", callback=answer)
+
+        def work(pat):
+            with scoped_token(pat):
+                both_scoped.wait()
+                connector.get(f"/query/{pat}")
+
+        threads = [
+            threading.Thread(target=contextvars.copy_context().run, args=(work, pat))
+            for pat in ("psr_alice", "psr_bob")
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert seen == {"psr_alice": "Bearer psr_alice", "psr_bob": "Bearer psr_bob"}
+
+    @responses.activate
+    def test_a_401_under_a_scope_says_rejected_even_with_no_global_token(self, monkeypatch):
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        monkeypatch.setattr(connector, "_pat", None)
+        del connector._session.headers["Authorization"]
+        responses.add(responses.POST, f"{self.URL}/query/", json={"detail": "Invalid token."}, status=401)
+
+        with pytest.raises(LakehouseAuthError, match="rejected") as error, scoped_token("psr_secret_value"):
+            connector.post("/query/", {})
+
+        assert "No personal access token was sent" not in str(error.value)
+        # The token came from whoever the process serves, not its environment.
+        assert "LAKEHOUSE_PAT" not in str(error.value)
+        assert "psr_secret_value" not in str(error.value)
+
+    @responses.activate
+    def test_whoami_and_usage_under_a_scope_ask_for_the_scoped_token(self, capsys):
+        """Never the identity held for the global token, and never stored over it."""
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        connector._identity = IDENTITY
+        alice = {**IDENTITY, "full_name": "Alice", "email": "alice@example.com"}
+        _mock_whoami(self.URL, json=alice)
+
+        with scoped_token("psr_alice"):
+            assert connector.whoami() == alice
+            connector.usage()
+
+        assert "Alice <alice@example.com>" in capsys.readouterr().out
+        assert [c.request.headers["Authorization"] for c in responses.calls] == ["Bearer psr_alice"] * 2
+        assert connector._identity is IDENTITY
+        assert connector.whoami() is IDENTITY
+
+    @responses.activate
+    def test_initialize_inside_a_scope_resolves_the_global_token(self, monkeypatch):
+        """The automatic initialize() can run inside the first scope. Its probe
+        must not hold that person as the process's identity."""
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        monkeypatch.setattr(connector, "_is_initialized", False)
+        _mock_startup(self.URL)
+        responses.add(responses.GET, f"{self.URL}/query/schema", json={})
+
+        with scoped_token("psr_alice"):
+            connector.get("/query/schema")
+
+        assert responses.calls[1].request.headers["Authorization"] == "Bearer psr_test_token"
+        assert responses.calls[2].request.headers["Authorization"] == "Bearer psr_alice"
+        assert connector._identity == IDENTITY
+
+    @pytest.mark.parametrize("pat", [None, "", " ", "psr_a b", "psr_a\r\nX-Evil: 1", 42])
+    def test_a_missing_or_malformed_scoped_token_is_refused_without_quoting_it(self, pat):
+        """A None must not fall back to the global token, and requests' own
+        complaint about a bad header quotes the header."""
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import _scoped_pat
+
+        with pytest.raises(LakehouseAuthError) as error, scoped_token(pat):
+            pass
+
+        assert "psr_a" not in str(error.value)
+        assert _scoped_pat.get() is None
+
+    @responses.activate
+    def test_a_context_copied_inside_a_block_loses_the_token_when_it_exits(self):
+        """What a worker thread or a suspended generator holds: once the block
+        exits, work left on it no longer sends the token."""
+        import contextvars
+
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        responses.add(responses.GET, f"{self.URL}/query/schema", json={})
+
+        with scoped_token("psr_alice"):
+            copied = contextvars.copy_context()
+        copied.run(connector.get, "/query/schema")
+
+        assert responses.calls[0].request.headers["Authorization"] == "Bearer psr_test_token"
+
+    def test_a_scope_held_across_a_yield_is_not_handed_on(self):
+        """Two generators interleaved in one context. Alice's block exits while
+        Bob's is in effect; when Bob's exits, nothing of Alice's comes back."""
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import _scoped
+
+        def stream(pat):
+            with scoped_token(pat):
+                yield
+
+        alice, bob = stream("psr_alice"), stream("psr_bob")
+        next(alice)
+        next(bob)
+        with pytest.raises(LakehouseAuthError, match="out of order"):
+            next(alice)
+        assert _scoped() == "psr_bob"
+        next(bob, None)
+
+        assert _scoped() is None
