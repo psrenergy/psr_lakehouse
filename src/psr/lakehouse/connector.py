@@ -135,8 +135,8 @@ class Connector:
                 included, until one passes False.
 
         Raises:
-            LakehouseAuthError: If the token is rejected, or if its owner holds
-                no active Lakehouse plan.
+            LakehouseAuthError: If the token is malformed or rejected, or if its
+                owner holds no active Lakehouse plan.
             LakehouseError: If the API URL is missing, the API is unreachable,
                 or `pat` is given while require_scoped_token is on.
 
@@ -153,6 +153,17 @@ class Connector:
             self._identity = None
             if pat:
                 raise LakehouseError("pat cannot be given while require_scoped_token is on; use scoped_token().")
+            token = None
+        else:
+            # Surrounding whitespace, a trailing newline above all, is stripped.
+            # Whitespace inside is refused here, before any state changes:
+            # requests would reject the header with a message that quotes it.
+            token = (pat or os.getenv("LAKEHOUSE_PAT") or "").strip() or None
+            if token and not _well_formed(token):
+                raise LakehouseAuthError(
+                    "The personal access token holds whitespace or control characters. "
+                    "Check the value passed to initialize() or LAKEHOUSE_PAT."
+                )
 
         # Get base URL from parameter or environment variable
         self._base_url = base_url or os.getenv("LAKEHOUSE_API_URL")
@@ -162,7 +173,7 @@ class Connector:
             )
         self._base_url = self._base_url.rstrip("/")
 
-        self._pat = None if self._require_scoped_token else pat or os.getenv("LAKEHOUSE_PAT")
+        self._pat = token
         self._identity = None
 
         self._session = self._create_session()

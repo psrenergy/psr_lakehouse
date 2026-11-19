@@ -460,6 +460,37 @@ class TestConnectorAuthentication:
         assert len(responses.calls) == 1
 
     @responses.activate
+    def test_whitespace_around_the_token_is_stripped(self, monkeypatch):
+        """A trailing newline from `$(cat token.txt)` is the usual one."""
+        monkeypatch.setenv("LAKEHOUSE_PAT", " psr_from_env\n")
+
+        connector = Connector.__new__(Connector)
+        connector._is_initialized = False
+
+        _mock_startup("https://api.example.com")
+        connector.initialize(base_url="https://api.example.com")
+
+        assert responses.calls[0].request.headers["Authorization"] == "Bearer psr_from_env"
+
+    @pytest.mark.parametrize("pat", ["psr_secret value", "psr_secret\tvalue"])
+    @responses.activate
+    def test_a_malformed_token_fails_at_initialize_without_naming_itself(self, monkeypatch, pat):
+        """Left to requests, its complaint about the header quotes the token in
+        full. And a failed initialize() changes nothing."""
+        from psr.lakehouse.connector import connector
+
+        monkeypatch.setenv("LAKEHOUSE_PAT", pat)
+        monkeypatch.setattr(connector, "_pat", "psr_test_token")
+
+        with pytest.raises(LakehouseAuthError, match="whitespace") as error:
+            connector.initialize(base_url="https://api.example.com")
+
+        assert "psr_secret" not in str(error.value)
+        assert connector._pat == "psr_test_token"
+        assert connector._session.headers["Authorization"] == "Bearer psr_test_token"
+        assert len(responses.calls) == 0
+
+    @responses.activate
     def test_a_rejected_token_fails_at_initialize_without_naming_itself(self):
         """The point of probing at startup: a 401 on the line that set the token
         up, not one an hour into a job. And the message lands in a traceback,

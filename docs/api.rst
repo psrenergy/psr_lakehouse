@@ -35,7 +35,9 @@ Or set environment variables before importing:
 
 Generate a token at https://cockpit.psr-inc.com. A rejected or unentitled token
 raises ``LakehouseAuthError`` during initialization; a missing one currently only
-warns, but will become an error once the API is gated.
+warns, but will become an error once the API is gated. Whitespace around the
+token, such as a trailing newline, is ignored; whitespace or control characters
+inside it raise ``LakehouseAuthError``.
 
 whoami()
 ~~~~~~~~
