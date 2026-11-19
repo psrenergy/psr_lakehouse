@@ -844,6 +844,41 @@ class TestScopedToken:
             connector.get("/query/schema")
 
     @responses.activate
+    def test_the_session_keeps_no_cookies(self):
+        """The session is shared across scopes, so a cookie from one person's
+        response must not ride on the next person's request."""
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        responses.add(responses.GET, f"{self.URL}/query/a", json={}, headers={"Set-Cookie": "sid=alice; Path=/"})
+        responses.add(responses.GET, f"{self.URL}/query/b", json={})
+
+        with scoped_token("psr_alice"):
+            connector.get("/query/a")
+        with scoped_token("psr_bob"):
+            connector.get("/query/b")
+
+        assert "Cookie" not in responses.calls[1].request.headers
+
+    @responses.activate
+    def test_a_netrc_entry_does_not_replace_the_scoped_token(self, monkeypatch, tmp_path):
+        from psr.lakehouse import scoped_token
+        from psr.lakehouse.connector import connector
+
+        netrc = tmp_path / "netrc"
+        netrc.write_text("machine test-api.example.com login ops password ops_secret\n")
+        monkeypatch.setenv("NETRC", str(netrc))
+        connector._session = connector._create_session()
+        responses.add(responses.GET, f"{self.URL}/query/redirect", status=307, headers={"Location": "/query/schema"})
+        responses.add(responses.GET, f"{self.URL}/query/schema", json={})
+
+        with scoped_token("psr_alice"):
+            connector.get("/query/redirect")
+
+        # The redirect too, where requests looks up ~/.netrc again.
+        assert [c.request.headers["Authorization"] for c in responses.calls] == ["Bearer psr_alice"] * 2
+
+    @responses.activate
     def test_a_context_copied_inside_a_block_loses_the_token_when_it_exits(self, monkeypatch):
         """What a worker thread or a suspended generator holds. In strict mode,
         work left on it after the block raises instead of sending the token."""

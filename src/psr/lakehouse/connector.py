@@ -1,4 +1,5 @@
 import contextvars
+import http.cookiejar
 import os
 import re
 import sys
@@ -43,6 +44,16 @@ def _well_formed(pat: object) -> bool:
     return isinstance(pat, str) and re.fullmatch(r"[!-~]+", pat) is not None
 
 
+class _Session(requests.Session):
+    def rebuild_auth(self, prepared_request, response):
+        """Strip the token on a redirect to another host, as requests does,
+        but skip requests' next step: putting ~/.netrc credentials in its place."""
+        if "Authorization" in prepared_request.headers and self.should_strip_auth(
+            response.request.url, prepared_request.url
+        ):
+            del prepared_request.headers["Authorization"]
+
+
 class Connector:
     _instance = None
 
@@ -62,7 +73,7 @@ class Connector:
     @staticmethod
     def _create_session() -> requests.Session:
         """Create a session with keep-alive and retries on transient server errors."""
-        session = requests.Session()
+        session = _Session()
         adapter = HTTPAdapter(
             max_retries=Retry(
                 total=3,
@@ -87,6 +98,14 @@ class Connector:
         )
         session.mount("https://", adapter)
         session.mount("http://", adapter)
+        # The session is shared by every caller, scoped tokens included, so a
+        # cookie one person's request picked up would ride on the next person's.
+        # The API authenticates by header alone and sets none.
+        session.cookies.set_policy(http.cookiejar.DefaultCookiePolicy(allowed_domains=[]))
+        # A no-op auth, so requests does not look up ~/.netrc: an entry for the
+        # API host would replace the Authorization header, the scoped one too.
+        # _Session covers the same lookup on redirects.
+        session.auth = lambda request: request
         return session
 
     def initialize(
