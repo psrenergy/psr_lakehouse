@@ -218,8 +218,7 @@ data-aria-dark="Switch to auto color mode">
 </span></pre></div>
 </div>
 <p>Generate a token at <a class="reference external" href="https://cockpit.psr-inc.com">https://cockpit.psr-inc.com</a>. A rejected or unentitled token
-raises <code class="docutils literal notranslate"><span class="pre">LakehouseAuthError</span></code> during initialization; a missing one currently only
-warns, but will become an error once the API is gated.</p>
+raises <code class="docutils literal notranslate"><span class="pre">LakehouseAuthError</span></code> during initialization, and so does a missing one.</p>
 </section>
 <section id="whoami">
 <h3>whoami()<a class="headerlink" href="#whoami" title="Link to this heading">#</a></h3>
@@ -262,8 +261,12 @@ asks the API again, so the rows-used figure is current. Returns <code class="doc
 </span><span data-line="8">    <span class="n">aggregation_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span data-line="9">    <span class="n">datetime_granularity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span data-line="10">    <span class="n">order_by</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span data-line="11">    <span class="n">output_timezone</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"America/Sao_Paulo"</span><span class="p">,</span>
-</span><span data-line="12"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+</span><span data-line="11">    <span class="n">joins</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span data-line="12">    <span class="n">latest_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+</span><span data-line="13">    <span class="n">output_timezone</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"America/Sao_Paulo"</span><span class="p">,</span>
+</span><span data-line="14">    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+</span><span data-line="15">    <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">600</span><span class="p">,</span>
+</span><span data-line="16"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 </span></pre></div>
 </div>
 <p><strong>Parameters:</strong></p>
@@ -275,7 +278,7 @@ asks the API again, so the rows-used figure is current. Returns <code class="doc
 <li><p><code class="docutils literal notranslate"><span class="pre">end_reference_date</span></code> (str, optional) - End date filter in ISO format (inclusive), e.g., <code class="docutils literal notranslate"><span class="pre">&quot;2023-05-02&quot;</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">group_by</span></code> (list[str], optional) - List of columns to group by for aggregation</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">aggregation_method</span></code> (str, optional) - Aggregation method when using <code class="docutils literal notranslate"><span class="pre">group_by</span></code>. Options: <code class="docutils literal notranslate"><span class="pre">&quot;sum&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;avg&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">datetime_granularity</span></code> (str, optional) - Temporal aggregation level. Options: <code class="docutils literal notranslate"><span class="pre">&quot;hour&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;day&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;week&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;month&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">datetime_granularity</span></code> (str, optional) - Temporal aggregation level. Options: <code class="docutils literal notranslate"><span class="pre">&quot;hour&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;day&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;month&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;year&quot;</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">order_by</span></code> (list[dict], optional) - Sort order as list of dictionaries with <code class="docutils literal notranslate"><span class="pre">column</span></code> and <code class="docutils literal notranslate"><span class="pre">direction</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;asc&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;desc&quot;</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">output_timezone</span></code> (str, optional) - Output timezone for datetime fields. Default: <code class="docutils literal notranslate"><span class="pre">&quot;America/Sao_Paulo&quot;</span></code></p></li>
 </ul>
@@ -348,14 +351,15 @@ notice is printed to stderr; see <code class="docutils literal notranslate"><spa
 <p><strong>Signature:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span data-line="1"><span class="k">def</span><span class="w"> </span><span class="nf">fetch_dataframe_from_query</span><span class="p">(</span>
 </span><span data-line="2">    <span class="n">json_body</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-</span><span data-line="3">    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span>
-</span><span data-line="4"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+</span><span data-line="3">    <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+</span><span data-line="4">    <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">600</span><span class="p">,</span>
+</span><span data-line="5"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 </span></pre></div>
 </div>
 <p><strong>Parameters:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">json_body</span></code> (dict) - JSON request body for the query. See Query Structure below.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">page_size</span></code> (int, optional) - Number of results per page. Default: 1000</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">page_size</span></code> (int, optional) - Number of results per page. Default: 10000</p></li>
 </ul>
 <p><strong>Returns:</strong></p>
 <ul class="simple">
@@ -379,7 +383,7 @@ if the weekly row quota runs out, as with <code class="docutils literal notransl
 </span><span data-line="13">    <span class="s2">"group_by"</span><span class="p">:</span> <span class="p">{</span>
 </span><span data-line="14">        <span class="s2">"group_by_clause"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"ModelName.column1"</span><span class="p">],</span>
 </span><span data-line="15">        <span class="s2">"default_aggregation_method"</span><span class="p">:</span> <span class="s2">"sum"</span><span class="p">,</span>  <span class="c1"># Options: sum, avg, min, max</span>
-</span><span data-line="16">        <span class="s2">"datetime_granularity"</span><span class="p">:</span> <span class="s2">"day"</span>  <span class="c1"># Options: hour, day, week, month</span>
+</span><span data-line="16">        <span class="s2">"datetime_granularity"</span><span class="p">:</span> <span class="s2">"day"</span>  <span class="c1"># Options: hour, day, month, year</span>
 </span><span data-line="17">    <span class="p">},</span>
 </span><span data-line="18">    <span class="s2">"order_by"</span><span class="p">:</span> <span class="p">[</span>
 </span><span data-line="19">        <span class="p">{</span>
@@ -589,20 +593,19 @@ days to track: it has no date in its key, or each publication replaces it whole
 </span><span data-line="16">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
 </span><span data-line="17">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Subsystem identifier'</span><span class="p">,</span>
 </span><span data-line="18">        <span class="s1">'enum_values'</span><span class="p">:</span> <span class="p">[</span>
-</span><span data-line="19">            <span class="s1">'NORTE'</span><span class="p">,</span>
-</span><span data-line="20">            <span class="s1">'NORDESTE'</span><span class="p">,</span>
-</span><span data-line="21">            <span class="s1">'SUDESTE'</span><span class="p">,</span>
-</span><span data-line="22">            <span class="s1">'SUL'</span><span class="p">,</span>
-</span><span data-line="23">            <span class="s1">'SISTEMA INTERLIGADO NACIONAL'</span>
-</span><span data-line="24">        <span class="p">]</span>
-</span><span data-line="25">    <span class="p">},</span>
-</span><span data-line="26">    <span class="s1">'spot_price'</span><span class="p">:</span> <span class="p">{</span>
-</span><span data-line="27">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'number'</span><span class="p">,</span>
-</span><span data-line="28">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-</span><span data-line="29">        <span class="s1">'title'</span><span class="p">:</span> <span class="s1">'Spot Price'</span><span class="p">,</span>
-</span><span data-line="30">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Spot price in R$/MWh'</span>
-</span><span data-line="31">    <span class="p">}</span>
-</span><span data-line="32"><span class="p">}</span>
+</span><span data-line="19">            <span class="s1">'NORTH'</span><span class="p">,</span>
+</span><span data-line="20">            <span class="s1">'NORTHEAST'</span><span class="p">,</span>
+</span><span data-line="21">            <span class="s1">'SOUTHEAST'</span><span class="p">,</span>
+</span><span data-line="22">            <span class="s1">'SOUTH'</span>
+</span><span data-line="23">        <span class="p">]</span>
+</span><span data-line="24">    <span class="p">},</span>
+</span><span data-line="25">    <span class="s1">'spot_price'</span><span class="p">:</span> <span class="p">{</span>
+</span><span data-line="26">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'number'</span><span class="p">,</span>
+</span><span data-line="27">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span><span data-line="28">        <span class="s1">'title'</span><span class="p">:</span> <span class="s1">'Spot Price'</span><span class="p">,</span>
+</span><span data-line="29">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Spot price in R$/MWh'</span>
+</span><span data-line="30">    <span class="p">}</span>
+</span><span data-line="31"><span class="p">}</span>
 </span></pre></div>
 </div>
 </section>
@@ -681,7 +684,7 @@ retried: the message says how to narrow the query</p></li>
 </li>
 <li><p><strong>Pagination</strong></p>
 <ul class="simple">
-<li><p>The client automatically handles pagination</p></li>
+<li><p>The client automatically handles pagination, following the cursor each page carries</p></li>
 <li><p>For very large datasets, consider breaking queries into smaller date ranges</p></li>
 </ul>
 </li>
@@ -704,8 +707,7 @@ retried: the message says how to narrow the query</p></li>
 <h2>Type Conversion<a class="headerlink" href="#type-conversion" title="Link to this heading">#</a></h2>
 <p>The client automatically handles type conversions:</p>
 <ul class="simple">
-<li><p><strong>Datetime columns</strong>: Columns named <code class="docutils literal notranslate"><span class="pre">reference_date</span></code> are automatically converted to <code class="docutils literal notranslate"><span class="pre">pd.Timestamp</span></code></p></li>
-<li><p><strong>Index setting</strong>: If <code class="docutils literal notranslate"><span class="pre">reference_date</span></code> exists, it’s automatically set as the DataFrame index</p></li>
+<li><p><strong>Datetime columns</strong>: Columns ending in <code class="docutils literal notranslate"><span class="pre">reference_date</span></code> are converted to <code class="docutils literal notranslate"><span class="pre">pd.Timestamp</span></code> in <code class="docutils literal notranslate"><span class="pre">output_timezone</span></code>; plain dates stay naive</p></li>
 <li><p><strong>Numeric types</strong>: Numeric fields are preserved as appropriate pandas dtypes</p></li>
 </ul>
 </section>

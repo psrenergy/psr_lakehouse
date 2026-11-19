@@ -34,8 +34,7 @@ Or set environment variables before importing:
    LAKEHOUSE_PAT="psr_..."
 
 Generate a token at https://cockpit.psr-inc.com. A rejected or unentitled token
-raises ``LakehouseAuthError`` during initialization; a missing one currently only
-warns, but will become an error once the API is gated.
+raises ``LakehouseAuthError`` during initialization, and so does a missing one.
 
 whoami()
 ~~~~~~~~
@@ -87,7 +86,11 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
        aggregation_method: str | None = None,
        datetime_granularity: str | None = None,
        order_by: list[dict] | None = None,
+       joins: list[dict] | None = None,
+       latest_only: bool = True,
        output_timezone: str = "America/Sao_Paulo",
+       page_size: int = 10000,
+       timeout: int = 600,
    ) -> pd.DataFrame
 
 **Parameters:**
@@ -99,7 +102,7 @@ Fetch data from the API and return as a pandas DataFrame using a simplified inte
 * ``end_reference_date`` (str, optional) - End date filter in ISO format (inclusive), e.g., ``"2023-05-02"``
 * ``group_by`` (list[str], optional) - List of columns to group by for aggregation
 * ``aggregation_method`` (str, optional) - Aggregation method when using ``group_by``. Options: ``"sum"``, ``"avg"``, ``"min"``, ``"max"``
-* ``datetime_granularity`` (str, optional) - Temporal aggregation level. Options: ``"hour"``, ``"day"``, ``"week"``, ``"month"``
+* ``datetime_granularity`` (str, optional) - Temporal aggregation level. Options: ``"hour"``, ``"day"``, ``"month"``, ``"year"``
 * ``order_by`` (list[dict], optional) - Sort order as list of dictionaries with ``column`` and ``direction`` (``"asc"`` or ``"desc"``)
 * ``output_timezone`` (str, optional) - Output timezone for datetime fields. Default: ``"America/Sao_Paulo"``
 
@@ -178,13 +181,14 @@ Fetch data using a custom JSON query body. This method provides access to advanc
 
    def fetch_dataframe_from_query(
        json_body: dict,
-       page_size: int = 1000
+       page_size: int = 10000,
+       timeout: int = 600,
    ) -> pd.DataFrame
 
 **Parameters:**
 
 * ``json_body`` (dict) - JSON request body for the query. See Query Structure below.
-* ``page_size`` (int, optional) - Number of results per page. Default: 1000
+* ``page_size`` (int, optional) - Number of results per page. Default: 10000
 
 **Returns:**
 
@@ -212,7 +216,7 @@ The ``json_body`` parameter accepts a dictionary with the following structure:
        "group_by": {
            "group_by_clause": ["ModelName.column1"],
            "default_aggregation_method": "sum",  # Options: sum, avg, min, max
-           "datetime_granularity": "day"  # Options: hour, day, week, month
+           "datetime_granularity": "day"  # Options: hour, day, month, year
        },
        "order_by": [
            {
@@ -439,11 +443,10 @@ Get detailed schema information for a specific table.
            'nullable': True,
            'description': 'Subsystem identifier',
            'enum_values': [
-               'NORTE',
-               'NORDESTE',
-               'SUDESTE',
-               'SUL',
-               'SISTEMA INTERLIGADO NACIONAL'
+               'NORTH',
+               'NORTHEAST',
+               'SOUTHEAST',
+               'SOUTH'
            ]
        },
        'spot_price': {
@@ -533,7 +536,7 @@ Best Practices
 
 4. **Pagination**
    
-   * The client automatically handles pagination
+   * The client automatically handles pagination, following the cursor each page carries
    * For very large datasets, consider breaking queries into smaller date ranges
 
 5. **Error Handling**
@@ -552,8 +555,7 @@ Type Conversion
 
 The client automatically handles type conversions:
 
-* **Datetime columns**: Columns named ``reference_date`` are automatically converted to ``pd.Timestamp``
-* **Index setting**: If ``reference_date`` exists, it's automatically set as the DataFrame index
+* **Datetime columns**: Columns ending in ``reference_date`` are converted to ``pd.Timestamp`` in ``output_timezone``; plain dates stay naive
 * **Numeric types**: Numeric fields are preserved as appropriate pandas dtypes
 
 Connection Management

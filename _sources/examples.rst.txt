@@ -251,7 +251,7 @@ The ``fetch_dataframe_from_query`` method accepts a dictionary with the followin
        "group_by": {
            "group_by_clause": ["ModelName.column1"],
            "default_aggregation_method": "sum",  # or "avg", "min", "max"
-           "datetime_granularity": "day"  # or "hour", "week", "month"
+           "datetime_granularity": "day"  # or "hour", "month", "year"
        },
        "order_by": [
            {

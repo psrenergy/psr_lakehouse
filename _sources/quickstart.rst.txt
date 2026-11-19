@@ -84,7 +84,7 @@ Use ``start_reference_date`` and ``end_reference_date`` to filter data by date:
        table_name="ccee_spot_price",
        data_columns=["reference_date", "spot_price"],
        start_reference_date="2023-01-01",  # inclusive
-       end_reference_date="2023-02-01",     # exclusive
+       end_reference_date="2023-01-31",     # inclusive
    )
 
 Aggregating Data
@@ -129,7 +129,7 @@ Use ``datetime_granularity`` to aggregate datetime data to a coarser granularity
        end_reference_date="2025-01-31",
        group_by=["reference_date", "plant_type"],
        aggregation_method="sum",
-       datetime_granularity="day",  # Options: hour, day, week, month
+       datetime_granularity="day",  # Options: hour, day, month, year
    )
 
 Ordering Results
@@ -235,7 +235,7 @@ Example schema output:
            'type': 'enum',
            'nullable': True,
            'description': 'Subsystem identifier',
-           'enum_values': ['NORTE', 'NORDESTE', 'SUDESTE', 'SUL', 'SISTEMA INTERLIGADO NACIONAL']
+           'enum_values': ['NORTH', 'NORTHEAST', 'SOUTHEAST', 'SOUTH']
        },
        'spot_price': {
            'type': 'number',

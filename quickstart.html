@@ -261,7 +261,7 @@ error that says when the quota frees.</p>
 </span><span data-line="2">    <span class="n">table_name</span><span class="o">=</span><span class="s2">"ccee_spot_price"</span><span class="p">,</span>
 </span><span data-line="3">    <span class="n">data_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"spot_price"</span><span class="p">],</span>
 </span><span data-line="4">    <span class="n">start_reference_date</span><span class="o">=</span><span class="s2">"2023-01-01"</span><span class="p">,</span>  <span class="c1"># inclusive</span>
-</span><span data-line="5">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-02-01"</span><span class="p">,</span>     <span class="c1"># exclusive</span>
+</span><span data-line="5">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2023-01-31"</span><span class="p">,</span>     <span class="c1"># inclusive</span>
 </span><span data-line="6"><span class="p">)</span>
 </span></pre></div>
 </div>
@@ -302,7 +302,7 @@ error that says when the quota frees.</p>
 </span><span data-line="6">    <span class="n">end_reference_date</span><span class="o">=</span><span class="s2">"2025-01-31"</span><span class="p">,</span>
 </span><span data-line="7">    <span class="n">group_by</span><span class="o">=</span><span class="p">[</span><span class="s2">"reference_date"</span><span class="p">,</span> <span class="s2">"plant_type"</span><span class="p">],</span>
 </span><span data-line="8">    <span class="n">aggregation_method</span><span class="o">=</span><span class="s2">"sum"</span><span class="p">,</span>
-</span><span data-line="9">    <span class="n">datetime_granularity</span><span class="o">=</span><span class="s2">"day"</span><span class="p">,</span>  <span class="c1"># Options: hour, day, week, month</span>
+</span><span data-line="9">    <span class="n">datetime_granularity</span><span class="o">=</span><span class="s2">"day"</span><span class="p">,</span>  <span class="c1"># Options: hour, day, month, year</span>
 </span><span data-line="10"><span class="p">)</span>
 </span></pre></div>
 </div>
@@ -395,7 +395,7 @@ filters <code class="docutils literal notranslate"><span class="pre">reference_d
 </span><span data-line="15">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'enum'</span><span class="p">,</span>
 </span><span data-line="16">        <span class="s1">'nullable'</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
 </span><span data-line="17">        <span class="s1">'description'</span><span class="p">:</span> <span class="s1">'Subsystem identifier'</span><span class="p">,</span>
-</span><span data-line="18">        <span class="s1">'enum_values'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'NORTE'</span><span class="p">,</span> <span class="s1">'NORDESTE'</span><span class="p">,</span> <span class="s1">'SUDESTE'</span><span class="p">,</span> <span class="s1">'SUL'</span><span class="p">,</span> <span class="s1">'SISTEMA INTERLIGADO NACIONAL'</span><span class="p">]</span>
+</span><span data-line="18">        <span class="s1">'enum_values'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'NORTH'</span><span class="p">,</span> <span class="s1">'NORTHEAST'</span><span class="p">,</span> <span class="s1">'SOUTHEAST'</span><span class="p">,</span> <span class="s1">'SOUTH'</span><span class="p">]</span>
 </span><span data-line="19">    <span class="p">},</span>
 </span><span data-line="20">    <span class="s1">'spot_price'</span><span class="p">:</span> <span class="p">{</span>
 </span><span data-line="21">        <span class="s1">'type'</span><span class="p">:</span> <span class="s1">'number'</span><span class="p">,</span>
